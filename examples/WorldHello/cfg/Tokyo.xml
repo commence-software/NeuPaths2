@@ -1,0 +1,22 @@
+<logic_cell>
+  <name>Tokyo_City</name>
+  <properties>
+    <property>
+      <name>city_name</name>
+      <value>Tokyo</value>
+    </property>
+    <property>
+      <name>salutation</name>
+      <value>Konnichiwa</value>
+    </property>
+  </properties>
+  <synapses>
+    <synapse>Network#Unicast#Peer#Request#30001</synapse>
+    <synapse>Network#Unicast#Peer#Reply#30002</synapse>
+  </synapses>
+  <activators>
+    <activator>
+      <class>WorldHelloActivator</class>
+    </activator>
+  </activators>
+</logic_cell>

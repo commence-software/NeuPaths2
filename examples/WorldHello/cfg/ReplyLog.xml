@@ -1,0 +1,5 @@
+<event_cell>
+  <name>ReplyDomainLogger</name>
+  <synapse>Network#Unicast#Peer#Reply#30002</synapse>
+  <output_file>worldhello_reply_events.out</output_file>
+</event_cell>

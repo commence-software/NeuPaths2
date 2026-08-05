@@ -1,0 +1,11 @@
+<extractor_cell>
+  <name>ReplyExtractor</name>
+  <synapses>
+    <synapse>Network#Unicast#Peer#@#30001</synapse>
+  </synapses>
+  <subscription>
+    <cell_name>ClusterManager</cell_name>
+    <transmitter_name>ClusterResponse</transmitter_name>
+    <domain>@</domain>
+  </subscription>
+</extractor_cell>

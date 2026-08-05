@@ -1,0 +1,11 @@
+<extractor_cell>
+  <name>TestExtractor</name>
+  <synapses>
+    <synapse>Local#Stream#Peer#Test#/tmp/lc.sock</synapse>
+  </synapses>
+  <subscription>
+    <cell_name>LBC_.*</cell_name>
+    <transmitter_name>Response</transmitter_name>
+    <domain>Test</domain>
+  </subscription>
+</extractor_cell>

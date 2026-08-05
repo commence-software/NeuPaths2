@@ -1,0 +1,18 @@
+<cell_cluster>
+  <name>WorldCluster</name>
+  <cell_definitions>
+    <cell_definition>cfg/HailInjector.xml</cell_definition>
+    <cell_definition>cfg/SalutationExtractor.xml</cell_definition>
+    <cell_definition>cfg/London.xml</cell_definition>
+    <cell_definition>cfg/Madrid.xml</cell_definition>
+    <cell_definition>cfg/Moscow.xml</cell_definition>
+    <cell_definition>cfg/Paris.xml</cell_definition>
+    <cell_definition>cfg/SanFrancisco.xml</cell_definition>
+    <cell_definition>cfg/Sydney.xml</cell_definition>
+    <cell_definition>cfg/Tokyo.xml</cell_definition>
+    <cell_definition>cfg/RequestLog.xml</cell_definition>
+    <cell_definition>cfg/ReplyLog.xml</cell_definition>
+  </cell_definitions>
+  <trace_logging_enabled>true</trace_logging_enabled>
+  <subscription_trace_interval_ms>1500</subscription_trace_interval_ms>
+</cell_cluster>

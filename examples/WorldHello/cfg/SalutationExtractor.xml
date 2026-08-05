@@ -1,0 +1,11 @@
+<extractor_cell>
+  <name>SalutationExtractor</name>
+  <synapses>
+    <synapse>Network#Unicast#Listener#Reply#30002</synapse>
+  </synapses>
+  <subscription>
+    <cell_name>.*_City</cell_name>
+    <transmitter_name>Salutation</transmitter_name>
+    <domain>Reply</domain>
+  </subscription>
+</extractor_cell>

@@ -1,0 +1,5 @@
+<event_cell>
+  <name>EventLog</name>
+  <synapse>Network#Unicast#Peer#@#30001</synapse>
+  <output_file>events.out</output_file>
+</event_cell>

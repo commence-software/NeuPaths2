@@ -1,0 +1,11 @@
+<injector_cell>
+  <name>HailInjector</name>
+  <synapses>
+    <synapse>Network#Unicast#Listener#Request#30001</synapse>
+  </synapses>
+  <transmitter>
+    <name>Hello</name>
+    <stimulus_class>neupaths.stim.DateStimulus</stimulus_class>
+    <trace>enabled</trace>
+  </transmitter>
+</injector_cell>

@@ -52,4 +52,4 @@ The `documents` directory contains many resources for learning NeuPaths programm
 
 ## Where can I find support?
 
-Contact me at aaron.caraveo@commence-software.com with questions, support requests and issues.  The NeuPaths Discord server is also available for support and community discussion.  Send me an email to request an invitation.
+Contact aaron.caraveo@commence-software.com with questions, support requests and issues.  The NeuPaths Discord server is also available for support and community discussion.  Send an email to request an invitation.

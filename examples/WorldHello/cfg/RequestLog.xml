@@ -1,0 +1,5 @@
+<event_cell>
+  <name>RequestDomainLogger</name>
+  <synapse>Network#Unicast#Peer#Request#30001</synapse>
+  <output_file>worldhello_request_events.out</output_file>
+</event_cell>

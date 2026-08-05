@@ -1,0 +1,10 @@
+<injector_cell>
+  <name>AlarmInjector</name>
+  <synapses>
+    <synapse>Local#Stream#Peer#@#/tmp/alarms.syn</synapse>
+  </synapses>
+  <transmitter>
+    <name>AlarmRequest</name>
+    <stimulus_class>AlarmRequest</stimulus_class>
+  </transmitter>
+</injector_cell>

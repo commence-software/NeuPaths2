@@ -1,0 +1,11 @@
+<extractor_cell>
+  <name>AlarmExtractor</name>
+  <synapses>
+    <synapse>Local#Stream#Peer#@#/tmp/alarms.syn</synapse>
+  </synapses>
+  <subscription>
+    <cell_name>AlarmService</cell_name>
+    <transmitter_name>AlarmExpiration</transmitter_name>
+    <domain>@</domain>
+  </subscription>
+</extractor_cell>

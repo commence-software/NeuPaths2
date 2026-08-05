@@ -1,0 +1,15 @@
+<logic_cell>
+  <name>ClusterManager</name>
+  <synapses>
+    <synapse>Network#Unicast#Listener#@#30001</synapse>
+    <synapse>Network#Unicast#Peer#@#30002</synapse>
+  </synapses>
+  <activators>
+    <activator>
+      <class>ClusterRequestActivator</class>
+    </activator>
+    <activator>
+      <class>ClusterResponseActivator</class>
+    </activator>
+  </activators>
+</logic_cell>

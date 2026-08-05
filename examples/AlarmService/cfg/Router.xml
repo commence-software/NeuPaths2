@@ -1,0 +1,6 @@
+<router_cell>
+  <name>Router</name>
+  <synapses>
+    <synapse>Local#Stream#Listener#@#/tmp/alarms.syn</synapse>
+  </synapses>
+</router_cell>

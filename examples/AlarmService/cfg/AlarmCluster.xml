@@ -1,0 +1,15 @@
+<cell_cluster>
+  <name>AlarmCluster</name>
+  <cell_definitions>
+    <cell_definition>cfg/Router.xml</cell_definition>
+    <cell_definition>cfg/Events.xml</cell_definition>
+    <cell_definition>cfg/AlarmService.xml</cell_definition>
+    <cell_definition>cfg/AlarmInjector.xml</cell_definition>
+    <cell_definition>cfg/AlarmExtractor.xml</cell_definition>
+  </cell_definitions>
+  <logging_enabled>true</logging_enabled>
+  <trace_logging_enabled>true</trace_logging_enabled>
+  <debug_logging_enabled>true</debug_logging_enabled>
+  <runtime_logging_enabled>true</runtime_logging_enabled>
+</cell_cluster>
+  

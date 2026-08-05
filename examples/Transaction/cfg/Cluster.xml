@@ -1,0 +1,11 @@
+<cell_cluster>
+  <name>TransactionCluster</name>
+  <cell_definitions>
+    <cell_definition>cfg/ClusterManager.xml</cell_definition>
+    <cell_definition>cfg/PropertyManager.xml</cell_definition>
+    <cell_definition>cfg/RequestInjector.xml</cell_definition>
+    <cell_definition>cfg/ReplyExtractor.xml</cell_definition>
+    <cell_definition>cfg/EventLog.xml</cell_definition>
+  </cell_definitions>
+  <trace_logging_enabled>true</trace_logging_enabled>
+</cell_cluster>

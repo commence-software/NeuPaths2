@@ -1,0 +1,11 @@
+<injector_cell>
+  <name>TestInjector</name>
+  <synapses>
+    <synapse>Local#Stream#Peer#Test#/tmp/lc.sock</synapse>
+  </synapses>
+  <transmitter>
+    <name>Request</name>
+    <stimulus_class>neupaths.stim.SignalStimulus</stimulus_class>
+    <trace>enabled</trace>
+  </transmitter>
+</injector_cell>

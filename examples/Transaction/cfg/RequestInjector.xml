@@ -1,0 +1,11 @@
+<injector_cell>
+  <name>RequestInjector</name>
+  <synapses>
+    <synapse>Network#Unicast#Peer#@#30001</synapse>
+  </synapses>
+  <transmitter>
+    <name>ClusterRequest</name>
+    <stimulus_class>ClusterRequest</stimulus_class>
+    <trace>enabled</trace>
+  </transmitter>
+</injector_cell>

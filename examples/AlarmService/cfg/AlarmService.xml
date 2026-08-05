@@ -1,0 +1,20 @@
+<specialized_cell>
+  <class>AlarmServiceCell</class>
+  <name>AlarmService</name>
+  <synapses>
+    <synapse>Local#Stream#Peer#@#/tmp/alarms.syn</synapse>
+  </synapses>
+  <activators>
+    <activator>
+      <class>ScheduleActivator</class>
+    </activator>
+    <activator>
+      <class>AlarmActivator</class>
+    </activator>
+  </activators>
+  <logging_enabled>true</logging_enabled>
+  <trace_logging_enabled>true</trace_logging_enabled>
+  <debug_logging_enabled>true</debug_logging_enabled>
+  <runtime_logging_enabled>true</runtime_logging_enabled>
+  <pulse_interval_ms>100</pulse_interval_ms>
+</specialized_cell>

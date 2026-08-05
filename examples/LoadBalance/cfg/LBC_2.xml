@@ -1,0 +1,13 @@
+<load_balanced_cell>
+  <name>LBC_2</name>
+  <synapses>
+    <synapse>Local#Stream#Peer#Test#/tmp/lc.sock</synapse>
+  </synapses>
+  <activators>
+  <activator>
+    <class>LBActivator</class>
+  </activator>
+  </activators>
+  <controller_name>TestController</controller_name>
+  <controller_domain>Test</controller_domain>
+</load_balanced_cell>

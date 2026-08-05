@@ -1,0 +1,5 @@
+<event_cell>
+  <name>Events</name>
+  <synapse>Local#Stream#Peer#@#/tmp/alarms.syn</synapse>
+  <output_file>./alarm.out</output_file>
+</event_cell>

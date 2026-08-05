@@ -1,0 +1,14 @@
+<cell_cluster>
+  <name>LoadBalanceCluster</name>
+  <cell_definitions>
+    <cell_definition>cfg/TestController.xml</cell_definition>
+    <cell_definition>cfg/TestInjector.xml</cell_definition>
+    <cell_definition>cfg/TestExtractor.xml</cell_definition>
+    <cell_definition>cfg/LBC_1.xml</cell_definition>
+    <cell_definition>cfg/LBC_2.xml</cell_definition>
+    <cell_definition>cfg/LBC_3.xml</cell_definition>
+  </cell_definitions>
+  <trace_logging_enabled>true</trace_logging_enabled>
+  <debug_logging_enabled>true</debug_logging_enabled>
+  <runtime_logging_enabled>true</runtime_logging_enabled>
+</cell_cluster>

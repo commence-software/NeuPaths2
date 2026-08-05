@@ -1,0 +1,24 @@
+<load_controller_cell>
+  <name>TestController</name>
+  <synapses>
+    <synapse>Local#Stream#Listener#Test#/tmp/lc.sock</synapse>
+  </synapses>
+  <receptors>
+    <receptor>
+      <name>Request</name>
+      <mode>non_buffered</mode>
+      <stimulus_class>neupaths.stim.SignalStimulus</stimulus_class>
+    </receptor>
+  </receptors>
+  <subscriptions>
+    <subscription>
+      <cell_name>TestInjector</cell_name>
+      <transmitter_name>Request</transmitter_name>
+      <receptor_name>Request</receptor_name>
+      <domain>Test</domain>
+      <filter_transactions>enabled</filter_transactions>
+    </subscription>
+  </subscriptions>
+  <cell_name_prefix>LBC_</cell_name_prefix>
+  <cell_domain>Test</cell_domain>
+</load_controller_cell>

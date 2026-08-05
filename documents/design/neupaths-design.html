@@ -1,0 +1,980 @@
+<title>NeuPaths — Software Design</title>
+<style>
+  :root{
+    --paper:#EDF1F6; --surface:#FFFFFF; --surface-2:#F6F8FB;
+    --ink:#0F1620; --ink-2:#3D4B5C; --ink-3:#6B7A8D;
+    --line:#D5DDE7; --line-2:#B9C4D2;
+    --signal:#1257E6; --signal-2:#3D74F0; --signal-soft:#E4ECFD;
+    --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,"Liberation Mono",monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,Helvetica,Arial,sans-serif;
+    --maxw:1160px; --col:70ch;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--sans); font-size:16px; line-height:1.65;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 clamp(16px,4vw,40px)}
+
+  /* ---- Type ---- */
+  h1,h2,h3,h4{font-weight:700; line-height:1.12; text-wrap:balance; letter-spacing:-0.02em; margin:0}
+  h2{font-size:clamp(1.5rem,3vw,2rem); letter-spacing:-0.025em}
+  h3{font-size:1.2rem; letter-spacing:-0.015em; margin-top:2.4em}
+  h4{font-size:1rem; letter-spacing:0; margin-top:1.8em}
+  p{margin:1em 0; max-width:var(--col)}
+  a{color:var(--signal); text-underline-offset:2px; text-decoration-thickness:1px}
+  a:hover{text-decoration-color:var(--signal-2)}
+  code,.mono{font-family:var(--mono)}
+  :not(pre)>code{font-size:.86em; background:var(--surface-2); border:1px solid var(--line);
+    padding:.06em .38em; border-radius:4px; color:var(--ink-2); white-space:nowrap}
+  .eyebrow{font-family:var(--mono); font-size:.72rem; text-transform:uppercase;
+    letter-spacing:.16em; color:var(--signal); font-weight:600}
+  .lede{font-size:1.12rem; color:var(--ink-2); max-width:var(--col)}
+  strong{font-weight:650; color:var(--ink)}
+  em{color:var(--ink-2)}
+  ::selection{background:var(--signal-soft)}
+
+  /* ---- Header / hero ---- */
+  header.top{padding:clamp(48px,8vw,96px) 0 40px; border-bottom:1px solid var(--line)}
+  .kicker-row{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:center; margin-bottom:26px}
+  .tag{font-family:var(--mono); font-size:.72rem; letter-spacing:.08em; color:var(--ink-3);
+    border:1px solid var(--line-2); border-radius:999px; padding:4px 11px; background:var(--surface)}
+  .tag b{color:var(--ink); font-weight:600}
+  h1{font-size:clamp(2.4rem,6.5vw,4.4rem); letter-spacing:-0.04em; line-height:1.02}
+  h1 .sub{display:block; color:var(--ink-3); font-weight:600; font-size:clamp(1rem,2.4vw,1.5rem);
+    letter-spacing:-0.02em; margin-top:.5em}
+  .hero-lede{font-size:clamp(1.05rem,2vw,1.3rem); color:var(--ink-2); max-width:60ch; margin-top:1.6em}
+  .hero-lede b{color:var(--ink)}
+
+  /* ---- Layout with rail ---- */
+  .shell{display:grid; grid-template-columns:220px minmax(0,1fr); gap:clamp(24px,5vw,72px);
+    padding:56px 0 96px; align-items:start}
+  nav.rail{position:sticky; top:24px; font-family:var(--mono); font-size:.8rem}
+  nav.rail ol{list-style:none; margin:0; padding:0; position:relative}
+  nav.rail ol::before{content:""; position:absolute; left:5px; top:8px; bottom:8px; width:2px;
+    background:linear-gradient(var(--line-2),var(--line))}
+  nav.rail li{position:relative; padding:7px 0 7px 26px}
+  nav.rail li::before{content:""; position:absolute; left:0; top:12px; width:12px; height:12px;
+    border-radius:50%; background:var(--surface); border:2px solid var(--line-2); transition:.2s}
+  nav.rail a{display:block; color:var(--ink-3); text-decoration:none; letter-spacing:.01em}
+  nav.rail a:hover{color:var(--ink)}
+  nav.rail .n{color:var(--signal); font-weight:600; margin-right:.5em}
+  nav.rail li:hover::before{border-color:var(--signal); box-shadow:0 0 0 4px var(--signal-soft)}
+  main{min-width:0}
+  section{scroll-margin-top:20px; padding-top:8px}
+  section+section{margin-top:72px; padding-top:64px; border-top:1px solid var(--line)}
+  .sec-head{display:flex; align-items:baseline; gap:16px; margin-bottom:6px}
+  .sec-head .num{font-family:var(--mono); font-size:.95rem; color:var(--signal); font-weight:600}
+
+  /* ---- Figures ---- */
+  figure{margin:34px 0; background:var(--surface); border:1px solid var(--line);
+    border-radius:14px; overflow:hidden; box-shadow:0 1px 2px rgba(15,22,32,.03),0 8px 24px -18px rgba(15,22,32,.25)}
+  .fig-scroll{overflow-x:auto; padding:26px 22px 10px}
+  figure svg{display:block; margin:0 auto; max-width:100%; height:auto; min-width:520px}
+  figcaption{font-family:var(--mono); font-size:.75rem; color:var(--ink-3); letter-spacing:.02em;
+    padding:12px 20px 16px; border-top:1px solid var(--line); background:var(--surface-2)}
+  figcaption b{color:var(--ink-2); font-weight:600}
+
+  /* SVG shared styling */
+  svg .node{fill:var(--surface); stroke:var(--line-2); stroke-width:1.5}
+  svg .node.acc{fill:var(--signal-soft); stroke:var(--signal); }
+  svg .node.dash{stroke-dasharray:6 4}
+  svg .band{stroke:var(--line-2); stroke-width:1.5}
+  svg text{font-family:var(--mono); fill:var(--ink)}
+  svg .t{font-size:13px}
+  svg .tb{font-size:13px; font-weight:600}
+  svg .s{font-size:11px; fill:var(--ink-3)}
+  svg .sa{font-size:11px; fill:var(--signal); font-weight:600}
+  svg .rel{stroke:var(--ink-3); stroke-width:1.4; fill:none}
+  svg .flow{stroke:var(--signal); stroke-width:2; fill:none}
+  svg .flow.dash,svg .rel.dash{stroke-dasharray:5 4}
+  svg .life{stroke:var(--line-2); stroke-width:1.4; stroke-dasharray:3 4}
+  .march{stroke-dasharray:7 6; animation:march 1.1s linear infinite}
+  @keyframes march{to{stroke-dashoffset:-26}}
+  @media (prefers-reduced-motion:reduce){.march{animation:none}}
+
+  /* ---- Tables ---- */
+  .tbl-scroll{overflow-x:auto; margin:24px 0; border:1px solid var(--line); border-radius:12px; background:var(--surface)}
+  table{border-collapse:collapse; width:100%; font-size:.9rem; min-width:520px}
+  th,td{text-align:left; padding:11px 15px; border-bottom:1px solid var(--line); vertical-align:top}
+  thead th{background:var(--surface-2); font-family:var(--mono); font-size:.72rem; text-transform:uppercase;
+    letter-spacing:.07em; color:var(--ink-3); font-weight:600; position:sticky; top:0}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:var(--surface-2)}
+  td code,th code{white-space:nowrap}
+  .center{text-align:center}
+  .yes{color:var(--signal); font-weight:700}
+  .no{color:var(--ink-3)}
+
+  /* ---- Cards ---- */
+  .grid{display:grid; gap:16px; margin:26px 0}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:18px 20px}
+  .card h4{margin:0 0 6px; font-family:var(--mono); font-size:.85rem; color:var(--signal)}
+  .card p{margin:.3em 0 0; font-size:.9rem; color:var(--ink-2); max-width:none}
+  .card .mem{font-family:var(--mono); font-size:.78rem; color:var(--ink-2); line-height:1.9}
+  .card .mem span{color:var(--ink-3)}
+
+  /* class member block */
+  .classbox{background:var(--surface); border:1px solid var(--line); border-radius:12px; overflow:hidden; margin:24px 0}
+  .classbox .hd{background:var(--ink); color:#fff; font-family:var(--mono); font-weight:600;
+    padding:11px 18px; font-size:.9rem; display:flex; justify-content:space-between; align-items:center; gap:12px}
+  .classbox .hd .stereo{color:#9DB2D8; font-weight:400; font-size:.78rem}
+  .classbox .body{padding:6px 18px 14px}
+  .classbox .row{font-family:var(--mono); font-size:.8rem; padding:5px 0; border-bottom:1px dashed var(--line);
+    display:flex; gap:10px; color:var(--ink-2)}
+  .classbox .row:last-child{border-bottom:none}
+  .classbox .vis{color:var(--signal); width:1.1em; flex:none; text-align:center}
+  .classbox .ret{color:var(--ink-3)}
+
+  /* legend + callout */
+  .legend{display:flex; flex-wrap:wrap; gap:14px 22px; font-family:var(--mono); font-size:.74rem;
+    color:var(--ink-3); margin:18px 0 4px; align-items:center}
+  .legend span{display:inline-flex; align-items:center; gap:7px}
+  .legend svg{min-width:0}
+  .callout{border-left:3px solid var(--signal); background:var(--surface); border-radius:0 10px 10px 0;
+    padding:16px 22px; margin:26px 0; box-shadow:0 8px 24px -20px rgba(18,87,230,.5)}
+  .callout .eyebrow{margin-bottom:6px}
+  .callout p{margin:.2em 0; max-width:none; color:var(--ink-2)}
+
+  footer{border-top:1px solid var(--line); padding:40px 0 64px; color:var(--ink-3);
+    font-family:var(--mono); font-size:.8rem}
+  footer .wrap{display:flex; flex-wrap:wrap; gap:8px 28px; justify-content:space-between}
+
+  @media (max-width:860px){
+    .shell{grid-template-columns:1fr; gap:0}
+    nav.rail{position:static; margin-bottom:8px; border:1px solid var(--line); border-radius:12px;
+      padding:14px 16px; background:var(--surface)}
+    nav.rail ol::before{display:none}
+    nav.rail ol{display:flex; flex-wrap:wrap; gap:4px 18px}
+    nav.rail li{padding-left:0}
+    nav.rail li::before{display:none}
+  }
+</style>
+
+<!-- shared SVG marker defs -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="tri" markerWidth="13" markerHeight="13" refX="11" refY="5" orient="auto">
+    <path d="M1,1 L11,5 L1,9 Z" fill="var(--surface)" stroke="var(--ink-3)" stroke-width="1.3"/>
+  </marker>
+  <marker id="diamond" markerWidth="16" markerHeight="12" refX="1" refY="5" orient="auto">
+    <path d="M1,5 L7,1.5 L13,5 L7,8.5 Z" fill="var(--ink-3)" stroke="var(--ink-3)"/>
+  </marker>
+  <marker id="arr" markerWidth="11" markerHeight="11" refX="8" refY="4" orient="auto">
+    <path d="M1,1 L8,4 L1,7" fill="none" stroke="var(--ink-3)" stroke-width="1.4"/>
+  </marker>
+  <marker id="arrb" markerWidth="11" markerHeight="11" refX="8" refY="4" orient="auto">
+    <path d="M1,1 L8,4 L1,7" fill="none" stroke="var(--signal)" stroke-width="1.7"/>
+  </marker>
+  <marker id="arrbf" markerWidth="10" markerHeight="10" refX="7" refY="4" orient="auto">
+    <path d="M1,1 L8,4 L1,7 Z" fill="var(--signal)" stroke="var(--signal)"/>
+  </marker>
+</defs></svg>
+
+<header class="top"><div class="wrap">
+  <div class="kicker-row">
+    <span class="tag"><b>NeuPaths</b> · v2.0.2</span>
+    <span class="tag">Pure Java SE · JDK 17+</span>
+    <span class="tag">183 source files · 3 packages</span>
+    <span class="tag">Software Design Documentation</span>
+  </div>
+  <h1>A nervous system<br>for distributed software
+    <span class="sub">The architecture of a broker-less dataflow framework, in UML.</span>
+  </h1>
+  <p class="hero-lede">Most distributed systems have a <b>thing in the middle</b> — a broker, a
+    queue, a coordinator that every signal passes through. NeuPaths removes it. Autonomous
+    <b>cells</b> wired by <b>synapses</b> pass typed <b>stimuli</b> across a mesh with no
+    center, processing in parallel wherever data arrives.</p>
+
+  <figure style="margin-top:40px">
+    <div class="fig-scroll">
+      <svg viewBox="0 0 820 300" role="img" aria-label="A mesh of cells connected by synapses with a signal traveling and no central broker">
+        <!-- edges -->
+        <path class="rel" d="M120,150 L300,80"/>
+        <path class="rel" d="M120,150 L300,220"/>
+        <path class="rel dash" d="M300,80 L300,220"/>
+        <path class="rel" d="M300,220 L520,220"/>
+        <path class="rel" d="M300,80 L520,90"/>
+        <path class="rel" d="M520,90 L520,220"/>
+        <path class="rel" d="M520,90 L700,150"/>
+        <path class="rel dash" d="M300,80 L520,220"/>
+        <!-- signal route Inj -> Logic -> Extractor -->
+        <path class="flow march" d="M120,150 L300,80 L520,90 L700,150"/>
+        <!-- empty middle marker -->
+        <circle cx="410" cy="150" r="52" fill="none" stroke="var(--line-2)" stroke-width="1.3" stroke-dasharray="3 5"/>
+        <text class="s" x="410" y="147" text-anchor="middle">no broker</text>
+        <text class="s" x="410" y="162" text-anchor="middle">no center</text>
+        <!-- nodes -->
+        <g>
+          <rect class="node acc" x="72" y="128" width="96" height="44" rx="9"/>
+          <text class="tb" x="120" y="147" text-anchor="middle">Injector</text>
+          <text class="s" x="120" y="162" text-anchor="middle">Cell</text>
+        </g>
+        <g>
+          <rect class="node" x="256" y="58" width="88" height="44" rx="9"/>
+          <text class="tb" x="300" y="77" text-anchor="middle">Logic</text>
+          <text class="s" x="300" y="92" text-anchor="middle">Cell</text>
+        </g>
+        <g>
+          <rect class="node" x="256" y="198" width="88" height="44" rx="9"/>
+          <text class="tb" x="300" y="217" text-anchor="middle">Router</text>
+          <text class="s" x="300" y="232" text-anchor="middle">Cell</text>
+        </g>
+        <g>
+          <rect class="node" x="476" y="68" width="88" height="44" rx="9"/>
+          <text class="tb" x="520" y="87" text-anchor="middle">Logic</text>
+          <text class="s" x="520" y="102" text-anchor="middle">Cell</text>
+        </g>
+        <g>
+          <rect class="node" x="476" y="198" width="88" height="44" rx="9"/>
+          <text class="tb" x="520" y="217" text-anchor="middle">Bridge</text>
+          <text class="s" x="520" y="232" text-anchor="middle">Cell</text>
+        </g>
+        <g>
+          <rect class="node acc" x="656" y="128" width="96" height="44" rx="9"/>
+          <text class="tb" x="704" y="147" text-anchor="middle">Extractor</text>
+          <text class="s" x="704" y="162" text-anchor="middle">Cell</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption><b>Fig 0 · The cellular mesh.</b> The accent path is one stimulus flowing
+      producer→consumer; the dashed links are redundant paths, made safe by per-cell duplicate
+      filtering. Processing happens <b>at the neurons</b>, in parallel.</figcaption>
+  </figure>
+</div></header>
+
+<div class="wrap"><div class="shell">
+  <nav class="rail" aria-label="Contents"><ol>
+    <li><a href="#overview"><span class="n">00</span>Overview</a></li>
+    <li><a href="#architecture"><span class="n">01</span>Architecture</a></li>
+    <li><a href="#domain"><span class="n">02</span>Domain model</a></li>
+    <li><a href="#subsystems"><span class="n">03</span>Subsystems</a></li>
+    <li><a href="#behavior"><span class="n">04</span>Behavior</a></li>
+    <li><a href="#execution"><span class="n">05</span>Execution model</a></li>
+  </ol></nav>
+
+  <main>
+
+  <!-- ============ 00 OVERVIEW ============ -->
+  <section id="overview">
+    <div class="sec-head"><span class="num">00</span><span class="eyebrow">Orientation</span></div>
+    <h2>The vocabulary &amp; the shape</h2>
+    <p class="lede">NeuPaths borrows the shape of a nervous system directly. Ten nouns carry the
+      entire model; learn them and the rest of the design reads cleanly.</p>
+
+    <div class="tbl-scroll"><table>
+      <thead><tr><th>Concept</th><th>Type in code</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><b>Stimulus</b></td><td><code>Stimulus</code></td><td>An atomic, typed, serializable unit of data that flows through the system.</td></tr>
+        <tr><td><b>Cell</b></td><td><code>Cell</code></td><td>An autonomous processing node — a neuron. Eight primitive types.</td></tr>
+        <tr><td><b>Synapse</b></td><td><code>Syn_Synapse</code></td><td>A transport-abstracting connection: TCP, UDP, multicast or Unix socket.</td></tr>
+        <tr><td><b>Nucleus</b></td><td><code>Nuc_Nucleus</code></td><td>The per-cell routing engine — this is what replaces the broker.</td></tr>
+        <tr><td><b>Activator</b></td><td><code>Activator</code></td><td>User logic. Fires only when <em>all</em> its receptors hold a stimulus.</td></tr>
+        <tr><td><b>Receptor / Transmitter</b></td><td><code>Rx_Receptor</code> / <code>Tx_Transmitter</code></td><td>Named, type-safe inputs / outputs of an activator.</td></tr>
+        <tr><td><b>Subscription</b></td><td><code>SubscriptionSpec</code></td><td>A wiring contract: <code>(cell C, transmitter T) ⇒ receptor R</code>.</td></tr>
+        <tr><td><b>Domain</b></td><td>string tag</td><td>A namespace scoping where stimuli may travel; <code>@</code> is global.</td></tr>
+        <tr><td><b>Cluster</b></td><td><code>CellCluster</code></td><td>A group of cells built and operated together as one unit.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Four commitments that shape everything</h3>
+    <div class="grid g2">
+      <div class="card"><h4>01 · No center</h4><p>No server, queue or coordinator class exists.
+        Every cell carries its own <code>Nuc_Nucleus</code> and talks peer-to-peer. Resilience is a
+        property of the mesh's shape, not of a component.</p></div>
+      <div class="card"><h4>02 · Dataflow</h4><p>An activator runs only when <em>all</em> receptors are
+        full. Timing is dictated by data arrival; between stimuli, threads sleep on OS wait-queues —
+        no polling, no spinning.</p></div>
+      <div class="card"><h4>03 · Location transparency</h4><p>A cell neither knows nor cares whether a
+        peer is in the same JVM or across a datacenter. One synapse-name string hides every transport
+        difference.</p></div>
+      <div class="card"><h4>04 · Self-contained</h4><p>Pure Java SE — no native code, no third-party
+        dependencies. It deploys as a single JAR and adds no operational surface of its own.</p></div>
+    </div>
+
+    <h3>Package map</h3>
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 780 250" role="img" aria-label="Three packages: util depends on api and stim; stim extends api">
+          <!-- util -->
+          <rect class="node" x="40" y="30" width="700" height="66" rx="10"/>
+          <text class="tb" x="60" y="55">neupaths.util</text>
+          <text class="s" x="60" y="76">CLI tools &amp; daemon control plane — CellClusterExec · CellClusterDaemon · IssueCommandToDaemon · EventLogger</text>
+          <text class="s" x="60" y="90" fill="var(--ink-3)">GenerateCryptoKey · GenerateStimulusType · PropertySet · Daemon command stimuli/activator</text>
+          <!-- stim -->
+          <rect class="node" x="40" y="118" width="330" height="60" rx="10"/>
+          <text class="tb" x="60" y="143">neupaths.stim</text>
+          <text class="s" x="60" y="164">Primitive Stimulus types — Boolean, Byte, Integer,</text>
+          <text class="s" x="60" y="177" fill="var(--ink-3)">Long, Float, Double, String, Date, Signal …</text>
+          <!-- api -->
+          <rect class="node acc" x="40" y="200" width="700" height="40" rx="10"/>
+          <text class="tb" x="60" y="225">neupaths.api</text>
+          <text class="s" x="360" y="225" fill="var(--signal)">the framework core — cells · activators · stimuli · synapses · nucleus · config · crypto · protocol (~150 types)</text>
+          <!-- deps -->
+          <path class="rel" d="M200,96 L200,118" marker-end="url(#arr)"/>
+          <path class="rel" d="M480,96 L480,200" marker-end="url(#arr)"/>
+          <path class="rel dash" d="M205,178 L205,200" marker-end="url(#tri)"/>
+        </svg>
+      </div>
+      <figcaption><b>Fig 0.1 · Dependencies.</b> Open arrows are <b>depends-on</b>; the hollow
+        triangle is <b>extends</b> — every <code>stim</code> type is a <code>Stimulus</code> from the core.</figcaption>
+    </figure>
+
+    <h3>Runtime layering</h3>
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 780 268" role="img" aria-label="Five layers each depending on the one below">
+          <g>
+            <rect class="node acc" x="60" y="16" width="660" height="42" rx="8"/>
+            <text class="tb" x="80" y="36">Application</text>
+            <text class="s" x="80" y="50" fill="var(--signal)">your Activators · custom Stimulus types · cluster XML definitions</text>
+          </g>
+          <g>
+            <rect class="node" x="60" y="66" width="660" height="42" rx="8"/>
+            <text class="tb" x="80" y="86">Cell</text>
+            <text class="s" x="80" y="100">Cell · CellCluster · CellFactory · 8 cell types · Activator</text>
+          </g>
+          <g>
+            <rect class="node" x="60" y="116" width="660" height="42" rx="8"/>
+            <text class="tb" x="80" y="136">Routing · Nuc_*</text>
+            <text class="s" x="80" y="150">subscription matching · duplicate filtering · send/receive queues · tracing</text>
+          </g>
+          <g>
+            <rect class="node" x="60" y="166" width="660" height="42" rx="8"/>
+            <text class="tb" x="80" y="186">Transport · Syn_* Bnd_* Cryp_* Msg_*</text>
+            <text class="s" x="80" y="200">synapse channels · peer binders · encryption · wire protocol</text>
+          </g>
+          <g>
+            <rect class="node" x="60" y="216" width="660" height="40" rx="8" style="fill:var(--surface-2)"/>
+            <text class="tb" x="80" y="240">JDK</text>
+            <text class="s" x="240" y="240">java.nio · javax.crypto · java.util.concurrent · org.w3c.dom</text>
+          </g>
+          <path class="rel" d="M730,37 L748,37 L748,239 L730,239" marker-end="url(#arr)"/>
+          <text class="s" x="754" y="142" transform="rotate(90 754 142)" text-anchor="middle">depends downward</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig 0.2 · Strict layering.</b> Application code touches only the Cell layer;
+        everything beneath the Nucleus is internal.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ 01 ARCHITECTURE ============ -->
+  <section id="architecture">
+    <div class="sec-head"><span class="num">01</span><span class="eyebrow">Architecture</span></div>
+    <h2>The anatomy of one cell</h2>
+    <p class="lede">Every cell has the same internal shape regardless of type. You supply the
+      <b>Activators</b>; the framework supplies the <b>Nucleus</b> and its transport. A cell is a
+      complete, self-routing participant in the mesh.</p>
+
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 820 340" role="img" aria-label="Component diagram of a cell: receptors, activator, transmitters, nucleus, cipher, binders">
+          <rect x="30" y="24" width="520" height="292" rx="14" fill="var(--surface-2)" stroke="var(--line-2)" stroke-width="1.5"/>
+          <text class="s" x="46" y="46">a Cell (e.g. LogicCell)</text>
+
+          <!-- user logic zone -->
+          <rect x="52" y="60" width="470" height="120" rx="10" fill="none" stroke="var(--line)" stroke-dasharray="5 4"/>
+          <text class="sa" x="66" y="80">user logic</text>
+          <rect class="node" x="66" y="92" width="104" height="72" rx="9"/>
+          <text class="tb" x="118" y="122" text-anchor="middle">Receptors</text>
+          <text class="s" x="118" y="140" text-anchor="middle">typed inputs</text>
+          <rect class="node acc" x="212" y="92" width="150" height="72" rx="9"/>
+          <text class="tb" x="287" y="120" text-anchor="middle">Activator</text>
+          <text class="s" x="287" y="138" text-anchor="middle">evaluate() when</text>
+          <text class="s" x="287" y="151" text-anchor="middle">all receptors full</text>
+          <rect class="node" x="404" y="92" width="104" height="72" rx="9"/>
+          <text class="tb" x="456" y="122" text-anchor="middle">Transmitters</text>
+          <text class="s" x="456" y="140" text-anchor="middle">typed outputs</text>
+          <path class="flow" d="M170,128 L212,128" marker-end="url(#arrbf)"/>
+          <path class="flow" d="M362,128 L404,128" marker-end="url(#arrbf)"/>
+
+          <!-- core zone -->
+          <rect x="52" y="196" width="470" height="104" rx="10" fill="none" stroke="var(--line)" stroke-dasharray="5 4"/>
+          <text class="sa" x="66" y="216">framework core</text>
+          <rect class="node" x="66" y="228" width="290" height="58" rx="9"/>
+          <text class="tb" x="211" y="252" text-anchor="middle">Nuc_Nucleus</text>
+          <text class="s" x="211" y="270" text-anchor="middle">routing · subscriptions · dedup · queues</text>
+          <rect class="node" x="372" y="228" width="136" height="58" rx="9"/>
+          <text class="tb" x="440" y="252" text-anchor="middle">Cryp_Cipher</text>
+          <text class="s" x="440" y="270" text-anchor="middle">per-stimulus</text>
+          <path class="rel" d="M356,257 L372,257"/>
+          <path class="rel" d="M456,164 L456,228" marker-end="url(#arr)"/>
+          <path class="rel" d="M118,164 L118,228 L200,228" fill="none" marker-end="url(#arr)"/>
+
+          <!-- binders + peers -->
+          <rect class="node" x="600" y="120" width="180" height="64" rx="10"/>
+          <text class="tb" x="690" y="146" text-anchor="middle">Bnd_Binder(s)</text>
+          <text class="s" x="690" y="164" text-anchor="middle">Stream · Unicast · Multicast</text>
+          <rect x="600" y="222" width="180" height="64" rx="10" fill="var(--surface-2)" stroke="var(--line-2)" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <text class="tb" x="690" y="248" text-anchor="middle">Other cells</text>
+          <text class="s" x="690" y="266" text-anchor="middle">in the mesh</text>
+          <path class="flow" d="M356,257 C500,257 500,152 600,152" marker-end="url(#arrb)"/>
+          <text class="sa" x="512" y="212" text-anchor="middle">Msg_*</text>
+          <path class="rel" d="M690,184 L690,222" marker-end="url(#arr)"/>
+          <text class="s" x="746" y="206">TCP/UDP</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig 1.1 · Cell component diagram.</b> Blue arrows are <b>stimulus flow</b>; grey
+        arrows are <b>structural</b> references. The Nucleus owns one binder per synapse and speaks the
+        <code>Msg_*</code> protocol; each stimulus is encrypted per hop.</figcaption>
+    </figure>
+
+    <div class="callout">
+      <div class="eyebrow">Why remove the broker</div>
+      <p>The broker is where the hardest problems concentrate — the thing you keep alive, keep scaled,
+        keep from becoming the single point of failure. With no center, there is nothing to provision or
+        babysit, location stops mattering to your code, and resilience comes from the mesh's shape:
+        run an activator on two nodes, let stimuli travel more than one path, and the Nucleus's
+        duplicate filtering makes the redundancy safe.</p>
+    </div>
+
+    <h3>Deployment</h3>
+    <p>A system is a set of JVM processes, each hosting one <code>CellCluster</code>, wired into a mesh
+      by synapses. Any process can host any cells. The <code>CellClusterDaemon</code> is an optional
+      operational convenience — <em>not</em> a broker: it deploys and controls clusters, but no
+      application traffic flows through it.</p>
+    <div class="tbl-scroll"><table>
+      <thead><tr><th>Concern</th><th>Where it lives</th><th>Mechanism</th></tr></thead>
+      <tbody>
+        <tr><td>Concurrency</td><td>Cell &amp; Nucleus threads</td><td>One activator thread each; semaphore-blocked queues; <code>ReentrantLock</code>, <code>SafeBoolean</code>, <code>SafeLong</code>.</td></tr>
+        <tr><td>Security</td><td><code>Cryp_*</code></td><td>Per-stimulus AES-CBC or Blowfish into a <code>SealedObject</code>; cipher chosen by the key's first byte.</td></tr>
+        <tr><td>Resilience</td><td>mesh + Nucleus + <code>Actv_CycleDetection</code></td><td>No single point of failure; duplicates filtered by a time-windowed history journal.</td></tr>
+        <tr><td>Observability</td><td><code>EventType</code> / <code>EventCell</code></td><td>15 event levels (RUNTIME → ERROR, AUDIT1–9); <code>EventLogger</code> spools them; stimulus tracing.</td></tr>
+        <tr><td>Flow control</td><td>Controller + workers</td><td><code>LoadControllerCell</code> hands work signals to a pool of interchangeable <code>LoadBalancedCell</code>s.</td></tr>
+        <tr><td>Transactions</td><td><code>Stim_*Transaction</code></td><td>Correlate a set of stimuli through a multi-step computation via a <code>transactionID</code>.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- ============ 02 DOMAIN MODEL ============ -->
+  <section id="domain">
+    <div class="sec-head"><span class="num">02</span><span class="eyebrow">Domain model · class diagrams</span></div>
+    <h2>The public API</h2>
+    <p class="lede">The types you work with directly: the <code>Cell</code> hierarchy, the
+      <code>Activator</code> you subclass, the <code>Stimulus</code> you send, and the subscription
+      model that wires them together.</p>
+
+    <div class="legend" aria-hidden="true">
+      <span><svg width="42" height="14"><path class="rel" d="M2,7 L34,7" marker-end="url(#tri)"/></svg> extends / implements</span>
+      <span><svg width="42" height="14"><path class="rel" d="M40,7 L8,7" marker-start="url(#diamond)"/></svg> composition</span>
+      <span><svg width="42" height="14"><path class="rel" d="M2,7 L34,7" marker-end="url(#arr)"/></svg> association</span>
+      <span><svg width="42" height="14"><path class="flow" d="M2,7 L34,7" marker-end="url(#arrbf)"/></svg> stimulus flow</span>
+      <span><svg width="30" height="14"><rect class="node dash" x="2" y="2" width="26" height="10" rx="3"/></svg> abstract</span>
+    </div>
+
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 840 250" role="img" aria-label="Cell base class with eight subtypes">
+          <rect class="node" x="360" y="16" width="120" height="46" rx="9"/>
+          <text class="tb" x="420" y="38" text-anchor="middle">Cell</text>
+          <text class="s" x="420" y="53" text-anchor="middle">base · CellType</text>
+          <!-- eight children -->
+          <g id="cellkids"></g>
+          <!-- draw children manually -->
+          <g>
+            <line class="rel" x1="420" y1="62" x2="420" y2="86"/>
+            <line class="rel" x1="70" y1="86" x2="770" y2="86"/>
+          </g>
+          <!-- children boxes -->
+          <g>
+            <rect class="node" x="20" y="98" width="112" height="46" rx="9"/><text class="t" x="76" y="120" text-anchor="middle">BridgeCell</text><text class="s" x="76" y="135" text-anchor="middle">cross-domain</text><line class="rel" x1="76" y1="86" x2="76" y2="98"/>
+            <rect class="node" x="148" y="98" width="112" height="46" rx="9"/><text class="t" x="204" y="120" text-anchor="middle">EventCell</text><text class="s" x="204" y="135" text-anchor="middle">log spool</text><line class="rel" x1="204" y1="86" x2="204" y2="98"/>
+            <rect class="node acc" x="276" y="98" width="112" height="46" rx="9"/><text class="t" x="332" y="120" text-anchor="middle">ExtractorCell</text><text class="s" x="332" y="135" text-anchor="middle">mesh → code</text><line class="rel" x1="332" y1="86" x2="332" y2="98"/>
+            <rect class="node acc" x="404" y="98" width="112" height="46" rx="9"/><text class="t" x="460" y="120" text-anchor="middle">InjectorCell</text><text class="s" x="460" y="135" text-anchor="middle">code → mesh</text><line class="rel" x1="460" y1="86" x2="460" y2="98"/>
+            <rect class="node acc" x="532" y="98" width="112" height="46" rx="9"/><text class="t" x="588" y="120" text-anchor="middle">LogicCell</text><text class="s" x="588" y="135" text-anchor="middle">runs activators</text><line class="rel" x1="588" y1="86" x2="588" y2="98"/>
+            <rect class="node" x="660" y="98" width="112" height="46" rx="9"/><text class="t" x="716" y="120" text-anchor="middle">RouterCell</text><text class="s" x="716" y="135" text-anchor="middle">forwards</text><line class="rel" x1="716" y1="86" x2="716" y2="98"/>
+          </g>
+          <g>
+            <line class="rel" x1="270" y1="176" x2="590" y2="176"/>
+            <line class="rel" x1="420" y1="144" x2="420" y2="176" style="display:none"/>
+            <rect class="node" x="276" y="188" width="130" height="46" rx="9"/><text class="t" x="341" y="210" text-anchor="middle">LoadBalancedCell</text><text class="s" x="341" y="225" text-anchor="middle">pooled worker</text><line class="rel" x1="341" y1="176" x2="341" y2="188"/>
+            <rect class="node" x="452" y="188" width="140" height="46" rx="9"/><text class="t" x="522" y="210" text-anchor="middle">LoadControllerCell</text><text class="s" x="522" y="225" text-anchor="middle">pool coordinator</text><line class="rel" x1="522" y1="176" x2="522" y2="188"/>
+            <path class="rel" d="M420,86 L420,176 L270,176"/>
+          </g>
+        </svg>
+      </div>
+      <figcaption><b>Fig 2.1 · The eight primitive cell types.</b> Accent boxes are the cells ordinary
+        code touches most: <code>Injector</code>/<code>Extractor</code> bridge in and out, <code>Logic</code>
+        does the work.</figcaption>
+    </figure>
+
+    <div class="tbl-scroll"><table>
+      <thead><tr><th>Cell type</th><th class="center">Activators?</th><th class="center">Subscriptions?</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>LogicCell</code></td><td class="center yes">✓</td><td class="center yes">Logic</td><td>The workhorse — runs your activators to process and produce stimuli.</td></tr>
+        <tr><td><code>InjectorCell</code></td><td class="center no">—</td><td class="center no">—</td><td>Bridge from ordinary code <em>into</em> the mesh: <code>inject(stimulus)</code>.</td></tr>
+        <tr><td><code>ExtractorCell</code></td><td class="center no">—</td><td class="center yes">Extractor</td><td>Bridge from the mesh <em>out to</em> code: <code>extract()</code>.</td></tr>
+        <tr><td><code>RouterCell</code></td><td class="center no">—</td><td class="center no">—</td><td>Forwards stimuli across synapses; extends reach without processing.</td></tr>
+        <tr><td><code>BridgeCell</code></td><td class="center no">—</td><td class="center yes">Bridge</td><td>Moves stimuli <em>between domains</em> by holding presence in several.</td></tr>
+        <tr><td><code>EventCell</code></td><td class="center no">—</td><td class="center no">—</td><td>Collects <code>EventStimulus</code> log events for a domain.</td></tr>
+        <tr><td><code>LoadBalancedCell</code></td><td class="center yes">✓</td><td class="center yes">Logic</td><td>A worker that shares load with peers running the same activator.</td></tr>
+        <tr><td><code>LoadControllerCell</code></td><td class="center yes">✓</td><td class="center yes">Logic</td><td>Coordinator that picks which worker handles the next stimuli set.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Cell &amp; Activator — the two classes you extend</h3>
+    <div class="grid g2">
+      <div class="classbox">
+        <div class="hd"><span>Cell</span><span class="stereo">base class</span></div>
+        <div class="body">
+          <div class="row"><span class="vis">–</span><span>nucleus <span class="ret">: Nuc_Nucleus</span></span></div>
+          <div class="row"><span class="vis">–</span><span>activators <span class="ret">: List⟨ActivatorInfo⟩</span></span></div>
+          <div class="row"><span class="vis">+</span><span>getState() <span class="ret">CellState</span></span></div>
+          <div class="row"><span class="vis">+</span><span>start() · pause() · resume() · stop()</span></div>
+          <div class="row"><span class="vis">+</span><span>setPulseInterval(long)</span></div>
+          <div class="row"><span class="vis">+</span><span>setSubscriptionRefreshInterval(long)</span></div>
+          <div class="row"><span class="vis">+</span><span>setDuplicateDetectionInterval(long)</span></div>
+          <div class="row"><span class="vis">+</span><span>publishSubscriptions()</span></div>
+        </div>
+      </div>
+      <div class="classbox">
+        <div class="hd"><span>Activator</span><span class="stereo">«abstract»</span></div>
+        <div class="body">
+          <div class="row"><span class="vis">–</span><span>receptors <span class="ret">: Rx_Collection</span></span></div>
+          <div class="row"><span class="vis">–</span><span>transmitters <span class="ret">: Tx_Collection</span></span></div>
+          <div class="row"><span class="vis">#</span><span>evaluate() <span class="ret">— abstract, your logic</span></span></div>
+          <div class="row"><span class="vis">#</span><span>getStimulus(receptor) <span class="ret">T</span></span></div>
+          <div class="row"><span class="vis">#</span><span>setStimulus(transmitter, s)</span></div>
+          <div class="row"><span class="vis">#</span><span>createTransaction(id) <span class="ret">UUID</span></span></div>
+          <div class="row"><span class="vis">#</span><span>terminateTransaction(id)</span></div>
+          <div class="row"><span class="vis">#</span><span>logEvent(EventType, details)</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <div class="eyebrow">The dataflow contract</div>
+      <p><code>evaluate()</code> is called by the cell's activator thread only once <b>all</b> receptors
+        are non-empty. The activator reads inputs with <code>getStimulus()</code>, computes, and emits
+        with <code>setStimulus()</code>. Between firings the thread sleeps on a semaphore. Subclass
+        <code>Activator</code>, <code>EventActivator</code>, <code>PulsedActivator</code> or
+        <code>LoadBalancedActivator</code>.</p>
+    </div>
+
+    <h3>Subscriptions — the wiring contract</h3>
+    <p>A subscription is the contract <code>(producing cell C, transmitter T) ⇒ receptor R</code>, tagged
+      with a domain. <code>C</code> and <code>T</code> may be regular expressions, so one receptor can
+      aggregate stimuli from many producers.</p>
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 780 150" role="img" aria-label="Subscription contract: producing cell transmitter maps to consuming receptor">
+          <rect class="node" x="30" y="48" width="150" height="54" rx="10"/>
+          <text class="tb" x="105" y="72" text-anchor="middle">Cell C</text>
+          <text class="s" x="105" y="90" text-anchor="middle">producer</text>
+          <rect class="node" x="180" y="60" width="26" height="30" rx="5" style="fill:var(--surface-2)"/>
+          <text class="s" x="193" y="80" text-anchor="middle">T</text>
+          <rect class="node acc" x="300" y="40" width="180" height="70" rx="10"/>
+          <text class="tb" x="390" y="70" text-anchor="middle">SubscriptionSpec</text>
+          <text class="s" x="390" y="88" text-anchor="middle">(C, T) ⇒ R · domain</text>
+          <rect class="node" x="600" y="48" width="150" height="54" rx="10"/>
+          <text class="tb" x="675" y="72" text-anchor="middle">Receptor R</text>
+          <text class="s" x="675" y="90" text-anchor="middle">consumer</text>
+          <path class="flow" d="M206,75 L300,75" marker-end="url(#arrbf)"/>
+          <path class="flow" d="M480,75 L600,75" marker-end="url(#arrbf)"/>
+        </svg>
+      </div>
+      <figcaption><b>Fig 2.2 · Subscription.</b> Five kinds — <code>Logic</code>,
+        <code>LogicLoopback</code>, <code>LogicMap</code>, <code>Bridge</code>, <code>Extractor</code> —
+        all extend <code>SubscriptionSpec</code>.</figcaption>
+    </figure>
+
+    <h3>Stimulus — the atomic data unit</h3>
+    <p><code>Stimulus</code> is abstract and <code>Serializable</code>. Each instance carries type
+      identity (<code>typeID</code>, a fixed <code>UUID</code>), a unique <code>instanceID</code>, an
+      optional <code>transactionID</code>, and producer/consumer metadata the framework fills in as it
+      travels. The <code>neupaths.stim</code> package ships eleven ready-made primitives:</p>
+    <div class="grid g3">
+      <div class="card"><h4>Primitive stimuli</h4>
+        <p class="mem" style="margin-top:8px">BooleanStimulus<br>ByteStimulus · CharacterStimulus<br>ShortStimulus · IntegerStimulus<br>LongStimulus · FloatStimulus<br>DoubleStimulus · StringStimulus<br>DateStimulus · SignalStimulus</p></div>
+      <div class="card"><h4>Common shape</h4>
+        <p>A wrapped value, <code>get()</code>/<code>set()</code>, <code>equals</code>/<code>hashCode</code>,
+          and two statics: <code>TYPE_NAME</code> and a fixed <code>TYPE_ID</code>.</p>
+        <p>The <code>TYPE_ID</code> identifies a type across the wire without relying on class names.</p></div>
+      <div class="card"><h4>Custom types</h4>
+        <p>Generate new stimulus classes with <code>GenerateStimulusType</code>, which stamps a fresh
+          <code>TYPE_ID</code> for you.</p>
+        <p><code>EventStimulus</code> carries an <code>EventType</code> for logging.</p></div>
+    </div>
+  </section>
+
+  <!-- ============ 03 SUBSYSTEMS ============ -->
+  <section id="subsystems">
+    <div class="sec-head"><span class="num">03</span><span class="eyebrow">Subsystems · internals</span></div>
+    <h2>Beneath the API</h2>
+    <p class="lede">Six internal subsystems, each named by a class prefix: <code>Nuc_</code> nucleus,
+      <code>Syn_</code>/<code>Bnd_</code> transport, <code>Cryp_</code> crypto, <code>Msg_</code>
+      protocol, <code>Cfg_</code> configuration.</p>
+
+    <h3>The Nucleus — per-cell routing engine</h3>
+    <p>This is what replaces the broker. Every cell carries one. It owns the cell's binders, matches
+      incoming stimuli against subscriptions, filters duplicates, re-advertises interest to peers, and
+      runs the send/receive worker threads.</p>
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 800 300" role="img" aria-label="Nucleus composition: binders, cipher, queues, maps, threads">
+          <rect class="node acc" x="300" y="120" width="200" height="66" rx="11"/>
+          <text class="tb" x="400" y="150" text-anchor="middle">Nuc_Nucleus</text>
+          <text class="s" x="400" y="168" text-anchor="middle">state · subscriptions</text>
+          <!-- parts around -->
+          <g>
+            <rect class="node" x="40" y="30" width="150" height="46" rx="9"/><text class="t" x="115" y="52" text-anchor="middle">Bnd_Binder ✱</text><text class="s" x="115" y="66" text-anchor="middle">one per synapse</text>
+            <rect class="node" x="40" y="130" width="150" height="46" rx="9"/><text class="t" x="115" y="152" text-anchor="middle">Cryp_Cipher</text><text class="s" x="115" y="166" text-anchor="middle">on-wire crypto</text>
+            <rect class="node" x="40" y="230" width="150" height="46" rx="9"/><text class="t" x="115" y="252" text-anchor="middle">stimuliHistory</text><text class="s" x="115" y="266" text-anchor="middle">dedup journal</text>
+            <rect class="node" x="610" y="30" width="150" height="46" rx="9"/><text class="t" x="685" y="52" text-anchor="middle">recv / xmit Q</text><text class="s" x="685" y="66" text-anchor="middle">+ semaphores</text>
+            <rect class="node" x="610" y="130" width="150" height="46" rx="9"/><text class="t" x="685" y="152" text-anchor="middle">peerMap</text><text class="s" x="685" y="166" text-anchor="middle">Nuc_PeerInfo</text>
+            <rect class="node" x="610" y="230" width="150" height="46" rx="9"/><text class="t" x="685" y="252" text-anchor="middle">subscriptionMap</text><text class="s" x="685" y="266" text-anchor="middle">+ forwarded</text>
+          </g>
+          <path class="rel" d="M300,150 L190,53" marker-start="url(#diamond)"/>
+          <path class="rel" d="M300,153 L190,153" marker-start="url(#diamond)"/>
+          <path class="rel" d="M300,160 L190,253" marker-start="url(#diamond)"/>
+          <path class="rel" d="M500,150 L610,53" marker-end="url(#arr)"/>
+          <path class="rel" d="M500,153 L610,153" marker-end="url(#arr)"/>
+          <path class="rel" d="M500,160 L610,253" marker-end="url(#arr)"/>
+          <text class="s" x="400" y="212" text-anchor="middle" fill="var(--ink-3)">threads: Receive · Transmit · StimuliHistory · SubscriptionTrace</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig 3.1 · Nucleus.</b> Filled diamonds are <b>composition</b> (owned parts). The
+        <code>stimuliHistory</code> journal + its thread is the duplicate filter that makes redundant
+        mesh paths safe.</figcaption>
+    </figure>
+
+    <h3>Transport — synapses &amp; binders</h3>
+    <p>Two cooperating hierarchies. <b>Synapses</b> are the raw channels (an abstraction over a JDK NIO
+      channel); <b>binders</b> manage the peer relationship and message framing over a synapse. A
+      <code>Listener</code> spawns a fresh peer synapse each time a <code>Peer</code> joins.</p>
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 800 210" role="img" aria-label="Synapse and binder inheritance hierarchies">
+          <!-- synapse -->
+          <rect class="node dash" x="60" y="20" width="180" height="44" rx="9"/><text class="tb" x="150" y="41" text-anchor="middle">Syn_Synapse</text><text class="s" x="150" y="56" text-anchor="middle">«abstract»</text>
+          <line class="rel" x1="150" y1="64" x2="150" y2="88"/><line class="rel" x1="40" y1="88" x2="260" y2="88"/>
+          <g>
+            <rect class="node" x="18" y="100" width="86" height="52" rx="8"/><text class="s" x="61" y="122" text-anchor="middle">InetStream</text><text class="s" x="61" y="136" text-anchor="middle">TCP</text><line class="rel" x1="61" y1="88" x2="61" y2="100"/>
+            <rect class="node" x="112" y="100" width="86" height="52" rx="8"/><text class="s" x="155" y="122" text-anchor="middle">InetDatagram</text><text class="s" x="155" y="136" text-anchor="middle">UDP·mcast</text><line class="rel" x1="155" y1="88" x2="155" y2="100"/>
+            <rect class="node" x="206" y="100" width="86" height="52" rx="8"/><text class="s" x="249" y="122" text-anchor="middle">UnixStream</text><text class="s" x="249" y="136" text-anchor="middle">AF_UNIX</text><line class="rel" x1="249" y1="88" x2="249" y2="100"/>
+          </g>
+          <!-- binder -->
+          <rect class="node dash" x="470" y="20" width="180" height="44" rx="9"/><text class="tb" x="560" y="41" text-anchor="middle">Bnd_Binder</text><text class="s" x="560" y="56" text-anchor="middle">«abstract»</text>
+          <line class="rel" x1="560" y1="64" x2="560" y2="88"/><line class="rel" x1="420" y1="88" x2="700" y2="88"/>
+          <g>
+            <rect class="node" x="410" y="100" width="76" height="46" rx="8"/><text class="s" x="448" y="120" text-anchor="middle">StreamPeer</text><line class="rel" x1="448" y1="88" x2="448" y2="100"/>
+            <rect class="node" x="492" y="100" width="86" height="46" rx="8"/><text class="s" x="535" y="120" text-anchor="middle">StreamListener</text><line class="rel" x1="535" y1="88" x2="535" y2="100"/>
+            <rect class="node" x="584" y="100" width="72" height="46" rx="8"/><text class="s" x="620" y="120" text-anchor="middle">UnicastPeer</text><line class="rel" x1="620" y1="88" x2="620" y2="100"/>
+            <rect class="node" x="662" y="100" width="86" height="46" rx="8"/><text class="s" x="705" y="120" text-anchor="middle">Multicast /</text><text class="s" x="705" y="134" text-anchor="middle">UnicastListener</text><line class="rel" x1="705" y1="88" x2="705" y2="100"/>
+          </g>
+          <text class="s" x="400" y="188" text-anchor="middle" fill="var(--ink-3)">Abstract Factory (Syn_Factory · Bnd_Factory) · Strategy per transport · State (Syn_State)</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig 3.2 · Transport hierarchies.</b> Synapse names encode everything:
+        <code>scope#type#mode#domain#opts</code>, e.g. <code>Network#Stream#Listener#@#30001</code>.</figcaption>
+    </figure>
+
+    <div class="grid g2">
+      <div class="card"><h4>Cryp_* · cryptography</h4>
+        <p>A pluggable <code>Cryp_Cipher</code> encrypts each stimulus into a <code>SealedObject</code>.
+          The factory reads a type byte from the key: <code>Cryp_AES</code> (AES/CBC) or
+          <code>Cryp_Blowfish</code>. <code>Cryp_Null</code> is pass-through; <code>Cryp_Stim</code> is a
+          fixed-key default. <em>Strategy + Factory.</em></p></div>
+      <div class="card"><h4>Msg_* · wire protocol</h4>
+        <p>Everything crossing a synapse is a <code>Msg_NeuPaths</code>. <code>Msg_Stimulus</code> is the
+          data plane; <code>Msg_JoinRequest</code>/<code>JoinAcknowledge</code>,
+          <code>Msg_Subscription</code> and <code>Msg_Leave</code> are the control plane for the
+          broker-less mesh.</p></div>
+      <div class="card"><h4>Cfg_* · configuration</h4>
+        <p>Clusters and cells are declared in <b>XML</b> and parsed by a recursive DOM handler tree
+          (<code>Cfg_ConfigHandler</code> → per-cell handlers). Callback interfaces aggregate children
+          upward; reflection instantiates activators and reads each stimulus <code>TYPE_ID</code>.</p></div>
+      <div class="card"><h4>util · daemon control plane</h4>
+        <p>The <code>CellClusterDaemon</code> is itself built from cells: <code>DaemonCmdActv</code> in a
+          <code>LogicCell</code> processes <code>DaemonCmdStim</code> commands.
+          <code>IssueCommandToDaemon</code> talks to it as an ordinary NeuPaths client — no privileged
+          backchannel.</p></div>
+    </div>
+
+    <h3>Exception hierarchy</h3>
+    <p>Two roots: a checked <code>Excp_NeuPaths</code> family used internally, and a single unchecked
+      <code>NeuPathsException</code> surfaced to callers. <code>Excp_SynapseFatal</code> vs
+      <code>Excp_SynapseNonFatal</code> lets the transport tell a dead connection from a recoverable
+      hiccup — key to mesh resilience.</p>
+    <div class="tbl-scroll"><table>
+      <thead><tr><th>Root</th><th>Kind</th><th>Members</th></tr></thead>
+      <tbody>
+        <tr><td><code>Excp_NeuPaths</code></td><td>checked · internal</td><td><code>Excp_Synapse</code> (→ <code>Fatal</code>/<code>NonFatal</code>), <code>Excp_Binder</code>, <code>Excp_Cell</code>, <code>Excp_Cipher</code>, <code>Excp_Nucleus</code>, <code>Excp_Receptor</code>, <code>Excp_Transmitter</code>, <code>Excp_Service</code></td></tr>
+        <tr><td><code>NeuPathsException</code></td><td>unchecked · public API</td><td>Thrown at API boundaries (<code>Cell</code>, <code>Activator</code>) when internal failures surface to callers.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- ============ 04 BEHAVIOR ============ -->
+  <section id="behavior">
+    <div class="sec-head"><span class="num">04</span><span class="eyebrow">Behavior · state &amp; sequence</span></div>
+    <h2>How it runs</h2>
+    <p class="lede">Lifecycles as state machines, the dataflow firing rule, and the peer protocols that
+      form and feed the mesh.</p>
+
+    <h3>Cell lifecycle</h3>
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 780 180" role="img" aria-label="Cell state machine: offline, online, paused, degraded">
+          <circle cx="40" cy="90" r="8" fill="var(--ink)"/>
+          <rect class="node" x="90" y="70" width="110" height="40" rx="20"/><text class="t" x="145" y="94" text-anchor="middle">OFFLINE</text>
+          <rect class="node acc" x="320" y="70" width="110" height="40" rx="20"/><text class="t" x="375" y="94" text-anchor="middle">ONLINE</text>
+          <rect class="node" x="320" y="18" width="110" height="36" rx="18"/><text class="t" x="375" y="41" text-anchor="middle">PAUSED</text>
+          <rect class="node" x="320" y="126" width="110" height="36" rx="18"/><text class="t" x="375" y="149" text-anchor="middle">DEGRADED</text>
+          <circle cx="620" cy="90" r="8" fill="none" stroke="var(--ink)" stroke-width="2"/><circle cx="620" cy="90" r="3.5" fill="var(--ink)"/>
+          <path class="rel" d="M48,90 L90,90" marker-end="url(#arr)"/>
+          <path class="flow" d="M200,90 L320,90" marker-end="url(#arrbf)"/><text class="sa" x="260" y="82" text-anchor="middle">start()</text>
+          <path class="rel" d="M375,70 L375,54" marker-end="url(#arr)"/><text class="s" x="440" y="64">pause()</text>
+          <path class="rel" d="M360,54 L360,70" marker-end="url(#arr)"/><text class="s" x="300" y="64" text-anchor="end">resume()</text>
+          <path class="rel" d="M360,110 L360,126" marker-end="url(#arr)"/><text class="s" x="300" y="124" text-anchor="end">lost peers</text>
+          <path class="rel" d="M375,126 L375,110" marker-end="url(#arr)"/><text class="s" x="440" y="124">restored</text>
+          <path class="rel" d="M430,80 C520,60 520,90 430,90" style="display:none"/>
+          <path class="rel" d="M430,100 L560,100 C600,100 600,90 612,90" marker-end="url(#arr)"/><text class="s" x="500" y="116">stop()</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig 4.1 · CellState.</b> <code>DEGRADED</code> reflects partial loss of synapse
+        connectivity — the mesh keeps a cell working while some paths are down.</figcaption>
+    </figure>
+
+    <h3>Dataflow evaluation</h3>
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 800 190" role="img" aria-label="Activity: stimulus arrives, dedup, subscription match, receptor fill, evaluate, emit">
+          <rect class="node" x="20" y="76" width="118" height="44" rx="9"/><text class="s" x="79" y="98" text-anchor="middle">stimulus</text><text class="s" x="79" y="112" text-anchor="middle">arrives</text>
+          <path d="M170,98 l30,-22 l30,22 l-30,22 z" class="node"/><text class="s" x="200" y="94" text-anchor="middle">dup?</text><text class="s" x="200" y="107" text-anchor="middle">match?</text>
+          <rect class="node" x="270" y="76" width="120" height="44" rx="9"/><text class="s" x="330" y="98" text-anchor="middle">route to</text><text class="s" x="330" y="112" text-anchor="middle">receptor</text>
+          <path d="M430,98 l32,-24 l32,24 l-32,24 z" class="node acc"/><text class="s" x="462" y="94" text-anchor="middle">all rx</text><text class="s" x="462" y="107" text-anchor="middle">full?</text>
+          <rect class="node acc" x="540" y="76" width="120" height="44" rx="9"/><text class="s" x="600" y="98" text-anchor="middle">evaluate()</text><text class="s" x="600" y="112" text-anchor="middle">user logic</text>
+          <rect class="node" x="690" y="76" width="96" height="44" rx="9"/><text class="s" x="738" y="98" text-anchor="middle">emit &amp;</text><text class="s" x="738" y="112" text-anchor="middle">forward</text>
+          <path class="flow" d="M138,98 L170,98" marker-end="url(#arrbf)"/>
+          <path class="flow" d="M230,98 L270,98" marker-end="url(#arrbf)"/>
+          <path class="flow" d="M390,98 L430,98" marker-end="url(#arrbf)"/>
+          <path class="flow" d="M494,98 L540,98" marker-end="url(#arrbf)"/>
+          <path class="flow" d="M660,98 L690,98" marker-end="url(#arrbf)"/>
+          <path class="rel dash" d="M200,120 L200,160 L120,160 L120,120" marker-end="url(#arr)"/><text class="s" x="150" y="176" text-anchor="middle">discard / ignore</text>
+          <path class="rel dash" d="M462,122 L462,160 L560,160" marker-end="url(#arr)"/><text class="s" x="600" y="176">wait on semaphore</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig 4.2 · The firing rule.</b> A neuron needing three signals waits quietly until
+        all three arrive, then fires once — possibly emitting stimuli that ripple onward. Duplicates are
+        dropped; unmatched stimuli ignored; a partial input set parks the thread.</figcaption>
+    </figure>
+
+    <h3>Peer join handshake</h3>
+    <p>When a <code>Peer</code> contacts a <code>Listener</code> they perform a two-phase join, then
+      exchange subscriptions so stimuli can flow. This is the decentralized replacement for "register
+      with the broker."</p>
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 720 280" role="img" aria-label="Sequence diagram of a two-phase peer join">
+          <text class="tb" x="130" y="24" text-anchor="middle">Cell A · Peer</text>
+          <text class="tb" x="560" y="24" text-anchor="middle">Cell B · Listener</text>
+          <line class="life" x1="130" y1="34" x2="130" y2="258"/>
+          <line class="life" x1="560" y1="34" x2="560" y2="258"/>
+          <path class="flow" d="M130,60 L560,60" marker-end="url(#arrb)"/><text class="s" x="345" y="52" text-anchor="middle">Msg_JoinRequest(PHASE_1) — send/recv synapse ids</text>
+          <text class="s" x="560" y="82" text-anchor="start" dx="-190">accept() spawns a peer synapse for A</text>
+          <path class="flow" d="M560,104 L130,104" marker-end="url(#arrb)"/><text class="s" x="345" y="96" text-anchor="middle">Msg_JoinAcknowledge(PHASE_1) — B's reciprocal ids</text>
+          <path class="flow" d="M130,134 L560,134" marker-end="url(#arrb)"/><text class="s" x="345" y="126" text-anchor="middle">Msg_JoinRequest(PHASE_2) — confirm link</text>
+          <path class="flow" d="M560,158 L130,158" marker-end="url(#arrb)"/><text class="s" x="345" y="150" text-anchor="middle">Msg_JoinAcknowledge(PHASE_2) — ready</text>
+          <line x1="90" y1="178" x2="600" y2="178" stroke="var(--line)" stroke-dasharray="2 4"/>
+          <text class="sa" x="345" y="174" text-anchor="middle">bidirectional synapse established</text>
+          <path class="rel" d="M130,200 L560,200" marker-end="url(#arr)"/><text class="s" x="345" y="193" text-anchor="middle">Msg_Subscription (interests, both ways) · refreshed on a timer</text>
+          <path class="flow march" d="M130,228 L560,228" marker-end="url(#arrb)"/><text class="s" x="345" y="221" text-anchor="middle">Msg_Stimulus — matched data flows</text>
+          <path class="rel dash" d="M130,252 L560,252" marker-end="url(#arr)"/><text class="s" x="345" y="246" text-anchor="middle">Msg_Leave (on shutdown) → peer cleanup</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig 4.3 · Two-phase join.</b> Subscriptions are re-advertised periodically, so a
+        peer that joins late, or a link that recovers, wires itself automatically — the mesh self-heals.</figcaption>
+    </figure>
+
+    <h3>End-to-end: Injector → Logic → Extractor</h3>
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 760 240" role="img" aria-label="Sequence: client injects, logic evaluates, client extracts">
+          <text class="tb" x="70" y="22" text-anchor="middle">Client</text>
+          <text class="tb" x="250" y="22" text-anchor="middle">Injector</text>
+          <text class="tb" x="440" y="22" text-anchor="middle">Logic · Activator</text>
+          <text class="tb" x="670" y="22" text-anchor="middle">Extractor</text>
+          <line class="life" x1="70" y1="32" x2="70" y2="220"/>
+          <line class="life" x1="250" y1="32" x2="250" y2="220"/>
+          <line class="life" x1="440" y1="32" x2="440" y2="220"/>
+          <line class="life" x1="670" y1="32" x2="670" y2="220"/>
+          <path class="flow" d="M70,58 L250,58" marker-end="url(#arrb)"/><text class="s" x="160" y="50" text-anchor="middle">inject(s)</text>
+          <path class="flow" d="M250,86 L440,86" marker-end="url(#arrb)"/><text class="s" x="345" y="78" text-anchor="middle">Msg_Stimulus (encrypted)</text>
+          <text class="s" x="440" y="108" dx="-170">dedup · match · fill receptor</text>
+          <path class="rel" d="M448,120 C500,132 500,132 448,144" marker-end="url(#arr)"/><text class="s" x="512" y="136">evaluate()</text>
+          <path class="flow" d="M440,168 L670,168" marker-end="url(#arrb)"/><text class="s" x="555" y="160" text-anchor="middle">Msg_Stimulus (result)</text>
+          <path class="flow" d="M670,196 L70,196" marker-end="url(#arrb)"/><text class="s" x="370" y="189" text-anchor="middle">extract() returns the result (blocks until available)</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig 4.4 · The canonical round-trip.</b> With transactions,
+        <code>injectAsTransaction()</code> returns a <code>transactionID</code> and
+        <code>extractFromTransaction(id)</code> retrieves the matching result even when many flow at once.</figcaption>
+    </figure>
+
+    <div class="callout">
+      <div class="eyebrow">Built-in control plane</div>
+      <p>Two behaviors run without any user code. <b>Cycle detection</b> — an <code>Actv_CycleDetection</code>
+        is added to every cell; a probe stimulus accumulates a trace, and a cell that sees itself already
+        in the trace raises <code>Stim_CycleDetected</code>. <b>Load balancing</b> — workers register with
+        a <code>LoadControllerCell</code> and poll for a work signal; the controller hands the next stimuli
+        set to exactly one worker, spreading load with no central queue.</p>
+    </div>
+  </section>
+
+  <!-- ============ 05 EXECUTION MODEL ============ -->
+  <section id="execution">
+    <div class="sec-head"><span class="num">05</span><span class="eyebrow">Execution model · threads &amp; dataflow</span></div>
+    <h2>Parallel by nature, asleep when idle</h2>
+    <p class="lede">NeuPaths is <b>thread-per-role</b>, not thread-per-request. A stimulus is
+      handed across a series of in-memory queues, each owned by a dedicated thread. Independent
+      stages and independent cells run at once; every consumer blocks on a semaphore until work
+      arrives — no polling, no spinning.</p>
+
+    <div class="callout">
+      <div class="eyebrow">The handoff idiom</div>
+      <p>Every stage boundary is the same construct: a <code>LinkedList</code> guarded by a fair
+        <code>ReentrantLock(true)</code>, paired with a counting <code>Semaphore(0, true)</code>
+        that signals "data available." The producer enqueues under the lock and calls
+        <code>release()</code>; the consumer calls <code>acquire()</code> — parking there when the
+        queue is empty — then dequeues. Because the consumer sleeps inside <code>acquire()</code>,
+        an idle cell burns no CPU; fairness preserves <b>FIFO order within each queue</b>.</p>
+    </div>
+
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 700 512" role="img" aria-label="The staged producer-consumer pipeline a stimulus flows through">
+          <!-- left annotation -->
+          <text class="s" transform="rotate(-90 34 300)" x="34" y="300" text-anchor="middle" fill="var(--ink-3)">consumers park in acquire() · idle = asleep</text>
+          <path class="rel" d="M60,150 L60,430" fill="none"/>
+          <path class="rel" d="M60,150 L66,150 M60,430 L66,430 M60,262 L66,262 M60,394 L66,394"/>
+
+          <!-- PeerThread -->
+          <rect class="node" x="175" y="18" width="300" height="50" rx="10"/>
+          <text class="tb" x="325" y="40" text-anchor="middle">PeerThread</text>
+          <text class="s" x="325" y="56" text-anchor="middle">per synapse · synapse.receive() blocks</text>
+          <!-- recv queue -->
+          <path class="flow" d="M325,68 L325,90" marker-end="url(#arrbf)"/>
+          <text class="s" x="495" y="83">nucleus.receiveMessage()</text>
+          <rect class="node dash" x="205" y="92" width="240" height="28" rx="14" style="fill:var(--surface-2)"/>
+          <text class="s" x="325" y="110" text-anchor="middle">recvQueue + recvSemaphore</text>
+          <!-- ReceiveThread -->
+          <path class="flow" d="M325,120 L325,140" marker-end="url(#arrbf)"/>
+          <rect class="node" x="175" y="140" width="300" height="50" rx="10"/>
+          <text class="tb" x="325" y="162" text-anchor="middle">ReceiveThread</text>
+          <text class="s" x="325" y="178" text-anchor="middle">Nucleus · dedup · route · dispatch</text>
+          <!-- activator queue (fan-out) -->
+          <path class="flow" d="M325,190 L325,212" marker-end="url(#arrbf)"/>
+          <text class="sa" x="495" y="205">cell.receiveStimulus() — fan-out</text>
+          <rect class="node dash" x="205" y="214" width="240" height="28" rx="14" style="fill:var(--surface-2)"/>
+          <text class="s" x="325" y="232" text-anchor="middle">activator queue + semaphore</text>
+          <!-- ActivatorThread stack -->
+          <path class="flow" d="M325,242 L325,262" marker-end="url(#arrbf)"/>
+          <rect class="node acc" x="191" y="256" width="300" height="50" rx="10" style="opacity:.5"/>
+          <rect class="node acc" x="183" y="262" width="300" height="50" rx="10" style="opacity:.75"/>
+          <rect class="node acc" x="175" y="268" width="300" height="50" rx="10"/>
+          <text class="tb" x="325" y="290" text-anchor="middle">ActivatorThread &times;N</text>
+          <text class="s" x="325" y="306" text-anchor="middle">one per activator · evaluate() when receptors full</text>
+          <!-- xmit queue -->
+          <path class="flow" d="M325,318 L325,340" marker-end="url(#arrbf)"/>
+          <text class="s" x="495" y="333">cell.transmitStimulus()</text>
+          <rect class="node dash" x="205" y="342" width="240" height="28" rx="14" style="fill:var(--surface-2)"/>
+          <text class="s" x="325" y="360" text-anchor="middle">xmitQueue + xmitSemaphore</text>
+          <!-- TransmitThread -->
+          <path class="flow" d="M325,370 L325,390" marker-end="url(#arrbf)"/>
+          <rect class="node" x="175" y="390" width="300" height="50" rx="10"/>
+          <text class="tb" x="325" y="412" text-anchor="middle">TransmitThread</text>
+          <text class="s" x="325" y="428" text-anchor="middle">Nucleus · hand to binders</text>
+          <!-- peers -->
+          <path class="flow" d="M325,440 L325,464" marker-end="url(#arrbf)"/>
+          <text class="s" x="495" y="457">synapse.send()</text>
+          <rect x="225" y="466" width="200" height="34" rx="17" fill="var(--surface-2)" stroke="var(--line-2)" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <text class="tb" x="325" y="488" text-anchor="middle">peer cells</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig 5.1 · The pipeline.</b> One <b>ReceiveThread</b> (inbound) and one
+        <b>TransmitThread</b> (outbound) per cell act as serialization points; between them, each
+        activator drains its <b>own</b> queue on its own thread — that is where the parallelism lives.</figcaption>
+    </figure>
+
+    <h3>Thread inventory</h3>
+    <p>Threads present in one running cell. A cell with <b>A</b> activators and <b>P</b> live peer
+      connections runs roughly <b>A</b> activator threads + <b>4</b> nucleus threads + per-binder
+      threads. Every cell auto-adds a cycle-detection activator, so <code>A ≥ 1</code> always.</p>
+    <div class="tbl-scroll"><table>
+      <thead><tr><th>Thread</th><th>Scope</th><th class="center">Count</th><th>Responsibility</th></tr></thead>
+      <tbody>
+        <tr><td><code>ActivatorThread</code></td><td>Cell</td><td class="center"><b>1 / activator</b></td><td>Drains the activator's queue, runs <code>evaluate()</code>. Priority <code>NORM+2</code>.</td></tr>
+        <tr><td><code>StartupThread</code></td><td>Cell</td><td class="center">1 / activator</td><td>Transient — waits <code>1.1×</code> the refresh interval so subscriptions propagate, then starts the activator + its thread, and exits.</td></tr>
+        <tr><td><code>PulseThread</code></td><td>Cell</td><td class="center">0 or 1</td><td>Emits a periodic <code>DateStimulus</code>; only when <code>setPulseInterval(&gt;0)</code>.</td></tr>
+        <tr><td><code>ReceiveThread</code></td><td>Nucleus</td><td class="center">1</td><td>Inbound serializer: dedup, route/forward, dispatch to activators.</td></tr>
+        <tr><td><code>TransmitThread</code></td><td>Nucleus</td><td class="center">1</td><td>Outbound serializer: drain <code>xmitQueue</code>, hand to binders.</td></tr>
+        <tr><td><code>StimuliHistoryThread</code></td><td>Nucleus</td><td class="center">1</td><td>Evicts expired ids from the duplicate-detection journal.</td></tr>
+        <tr><td><code>SubscriptionTraceThread</code></td><td>Nucleus</td><td class="center">0 or 1</td><td>Periodic subscription tracing (if the interval is set).</td></tr>
+        <tr><td><code>ListenThread</code></td><td>Binder</td><td class="center">1 / listener</td><td>Accepts joins; spawns a <code>PeerThread</code> per connection.</td></tr>
+        <tr><td><code>PeerThread</code></td><td>Binder</td><td class="center">1 / peer</td><td>Blocks on <code>synapse.receive()</code>; calls <code>nucleus.receiveMessage()</code>.</td></tr>
+        <tr><td><code>SubscriptionRefreshThread</code></td><td>Binder</td><td class="center">1 / binder</td><td>Re-advertises subscriptions to peers — keeps the mesh wired and self-healing.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>The dataflow gate</h3>
+    <p>Incoming stimuli land in an <code>Rx_Transaction</code> — a bundle of receptors keyed by
+      <code>transactionID</code>. Each stimulus fills its matching receptor; <code>evaluate()</code>
+      runs <b>only</b> when every receptor holds a stimulus. Keying by transaction means several
+      half-complete input sets can be assembled concurrently — a neuron waiting on three signals can
+      hold multiple partial bundles in flight, each completing independently.</p>
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 780 120" role="img" aria-label="Dataflow gate: fill receptors until complete, then evaluate">
+          <rect class="node" x="14" y="42" width="120" height="44" rx="9"/><text class="s" x="74" y="60" text-anchor="middle">stimulus for</text><text class="s" x="74" y="74" text-anchor="middle">activator</text>
+          <rect class="node" x="176" y="42" width="150" height="44" rx="9"/><text class="s" x="251" y="60" text-anchor="middle">place in matching</text><text class="s" x="251" y="74" text-anchor="middle">receptor slot</text>
+          <path d="M372,64 l34,-26 l34,26 l-34,26 z" class="node acc"/><text class="s" x="406" y="60" text-anchor="middle">all rx</text><text class="s" x="406" y="73" text-anchor="middle">full?</text>
+          <rect class="node acc" x="500" y="42" width="150" height="44" rx="9"/><text class="s" x="575" y="60" text-anchor="middle">snapshot → evaluate()</text><text class="s" x="575" y="74" text-anchor="middle">→ drain transmitters</text>
+          <rect class="node" x="686" y="42" width="80" height="44" rx="9"/><text class="s" x="726" y="60" text-anchor="middle">remove</text><text class="s" x="726" y="74" text-anchor="middle">txn</text>
+          <path class="flow" d="M134,64 L176,64" marker-end="url(#arrbf)"/>
+          <path class="flow" d="M326,64 L372,64" marker-end="url(#arrbf)"/>
+          <path class="flow" d="M474,64 L500,64" marker-end="url(#arrbf)"/>
+          <path class="flow" d="M650,64 L686,64" marker-end="url(#arrbf)"/>
+          <path class="rel dash" d="M406,90 L406,108 L251,108 L251,86" marker-end="url(#arr)"/><text class="s" x="330" y="104" text-anchor="middle">park — back to acquire()</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig 5.2 · Receptor completion.</b> A <code>MAP</code> subscription keys the slot by
+        producing transmitter instead of receptor, letting one receptor gather many producers.</figcaption>
+    </figure>
+
+    <h3>Guarantees &amp; sharp edges</h3>
+    <div class="grid g2">
+      <div class="card"><h4>Ordering &amp; parallelism</h4><p>FIFO <em>within</em> one activator's queue;
+        no global order across activators or cells. Activators in a cell evaluate concurrently, and
+        independent cells share no state.</p></div>
+      <div class="card"><h4>No backpressure</h4><p>All queues are unbounded <code>LinkedList</code>s. A
+        slow activator grows its own queue without throttling upstream — watch this under sustained
+        overload.</p></div>
+      <div class="card"><h4>Pause accumulates</h4><p><code>pause()</code> stops the activator thread
+        consuming, but the Nucleus keeps receiving — so stimuli <b>pile up in queues</b> while paused,
+        then flush on <code>resume()</code>.</p></div>
+      <div class="card"><h4>Shutdown &amp; daemon threads</h4><p><code>stop()</code> sets terminate flags and
+        <code>interrupt()</code>s each thread out of <code>acquire()</code>. Threads are <b>daemon by
+        default</b> unless <code>NEUPATHS_FORCE_GRACEFUL_TERMINATION</code> is set.</p></div>
+    </div>
+    <div class="callout">
+      <div class="eyebrow">Gotcha · startup couples to the refresh interval</div>
+      <p>In <code>StartupThread.run()</code> the activator-start logic sits entirely inside
+        <code>if (startupDelay &gt; 0)</code>, and <code>startupDelay</code> derives from
+        <code>subscriptionRefreshInterval</code>. The default (1500 ms) is safe — but setting the
+        subscription refresh interval to <b>0</b> means the <code>StartupThread</code> never starts the
+        activator. Verify this against your version before tuning that interval down.</p>
+    </div>
+  </section>
+
+  </main>
+</div></div>
+
+<footer><div class="wrap">
+  <span>NeuPaths v2.0.2 · Software Design Documentation</span>
+  <span>Reconstructed from source · 183 files · neupaths.api / .stim / .util</span>
+  <span>© Commence Software LLC · PolyForm Shield 1.0.0</span>
+</div></footer>

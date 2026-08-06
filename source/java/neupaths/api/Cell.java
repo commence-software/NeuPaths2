@@ -1137,30 +1137,27 @@ public class Cell
     run ()
     {
       long subRefreshInt = subscriptionRefreshIntervalMs.getValue();
-      long startupDelay = (subRefreshInt > 0L) ? (long)(subRefreshInt * 1.1) : 0L;
+      long startupDelay = (subRefreshInt > 0L) ? (long)(subRefreshInt * 1.1) : 1000L;
 
-      if (startupDelay > 0L)
+      try
       {
-        try
-        {
-          Thread.sleep(startupDelay);
-          
-          info.activator.start();
-          info.activatorThread = new ActivatorThread(info.activator);
-          info.activatorThread.start();
-          try
-          {
-            info.activator.postStimuli();
-          }
-          catch (Excp_Transmitter te)
-          {
-            logEvent(EventType.ERROR, getName(), "Failed to post stimuli", te);
-          }
-        }
-        catch (InterruptedException ie)
-        {
-          // ignore interruptions
-        }
+        Thread.sleep(startupDelay);
+      }
+      catch (InterruptedException ie)
+      {
+        // ignore interruptions
+      }
+
+      info.activator.start();
+      info.activatorThread = new ActivatorThread(info.activator);
+      info.activatorThread.start();
+      try
+      {
+        info.activator.postStimuli();
+      }
+      catch (Excp_Transmitter te)
+      {
+        logEvent(EventType.ERROR, getName(), "Failed to post stimuli", te);
       }
     }
 

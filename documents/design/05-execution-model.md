@@ -76,7 +76,7 @@ Threads present in one running cell:
 | Thread | Scope | Count | Lifetime | Responsibility |
 |--------|-------|:-----:|----------|----------------|
 | `ActivatorThread` | Cell | **1 per activator** | long-lived | Drains the activator's queue and runs `evaluateStimulus()` → `evaluate()`. Priority `NORM_PRIORITY + 2`. |
-| `StartupThread` | Cell | 1 per activator | transient | Sleeps `1.1 × subscriptionRefreshInterval`, then starts the activator + its `ActivatorThread`, posts initial stimuli, and exits. Staggers startup so subscriptions propagate first. |
+| `StartupThread` | Cell | 1 per activator | transient | Sleeps `1.1 × subscriptionRefreshInterval` (or `1000 ms` when refresh is disabled), then starts the activator + its `ActivatorThread`, posts initial stimuli, and exits. Staggers startup so subscriptions propagate first. |
 | `PulseThread` | Cell | 0 or 1 | long-lived | Emits a periodic `DateStimulus`; exists only when `setPulseInterval(> 0)`. |
 | `ReceiveThread` | Nucleus | 1 | long-lived | Inbound serializer: dedup, route/forward, dispatch to activators. |
 | `TransmitThread` | Nucleus | 1 | long-lived | Outbound serializer: drain `xmitQueue`, hand to binders. |
@@ -133,10 +133,5 @@ transmitter name instead of receptor name, letting one receptor gather many prod
   break it out of `acquire()`/`sleep()`, then drains permits and clears queues. Threads are
   **daemon by default** (the JVM can exit) unless the env var
   `NEUPATHS_FORCE_GRACEFUL_TERMINATION` is set, which makes them non-daemon for clean joins.
-- **Startup couples to the refresh interval.** In `StartupThread.run()` the activator-start
-  logic sits entirely inside `if (startupDelay > 0)`, and `startupDelay` derives from
-  `subscriptionRefreshInterval`. The default (1500 ms) is safe, but **setting the subscription
-  refresh interval to 0 means the `StartupThread` never starts the activator** — verify this
-  against your version before tuning that interval down.
 
 Back to the [documentation index](README.md).

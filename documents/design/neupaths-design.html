@@ -908,7 +908,7 @@
       <thead><tr><th>Thread</th><th>Scope</th><th class="center">Count</th><th>Responsibility</th></tr></thead>
       <tbody>
         <tr><td><code>ActivatorThread</code></td><td>Cell</td><td class="center"><b>1 / activator</b></td><td>Drains the activator's queue, runs <code>evaluate()</code>. Priority <code>NORM+2</code>.</td></tr>
-        <tr><td><code>StartupThread</code></td><td>Cell</td><td class="center">1 / activator</td><td>Transient — waits <code>1.1×</code> the refresh interval so subscriptions propagate, then starts the activator + its thread, and exits.</td></tr>
+        <tr><td><code>StartupThread</code></td><td>Cell</td><td class="center">1 / activator</td><td>Transient — waits <code>1.1×</code> the refresh interval (or <code>1000 ms</code> when refresh is disabled) so subscriptions propagate, then starts the activator + its thread, and exits.</td></tr>
         <tr><td><code>PulseThread</code></td><td>Cell</td><td class="center">0 or 1</td><td>Emits a periodic <code>DateStimulus</code>; only when <code>setPulseInterval(&gt;0)</code>.</td></tr>
         <tr><td><code>ReceiveThread</code></td><td>Nucleus</td><td class="center">1</td><td>Inbound serializer: dedup, route/forward, dispatch to activators.</td></tr>
         <tr><td><code>TransmitThread</code></td><td>Nucleus</td><td class="center">1</td><td>Outbound serializer: drain <code>xmitQueue</code>, hand to binders.</td></tr>
@@ -959,14 +959,6 @@
       <div class="card"><h4>Shutdown &amp; daemon threads</h4><p><code>stop()</code> sets terminate flags and
         <code>interrupt()</code>s each thread out of <code>acquire()</code>. Threads are <b>daemon by
         default</b> unless <code>NEUPATHS_FORCE_GRACEFUL_TERMINATION</code> is set.</p></div>
-    </div>
-    <div class="callout">
-      <div class="eyebrow">Gotcha · startup couples to the refresh interval</div>
-      <p>In <code>StartupThread.run()</code> the activator-start logic sits entirely inside
-        <code>if (startupDelay &gt; 0)</code>, and <code>startupDelay</code> derives from
-        <code>subscriptionRefreshInterval</code>. The default (1500 ms) is safe — but setting the
-        subscription refresh interval to <b>0</b> means the <code>StartupThread</code> never starts the
-        activator. Verify this against your version before tuning that interval down.</p>
     </div>
   </section>
 

@@ -107,7 +107,7 @@ sequenceDiagram
 
     PA->>PB: Msg_Subscription (A's interests)
     PB->>PA: Msg_Subscription (B's interests)
-    Note over PA,PB: each Nucleus records peer↔subscription mapping;<br/>refreshed periodically by SubscriptionTraceThread
+    Note over PA,PB: each Nucleus records peer↔subscription mapping,<br/>refreshed periodically by SubscriptionTraceThread
 
     loop while both online
         PA-->>PB: Msg_Stimulus (matched data)
@@ -142,7 +142,7 @@ sequenceDiagram
     Inj->>NI: enqueue on xmitQueue
     NI->>NL: Msg_Stimulus over synapse<br/>(encrypted via Cryp_Cipher)
     NL->>NL: dedup check + subscription match
-    NL->>ACT: fill receptor; all full → wake thread
+    NL->>ACT: fill receptor, all full → wake thread
     ACT->>ACT: compute result
     ACT->>NL: setStimulus(transmitter, result)
     NL->>NE: Msg_Stimulus over synapse
@@ -194,7 +194,7 @@ sequenceDiagram
         W1->>Ctl: Stim_LoadBalanceRequest(id1)
         W2->>Ctl: Stim_LoadBalanceRequest(id2)
     end
-    Note over Ctl: work arrives; pick next available worker
+    Note over Ctl: work arrives, pick next available worker
     Ctl-->>W1: Stim_LoadBalanceSignal(id1) + Stim_LoadBalanceTransaction(txn)
     Note over W1: this worker processes the stimuli set
     W1->>W1: LoadBalancedActivator.evaluate()
@@ -223,7 +223,7 @@ sequenceDiagram
         Cell->>Nuc: bring binders ONLINE, spawn threads
         Nuc->>Nuc: open synapses → join peers (§4.4)
     end
-    Note over CC: mesh is live; stimuli now flow on data arrival
+    Note over CC: mesh is live, stimuli now flow on data arrival
 ```
 
 ---

@@ -774,7 +774,7 @@ public class Cell
   //---------------------------------------------------------------------------
 
   /**
-   * Pauses processing of stimuli.
+   * Suspends processing of stimuli.
    */
   public final
   void
@@ -1288,15 +1288,15 @@ public class Cell
       {
         try
         {
-          if (activatorsPaused.isSet())
+          // Get next stimulus
+          //
+          // When paused, consume but do no evaluate the stimulus.
+          // Queuing the stimulus for later could result in past
+          // transactions being resurrected or other temporal errors.
+          stimulus = acceptStimulus();
+
+          if (activatorsPaused.isNotSet())
           {
-            Thread.sleep(500);
-          }
-          else
-          {
-            // Get next stimulus
-            stimulus = acceptStimulus();
-    
             try
             {
               activator.evaluateStimulus(stimulus);

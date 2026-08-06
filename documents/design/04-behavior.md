@@ -27,6 +27,11 @@ stateDiagram-v2
 Underneath, each cell's `Nuc_Nucleus` tracks a simpler `Nuc_State` of `OFFLINE`/`ONLINE`,
 and each synapse runs the richer `Syn_State` machine below.
 
+> **`PAUSED` suspends processing.** While paused, the cell's activator threads keep *consuming*
+> stimuli but skip evaluation — arriving stimuli are discarded rather than held for `resume()`,
+> since replaying them could feed already-completed transactions. Pause quiesces a cell; it is
+> not a buffer. See [§5.6 Pause semantics](05-execution-model.md#56-pause-semantics).
+
 ## 4.2 Synapse lifecycle (state machine)
 
 `Syn_Synapse` transitions through `Syn_State` as a connection is opened, established and

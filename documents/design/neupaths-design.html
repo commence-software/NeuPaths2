@@ -736,7 +736,9 @@
         </svg>
       </div>
       <figcaption><b>Fig 4.1 · CellState.</b> <code>DEGRADED</code> reflects partial loss of synapse
-        connectivity — the mesh keeps a cell working while some paths are down.</figcaption>
+        connectivity — the mesh keeps a cell working while some paths are down. <b>PAUSED suspends
+        processing:</b> activator threads keep consuming stimuli but skip evaluation, so stimuli
+        arriving while paused are discarded rather than held for <code>resume()</code>.</figcaption>
     </figure>
 
     <h3>Dataflow evaluation</h3>
@@ -953,12 +955,23 @@
       <div class="card"><h4>No backpressure</h4><p>All queues are unbounded <code>LinkedList</code>s. A
         slow activator grows its own queue without throttling upstream — watch this under sustained
         overload.</p></div>
-      <div class="card"><h4>Pause accumulates</h4><p><code>pause()</code> stops the activator thread
-        consuming, but the Nucleus keeps receiving — so stimuli <b>pile up in queues</b> while paused,
-        then flush on <code>resume()</code>.</p></div>
       <div class="card"><h4>Shutdown &amp; daemon threads</h4><p><code>stop()</code> sets terminate flags and
         <code>interrupt()</code>s each thread out of <code>acquire()</code>. Threads are <b>daemon by
         default</b> unless <code>NEUPATHS_FORCE_GRACEFUL_TERMINATION</code> is set.</p></div>
+    </div>
+
+    <h3>Pause semantics</h3>
+    <div class="callout">
+      <div class="eyebrow">Semantics · pause suspends, it does not buffer</div>
+      <p><code>Cell.pause()</code> <b>suspends processing of stimuli</b>. While paused, the
+        <code>ActivatorThread</code> keeps draining its queue — it accepts each stimulus and simply
+        skips <code>evaluateStimulus()</code>. Stimuli arriving during the pause are consumed and
+        discarded, not held for <code>resume()</code>: deferring them would risk replaying stimuli into
+        already-completed transactions and other temporal errors.</p>
+      <p>Two useful consequences — the activator's queue stays <b>bounded</b> for the duration of the
+        pause, and the thread still parks in <code>acquire()</code> between stimuli rather than polling.
+        <code>resume()</code> clears the flag and evaluation continues with whatever arrives next. Use
+        pause to quiesce a cell, not to hold work for later.</p>
     </div>
   </section>
 

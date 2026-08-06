@@ -122,13 +122,26 @@ transmitter name instead of receptor name, letting one receptor gather many prod
 | **Synchronization** | Fine-grained fair locks — separate mutexes for `recvQueue`, `xmitQueue`, `peerMap`, `subscriptionMap`, `forwardedSubscriptions`, `stimuliHistory`. Flags/tunables use `SynchronizedValue<T>` (`SafeBoolean`, `SafeLong`) with `synchronized` accessors. |
 | **Priority** | `ActivatorThread` runs at `NORM_PRIORITY + 2` so evaluation keeps pace with I/O threads. |
 
-## 5.6 Sharp edges
+## 5.6 Pause semantics
+
+`Cell.pause()` **suspends processing of stimuli** — it is not a buffer.
+
+While paused, the `ActivatorThread` keeps draining its queue: it accepts each stimulus and
+simply skips `evaluateStimulus()`. Stimuli that arrive during the pause are therefore consumed
+and discarded, not held for `resume()`. Deferring them would risk replaying stimuli into
+already-completed transactions and other temporal errors, so the framework drops them by
+design.
+
+Two useful consequences: the activator's queue stays bounded for the duration of the pause,
+and the thread still parks in `acquire()` between stimuli rather than polling.
+
+`resume()` clears the flag and evaluation continues with whatever arrives next. Use pause to
+quiesce a cell, not to hold work for later.
+
+## 5.7 Sharp edges
 
 - **No backpressure.** All queues are unbounded `LinkedList`s. A slow activator grows its own
   queue without throttling upstream — watch this under sustained overload.
-- **Pause accumulates.** `pause()` sets `activatorsPaused`; the `ActivatorThread` then loops on
-  `Thread.sleep(500)` and stops consuming, but the Nucleus keeps receiving — so **stimuli pile
-  up in queues while paused**.
 - **Shutdown.** `stop()` sets `SafeBoolean` terminate flags and `interrupt()`s each thread to
   break it out of `acquire()`/`sleep()`, then drains permits and clears queues. Threads are
   **daemon by default** (the JVM can exit) unless the env var

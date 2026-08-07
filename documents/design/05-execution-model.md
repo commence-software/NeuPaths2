@@ -147,4 +147,4 @@ quiesce a cell, not to hold work for later.
   **daemon by default** (the JVM can exit) unless the env var
   `NEUPATHS_FORCE_GRACEFUL_TERMINATION` is set, which makes them non-daemon for clean joins.
 
-Back to the [documentation index](README.md).
+Continue to the [Case Study — Load Balancing →](06-case-study-load-balancing.md)

@@ -87,6 +87,7 @@
   svg .tb{font-size:13px; font-weight:600}
   svg .s{font-size:11px; fill:var(--ink-3)}
   svg .sa{font-size:11px; fill:var(--signal); font-weight:600}
+  svg .sv{font-size:11px; fill:var(--signal); font-weight:600; writing-mode: vertical-lr}
   svg .rel{stroke:var(--ink-3); stroke-width:1.4; fill:none}
   svg .flow{stroke:var(--signal); stroke-width:2; fill:none}
   svg .flow.dash,svg .rel.dash{stroke-dasharray:5 4}
@@ -139,6 +140,12 @@
     padding:16px 22px; margin:26px 0; box-shadow:0 8px 24px -20px rgba(18,87,230,.5)}
   .callout .eyebrow{margin-bottom:6px}
   .callout p{margin:.2em 0; max-width:none; color:var(--ink-2)}
+
+  pre.code{background:var(--ink); color:#E6EDF7; font-family:var(--mono); font-size:.79rem;
+    padding:16px 20px; border-radius:10px; overflow-x:auto; line-height:1.65; margin:22px 0}
+  pre.code .c{color:#8FA6C9; font-style:italic}
+  pre.code .k{color:#89B4FF}
+  pre.code .s{color:#9BD3A6; font-size:inherit; fill:none}
 
   footer{border-top:1px solid var(--line); padding:40px 0 64px; color:var(--ink-3);
     font-family:var(--mono); font-size:.8rem}
@@ -254,6 +261,7 @@
     <li><a href="#subsystems"><span class="n">03</span>Subsystems</a></li>
     <li><a href="#behavior"><span class="n">04</span>Behavior</a></li>
     <li><a href="#execution"><span class="n">05</span>Execution model</a></li>
+    <li><a href="#casestudy"><span class="n">06</span>Case study</a></li>
   </ol></nav>
 
   <main>
@@ -972,6 +980,297 @@
         pause, and the thread still parks in <code>acquire()</code> between stimuli rather than polling.
         <code>resume()</code> clears the flag and evaluation continues with whatever arrives next. Use
         pause to quiesce a cell, not to hold work for later.</p>
+    </div>
+  </section>
+
+  <!-- ============ 06 CASE STUDY ============ -->
+  <section id="casestudy">
+    <div class="sec-head"><span class="num">06</span><span class="eyebrow">Case study · load balancing</span></div>
+    <h2>A distributed state machine, built from activators</h2>
+    <p class="lede">Everything above is reference material. This is a close reading of the
+      <code>LoadControllerCell</code> / <code>LoadBalancedCell</code> pair — the most intricate
+      control logic in NeuPaths, and the best worked example of what the programming model can
+      express.</p>
+
+    <p>It is worth studying because of its constraints. There is <b>no broker, no shared queue, no
+      central scheduler</b>. A cell cannot call another cell. There is no request/response
+      primitive, no lock, no leader election. The only available tools are the ones any application
+      developer has: activators with typed receptors and transmitters, subscriptions, loopback
+      subscriptions, and the dataflow gate. Out of exactly those pieces, <b>six activators across
+      two cell types</b> build a work distributor with registration, matchmaking, targeted dispatch
+      and flow control. No component holds the state machine — it exists in the flow between them.</p>
+
+    <h3>The cast</h3>
+    <div class="tbl-scroll"><table>
+      <thead><tr><th>Activator</th><th>Lives in</th><th>Receptors</th><th>Emits</th></tr></thead>
+      <tbody>
+        <tr><td><code>CellRegistration</code></td><td>Controller</td><td><code>REQUEST</code> (non-buffered)</td><td><code>REGISTRATION</code></td></tr>
+        <tr><td><code>TransactionExtractor</code></td><td>Controller</td><td><em>the user's receptors</em></td><td><code>TRANSACTION</code></td></tr>
+        <tr><td><code>TransactionRequest</code></td><td>Controller</td><td><code>TRANSACTION</code> + <code>REQUEST</code> (<b>buffered</b>)</td><td><code>TRANS_REQ</code></td></tr>
+        <tr><td><code>SignalGenerator</code></td><td>Controller</td><td><em>the user's receptors</em> + <code>REQUEST</code></td><td><code>SIGNAL</code></td></tr>
+        <tr><td><code>Actv_LoadBalanceRegistration</code></td><td>Worker</td><td><code>REGISTRATION</code></td><td><code>REQUEST</code></td></tr>
+        <tr><td><em>your</em> <code>LoadBalancedActivator</code></td><td>Worker</td><td><em>your receptors</em> + <code>SIGNAL</code></td><td><em>your outputs</em> + <code>REQUEST</code></td></tr>
+      </tbody>
+    </table></div>
+    <p>Note the symmetry that makes it work: the controller is configured with <b>the same
+      receptors and subscriptions as the workers</b>. It therefore sees every work item the workers
+      see — not to process it, but to <em>know it arrived</em>.</p>
+
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 830 380" role="img" aria-label="The load controller's four activators wired into a pipeline by two loopback subscriptions">
+          <!-- work bar -->
+          <rect x="2" y="16" width="30" height="335" rx="15" fill="var(--signal-soft)" stroke="var(--signal)" stroke-width="1.4"/>
+          <text class="sv" x="17" y="186" text-anchor="middle" fill="var(--signal)">work stimuli from upstream producer — tagged T</text>
+          <path class="flow" d="M32,130 L65,130" marker-end="url(#arrbf)"/>
+          <path class="flow" d="M32,275 L420,275" marker-end="url(#arrbf)"/>
+
+          <!-- controller container -->
+          <rect x="40" y="66" width="730" height="252" rx="14" fill="none" stroke="var(--line-2)" stroke-width="1.5" stroke-dasharray="7 5"/>
+          <text class="s" x="56" y="84" fill="var(--ink-3)">LoadControllerCell</text>
+
+          <!-- activators -->
+          <rect class="node" x="70" y="92" width="160" height="68" rx="10"/>
+          <text class="tb" x="150" y="118" text-anchor="middle">TransactionExtractor</text>
+          <text class="s" x="150" y="136" text-anchor="middle">rx: user receptors</text>
+          <text class="s" x="150" y="150" text-anchor="middle" fill="var(--ink-3)">(work arrived)</text>
+
+          <rect class="node acc" x="425" y="92" width="155" height="68" rx="10"/>
+          <text class="tb" x="502" y="114" text-anchor="middle">TransactionRequest</text>
+          <text class="s" x="502" y="131" text-anchor="middle">rx: TRANSACTION</text>
+          <text class="s" x="502" y="145" text-anchor="middle">+ REQUEST (buffered)</text>
+          <text class="sa" x="502" y="157" text-anchor="middle">THE JOIN</text>
+
+          <rect class="node" x="425" y="242" width="155" height="68" rx="10"/>
+          <text class="tb" x="502" y="268" text-anchor="middle">SignalGenerator</text>
+          <text class="s" x="502" y="286" text-anchor="middle">rx: user receptors</text>
+          <text class="s" x="502" y="300" text-anchor="middle">+ REQUEST</text>
+
+          <rect class="node" x="605" y="167" width="155" height="56" rx="10"/>
+          <text class="tb" x="680" y="185" text-anchor="middle">CellRegistration</text>
+          <text class="s" x="680" y="205" text-anchor="middle">rx: REQUEST</text>
+
+          <!-- loopback 1 -->
+          <path class="flow dash" d="M230,126 L420,126" marker-end="url(#arrbf)"/>
+          <text class="sa" x="325" y="106" text-anchor="middle">TRANSACTION</text>
+          <text class="s" x="325" y="118" text-anchor="middle" fill="var(--signal)">untagged · T as payload</text>
+          <text class="s" x="325" y="146" text-anchor="middle" fill="var(--ink-3)">loopback</text>
+
+          <!-- loopback 2 -->
+          <path class="flow dash" d="M502,160 L502,235" marker-end="url(#arrbf)"/>
+          <text class="sa" x="420" y="186" text-anchor="middle">TRANS_REQ</text>
+          <text class="s" x="420" y="198" text-anchor="middle" fill="var(--signal)">tagged T · workerID</text>
+          <text class="s" x="420" y="212" text-anchor="middle" fill="var(--ink-3)">loopback</text>
+
+          <!-- credits bar -->
+          <rect x="780" y="16" width="30" height="335" rx="14" fill="var(--surface)" stroke="var(--line-2)" stroke-width="1.4"/>
+          <text class="sv" x="795" y="190" text-anchor="middle">worker pool — credits out · signal + ack in</text>
+          <path class="rel" d="M780,130 L582,130" marker-end="url(#arr)"/>
+          <text class="sa" x="670" y="106" text-anchor="middle">REQUEST</text>
+          <text class="s" x="670" y="118" text-anchor="middle" fill="var(--signal)">untagged workerID</text>
+          <path class="rel" d="M780,188 L760,188" marker-end="url(#arr)"/>
+
+          <!-- outputs -->
+          <path class="rel" d="M700,223 L700,242 L780,242" fill="none" marker-end="url(#arr)"/>
+          <text class="s" x="722" y="236" text-anchor="middle" fill="var(--ink-3)">REGISTRATION ack</text>
+          <path class="flow" d="M580,275 L780,275" marker-end="url(#arrbf)"/>
+          <text class="sa" x="680" y="267" text-anchor="middle">SIGNAL</text>
+          <text class="s" x="680" y="292" text-anchor="middle" fill="var(--ink-3)">to all workers</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig 6.1 · The controller's internal wiring.</b> The two dashed accent arrows are
+        <b>loopback subscriptions</b> — they route a transmitter's output back into a receptor of the
+        <em>same cell</em>, turning four independent activators into a pipeline without ever leaving
+        the cell.</figcaption>
+    </figure>
+
+    <h3>The key insight — two rendezvous spaces</h3>
+    <p>This is the part that makes the design click, and it is not visible from reading any single
+      activator. Receptors are grouped into <code>Rx_Transaction</code> bundles keyed by
+      <code>transactionID</code>, and <code>Rx_Collection</code> always holds one special bundle
+      keyed by <code>null</code> — the <b>global</b> transaction. Each bundle owns independent
+      receptor instances, so a stimulus tagged <code>T</code> and an untagged one <b>never meet</b>.
+      An activator needing one of each would wait forever.</p>
+    <p>The load balancer deliberately operates in <em>both</em> spaces, exploiting two overloads:</p>
+    <pre class="code"><span class="k">setStimulus</span>(name, stimulus)                 <span class="c">// 2-arg → transactionID = null (global space)</span>
+<span class="k">setStimulus</span>(name, stimulus, transactionID)  <span class="c">// 3-arg → explicitly tagged    (transaction space)</span></pre>
+    <p>The trick: <b>the work item's transaction id travels through the global space as ordinary
+      payload, then is re-attached as a tag on the way out.</b></p>
+
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 780 320" role="img" aria-label="Transaction space and global space, and how the transaction id crosses between them">
+          <rect x="24" y="44" width="330" height="256" rx="12" fill="var(--signal-soft)" stroke="var(--signal)" stroke-width="1.4" stroke-dasharray="7 5"/>
+          <text class="tb" x="189" y="34" text-anchor="middle" fill="var(--signal)">transaction space · bundle T</text>
+          <rect x="424" y="44" width="330" height="256" rx="12" fill="var(--surface-2)" stroke="var(--line-2)" stroke-width="1.4" stroke-dasharray="7 5"/>
+          <text class="tb" x="589" y="34" text-anchor="middle">global space · bundle null</text>
+
+          <rect class="node" x="48" y="66" width="282" height="44" rx="9"/>
+          <text class="t" x="189" y="84" text-anchor="middle">work stimuli — tagged T</text>
+          <text class="s" x="189" y="99" text-anchor="middle" fill="var(--ink-3)">isolated per work item</text>
+
+          <rect class="node" x="48" y="128" width="282" height="46" rx="9"/>
+          <text class="t" x="189" y="147" text-anchor="middle">TransactionExtractor fires</text>
+          <text class="s" x="189" y="163" text-anchor="middle" fill="var(--ink-3)">getTransactionID() → T</text>
+
+          <rect class="node" x="448" y="66" width="282" height="44" rx="9"/>
+          <text class="t" x="589" y="84" text-anchor="middle">worker credits — untagged</text>
+          <text class="s" x="589" y="99" text-anchor="middle" fill="var(--ink-3)">belong to no work item</text>
+
+          <rect class="node acc" x="448" y="150" width="282" height="52" rx="9"/>
+          <text class="tb" x="589" y="172" text-anchor="middle">TransactionRequest</text>
+          <text class="s" x="589" y="190" text-anchor="middle" fill="var(--signal)">work ⨝ credit — the join</text>
+
+          <rect class="node" x="48" y="236" width="282" height="46" rx="9"/>
+          <text class="t" x="189" y="255" text-anchor="middle">SignalGenerator fires</text>
+          <text class="s" x="189" y="271" text-anchor="middle" fill="var(--ink-3)">SIGNAL, tagged T</text>
+
+          <path class="flow" d="M330,160 C390,168 400,168 448,172" marker-end="url(#arrbf)"/>
+          <text class="sa" x="392" y="140" text-anchor="middle">sheds its tag</text>
+          <text class="s" x="392" y="152" text-anchor="middle" fill="var(--signal)">T becomes payload</text>
+
+          <path class="flow" d="M448,196 C400,224 380,236 330,252" marker-end="url(#arrbf)"/>
+          <text class="sa" x="392" y="238" text-anchor="middle">tag restored</text>
+          <text class="s" x="392" y="250" text-anchor="middle" fill="var(--signal)">T read back out</text>
+
+          <path class="rel" d="M589,110 L589,150" marker-end="url(#arr)"/>
+          <path class="rel" d="M189,110 L189,128" marker-end="url(#arr)"/>
+          <path class="rel" d="M189,174 L189,236" marker-end="url(#arr)" stroke-dasharray="4 4"/>
+        </svg>
+      </div>
+      <figcaption><b>Fig 6.2 · Crossing between spaces.</b> Transaction space isolates one work item
+        so many can be in flight at once. Global space is where things belonging to <em>no</em>
+        particular work item meet — the pool of worker credits. The join must happen in the global
+        space, so the work item sheds its tag to get there and picks it back up on the way out.</figcaption>
+    </figure>
+
+    <h3>One full cycle</h3>
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 760 330" role="img" aria-label="Sequence of a full load-balancing cycle across producer, controller and two workers">
+          <text class="tb" x="60" y="20" text-anchor="middle">Producer</text>
+          <text class="tb" x="270" y="20" text-anchor="middle">Controller</text>
+          <text class="tb" x="500" y="20" text-anchor="middle">Worker LBC_1</text>
+          <text class="tb" x="680" y="20" text-anchor="middle">LBC_2</text>
+          <line class="life" x1="60" y1="30" x2="60" y2="312"/>
+          <line class="life" x1="270" y1="30" x2="270" y2="312"/>
+          <line class="life" x1="500" y1="30" x2="500" y2="312"/>
+          <line class="life" x1="680" y1="30" x2="680" y2="312"/>
+
+          <text class="sa" x="24" y="48">1 · bootstrap</text>
+          <path class="rel" d="M500,60 L270,60" marker-end="url(#arr)"/>
+          <text class="s" x="385" y="54" text-anchor="middle">REQUEST (credit) — retried every 1 s</text>
+          <path class="rel dash" d="M270,80 L500,80" marker-end="url(#arr)"/>
+          <text class="s" x="385" y="74" text-anchor="middle">REGISTRATION ack → stops retry thread</text>
+
+          <text class="sa" x="24" y="112">2 · work</text>
+          <path class="flow" d="M60,124 L270,124" marker-end="url(#arrb)"/>
+          <path class="flow" d="M60,144 L500,144" marker-end="url(#arrb)"/>
+          <path class="flow" d="M60,164 L680,164" marker-end="url(#arrb)"/>
+          <text class="s" x="380" y="182" text-anchor="middle" fill="var(--ink-3)">work broadcast, tagged T — both workers now gate-blocked, holding the data</text>
+
+          <text class="sa" x="24" y="212">3 · join</text>
+          <path class="rel" d="M282,206 C330,214 330,226 282,232" marker-end="url(#arr)"/>
+          <text class="s" x="340" y="222">work ⨝ credit → picks LBC_1</text>
+
+          <text class="sa" x="24" y="262">4 · dispatch</text>
+          <path class="flow" d="M270,256 L500,256" marker-end="url(#arrb)"/>
+          <path class="flow" d="M270,276 L680,276" marker-end="url(#arrb)"/>
+          <text class="s" x="420" y="250" text-anchor="middle">SIGNAL (workerID = LBC_1), tagged T</text>
+          <text class="s" x="690" y="292" fill="var(--ink-3)">not me →</text>
+          <text class="s" x="690" y="304" fill="var(--ink-3)">drops it</text>
+
+          <path class="flow" d="M500,300 L270,300" marker-end="url(#arrb)"/>
+          <text class="s" x="385" y="294" text-anchor="middle">evaluate() runs, then a fresh credit returns</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig 6.3 · The cycle.</b> Work is <b>broadcast</b> and every worker blocks holding
+        it; only the addressed worker's <code>activate()</code> proceeds to <code>evaluate()</code>.
+        Dispatch therefore costs one small signal — the data is already resident at the winner.</figcaption>
+    </figure>
+
+    <p>The address filter lives in <code>LoadBalancedActivator</code>, which overrides the
+      package-private <code>activate()</code> hook that normally just calls <code>evaluate()</code>:</p>
+    <pre class="code"><span class="k">final void</span> activate ()
+{
+  Stim_LoadBalanceSignal signal = getStimulus(LB.SIGNAL);
+  <span class="k">if</span> (getCell().getInstanceID().equals(signal.cellInstanceID))
+  {
+    evaluate();                                    <span class="c">// ← your logic, only if addressed to me</span>
+    postStimulus(<span class="k">new</span> Stim_LoadBalanceRequest(getCell().getInstanceID()),
+                 LB.REQUEST, <span class="k">null</span>);                <span class="c">// ← return a fresh credit</span>
+  }
+}</pre>
+
+    <h3>The worker's credit lifecycle</h3>
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 800 200" role="img" aria-label="Worker state machine: registering, available, holding, selected or discarded">
+          <circle cx="30" cy="100" r="8" fill="var(--ink)"/>
+          <rect class="node" x="66" y="80" width="118" height="40" rx="20"/><text class="t" x="125" y="104" text-anchor="middle">Registering</text>
+          <rect class="node acc" x="236" y="80" width="118" height="40" rx="20"/><text class="t" x="295" y="104" text-anchor="middle">Available</text>
+          <rect class="node" x="406" y="80" width="118" height="40" rx="20"/><text class="t" x="465" y="104" text-anchor="middle">Holding</text>
+          <rect class="node acc" x="600" y="34" width="118" height="38" rx="19"/><text class="t" x="659" y="58" text-anchor="middle">Selected</text>
+          <rect class="node" x="600" y="130" width="118" height="38" rx="19"/><text class="t" x="659" y="154" text-anchor="middle">Discarded</text>
+
+          <path class="rel" d="M38,100 L66,100" marker-end="url(#arr)"/>
+          <path class="rel" d="M125,80 C110,52 140,52 125,78" marker-end="url(#arr)"/>
+          <text class="s" x="125" y="44" text-anchor="middle" fill="var(--ink-3)">retry 1 s</text>
+          <path class="flow" d="M184,100 L236,100" marker-end="url(#arrbf)"/>
+          <text class="s" x="210" y="92" text-anchor="middle">ack</text>
+          <path class="flow" d="M354,100 L406,100" marker-end="url(#arrbf)"/>
+          <text class="s" x="380" y="92" text-anchor="middle">work</text>
+          <path class="flow" d="M524,92 L600,60" marker-end="url(#arrbf)"/>
+          <text class="s" x="556" y="66" text-anchor="middle" fill="var(--signal)">signal = me</text>
+          <path class="rel" d="M524,110 L600,142" marker-end="url(#arr)"/>
+          <text class="s" x="566" y="136" text-anchor="middle" fill="var(--ink-3)">signal ≠ me</text>
+          <path class="flow" d="M659,72 C700,100 380,168 300,124" marker-end="url(#arrbf)"/>
+          <text class="s" x="470" y="186" text-anchor="middle">evaluate() → post fresh credit → Available</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig 6.4 · Credit lifecycle.</b> <code>Available</code> means "a credit of mine is
+        queued at the controller." <code>Holding</code> is the gate-blocked state that makes the
+        design work — the worker already has the data and waits only for permission.</figcaption>
+    </figure>
+
+    <h3>Techniques worth stealing</h3>
+    <div class="tbl-scroll"><table>
+      <thead><tr><th>Technique</th><th>How it is done</th><th>When to reach for it</th></tr></thead>
+      <tbody>
+        <tr><td><b>Intra-cell pipeline</b></td><td><code>LogicLoopbackSubscriptionSpec</code> wires activator A's transmitter to activator B's receptor inside one cell.</td><td>Multi-stage logic that should stay one deployable unit.</td></tr>
+        <tr><td><b>Dataflow join</b></td><td>Two receptors from different sources; the gate fires only on the pair.</td><td>Any "wait until both X and Y" rendezvous — no locks.</td></tr>
+        <tr><td><b>Buffered vs non-buffered as policy</b></td><td><code>BUFFERED</code> queues (credits accumulate); <code>NON_BUFFERED</code> keeps only the latest.</td><td>Encoding backlog vs. freshness declaratively.</td></tr>
+        <tr><td><b>Observer mirroring</b></td><td>Give the controller the <em>same</em> receptors/subscriptions as the workers.</td><td>Supervision, metering, routing decisions.</td></tr>
+        <tr><td><b>Broadcast + address filter</b></td><td>Send one signal to all; each recipient compares an id and self-selects.</td><td>Targeted dispatch without point-to-point addressing.</td></tr>
+        <tr><td><b>Credit / token flow</b></td><td>A worker's <code>REQUEST</code> is a standing offer consumed by one work item.</td><td>Flow control and natural backpressure across a pool.</td></tr>
+        <tr><td><b>Self-terminating bootstrap</b></td><td>Retry on a timer until acknowledged, then stop the thread.</td><td>Joining a mesh whose peers may not be up yet.</td></tr>
+        <tr><td><b>Tag-shedding rendezvous</b></td><td>Move an id from <em>tag</em> to <em>payload</em> and back.</td><td>Joining transaction-scoped data against unscoped state.</td></tr>
+        <tr><td><b>Idempotence guard</b></td><td><code>TransactionFilter.ENABLED</code> drops repeats within a transaction.</td><td>Redundant mesh paths that may deliver twice.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Design observations &amp; trade-offs</h3>
+    <div class="grid g2">
+      <div class="card"><h4>Broadcast, not routed</h4><p>Every worker receives every work item and all
+        but one discard it. That trades bandwidth for a far simpler control plane and zero hand-off
+        latency. Suits fast local segments better than wide-area pools with large payloads.</p></div>
+      <div class="card"><h4>Transactions give concurrency</h4><p>The example driver alternates
+        <code>inject()</code> and <code>injectAsTransaction()</code> — both work. Untagged work runs
+        the whole protocol inside the global bundle, so items effectively serialize; tagged work is
+        isolated and can be in flight concurrently.</p></div>
+      <div class="card"><h4>Startup burst can skew</h4><p>The registration thread posts a credit every
+        second until acknowledged, so a worker that took several attempts may hold several queued
+        credits and receive several early items in a row. It self-corrects in steady state.</p></div>
+      <div class="card"><h4>No re-queue on failure</h4><p>The credit is consumed at match time and the
+        signal is fire-and-forget; nothing recovers the item if the addressee dies mid-job. Layer
+        your own acknowledgement — e.g. a response transaction the producer waits on.</p></div>
+    </div>
+    <div class="callout">
+      <div class="eyebrow">Scheduling policy, for free</div>
+      <p>Because credits are consumed FIFO, the policy is closer to <b>least-recently-served</b> than
+        strict round-robin — and it naturally favours fast workers, since a worker that finishes
+        quickly returns its credit sooner and gets more work. For heterogeneous pools that is usually
+        exactly what you want, and nobody had to write a scheduler to get it.</p>
     </div>
   </section>
 

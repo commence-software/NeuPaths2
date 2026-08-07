@@ -20,6 +20,7 @@ There is no central broker — routing, subscription and duplicate-filtering hap
 | 3 | [Subsystem Class Diagrams](03-subsystems.md) | Class | Internals: the `Nucleus` routing engine, the synapse/binder transport, cryptography, the wire protocol, XML configuration, and utilities/daemon. |
 | 4 | [Behavioral Diagrams](04-behavior.md) | Sequence · State · Activity | How it *runs*: cell lifecycle, dataflow evaluation, peer join handshake, stimulus propagation, injector/extractor round-trips, cycle detection and load balancing. |
 | 5 | [Execution Model — Threads & Dataflow](05-execution-model.md) | Pipeline · Activity | The multi-threaded model: the staged producer/consumer pipeline, the full thread inventory, the receptor-completion firing gate, and concurrency guarantees and sharp edges. |
+| 6 | [Case Study — Load Balancing](06-case-study-load-balancing.md) | Dataflow · Sequence · State | A close reading of `LoadControllerCell`/`LoadBalancedCell`: six activators and two loopback subscriptions composed into a distributed state machine, plus the reusable techniques it demonstrates. |
 
 ## The vocabulary at a glance
 

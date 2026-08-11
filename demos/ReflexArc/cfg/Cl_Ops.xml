@@ -1,0 +1,9 @@
+<cell_cluster>
+  <name>Ops</name>
+  <cell_definitions>
+    <cell_definition>cfg/OpsRouter.xml</cell_definition>
+    <cell_definition>cfg/OpsTrend.xml</cell_definition>
+    <cell_definition>cfg/OpsEvents.xml</cell_definition>
+  </cell_definitions>
+  <logging_enabled>true</logging_enabled>
+</cell_cluster>

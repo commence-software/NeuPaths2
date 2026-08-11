@@ -1,0 +1,16 @@
+<logic_cell>
+  <name>ZA_Reflex</name>
+  <synapses>
+    <synapse>Local#Stream#Peer#Zone_A#/tmp/reflex/za.sock</synapse>
+  </synapses>
+  <activators>
+    <activator><class>BurstDetector</class></activator>
+    <activator><class>ValveGuard</class></activator>
+    <activator><class>LeakLocalizer</class></activator>
+    <activator><class>PressureTracker</class></activator>
+    <activator><class>FlowTracker</class></activator>
+    <activator><class>AcousticTracker</class></activator>
+    <activator><class>Watchdog</class></activator>
+  </activators>
+  <pulse_interval_ms>1000</pulse_interval_ms>
+</logic_cell>

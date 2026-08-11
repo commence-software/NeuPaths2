@@ -326,4 +326,4 @@ The subsystem is a catalogue of reusable patterns:
 | Transaction bundles and the global bundle | [`Rx_Collection.java`](../../source/java/neupaths/api/Rx_Collection.java) |
 | Runnable example | [`examples/LoadBalance`](../../examples/LoadBalance) |
 
-Back to the [documentation index](README.md).
+Continue to the [Case Study — The Reflex Arc →](07-case-study-reflex-arc.md)

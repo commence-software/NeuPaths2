@@ -21,6 +21,7 @@ There is no central broker — routing, subscription and duplicate-filtering hap
 | 4 | [Behavioral Diagrams](04-behavior.md) | Sequence · State · Activity | How it *runs*: cell lifecycle, dataflow evaluation, peer join handshake, stimulus propagation, injector/extractor round-trips, cycle detection and load balancing. |
 | 5 | [Execution Model — Threads & Dataflow](05-execution-model.md) | Pipeline · Activity | The multi-threaded model: the staged producer/consumer pipeline, the full thread inventory, the receptor-completion firing gate, and concurrency guarantees and sharp edges. |
 | 6 | [Case Study — Load Balancing](06-case-study-load-balancing.md) | Dataflow · Sequence · State | A close reading of `LoadControllerCell`/`LoadBalancedCell`: six activators and two loopback subscriptions composed into a distributed state machine, plus the reusable techniques it demonstrates. |
+| 7 | [Case Study — The Reflex Arc](07-case-study-reflex-arc.md) | Topology · Sequence · State | A built-and-verified showcase (`demos/ReflexArc/`): a local control loop that keeps protecting a simulated plant while partitioned from its "brain" — dual-bridge redundancy, a sensor-liveness watchdog, capability gating, and zero-config zone cloning. |
 
 ## The vocabulary at a glance
 

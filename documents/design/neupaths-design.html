@@ -261,7 +261,8 @@
     <li><a href="#subsystems"><span class="n">03</span>Subsystems</a></li>
     <li><a href="#behavior"><span class="n">04</span>Behavior</a></li>
     <li><a href="#execution"><span class="n">05</span>Execution model</a></li>
-    <li><a href="#casestudy"><span class="n">06</span>Case study</a></li>
+    <li><a href="#casestudy"><span class="n">06</span>Load balancing</a></li>
+    <li><a href="#reflexarc"><span class="n">07</span>Reflex arc</a></li>
   </ol></nav>
 
   <main>
@@ -1272,6 +1273,198 @@
         quickly returns its credit sooner and gets more work. For heterogeneous pools that is usually
         exactly what you want, and nobody had to write a scheduler to get it.</p>
     </div>
+  </section>
+
+  <!-- ============ 07 CASE STUDY: REFLEX ARC ============ -->
+  <section id="reflexarc">
+    <div class="sec-head"><span class="num">07</span><span class="eyebrow">Case study · the reflex arc</span></div>
+    <h2>Local autonomy under partition — verified live</h2>
+    <p class="lede">The previous case study read an architecture out of the source. This one runs the
+      other way: designed as a showcase, then <b>built and verified end-to-end</b> at
+      <code>demos/ReflexArc/</code> — eight killable JVMs, an automated chaos runbook, every claim
+      demonstrated against the live mesh.</p>
+
+    <p>The premise is the biology again: spinal reflexes work without the brain. A simulated water
+      pump station gets a local control loop — pressure spike → close the valve — and then the chaos
+      script <b>severs the path to the brain</b>. The reflex keeps protecting the plant while central
+      analytics and the operator console are dark, and rewires itself when the partition heals.
+      Thirty seconds, and it is the entire thesis: <b>resilience from the shape of the system, not
+      from a component</b>.</p>
+
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 880 410" role="img" aria-label="Reflex Arc topology: Zone A spinal cord, dual bridges, Ops brain">
+          <!-- Zone_A container -->
+          <rect x="20" y="36" width="400" height="350" rx="14" fill="none" stroke="var(--line-2)" stroke-width="1.5" stroke-dasharray="7 5"/>
+          <text class="s" x="36" y="58" fill="var(--ink-3)">Zone_A — the spinal cord</text>
+
+          <!-- sensors -->
+          <rect class="node" x="40" y="70" width="120" height="40" rx="9"/>
+          <text class="t" x="100" y="94" text-anchor="middle">ZA_Pressure</text>
+          <rect class="node" x="40" y="125" width="120" height="40" rx="9"/>
+          <text class="t" x="100" y="149" text-anchor="middle">ZA_Flow</text>
+          <rect class="node dash" x="40" y="180" width="120" height="40" rx="9"/>
+          <text class="t" x="100" y="197" text-anchor="middle">ZA_Acoustic</text>
+          <text class="s" x="100" y="212" text-anchor="middle" fill="var(--ink-3)">hot-plug</text>
+
+          <!-- reflex cell -->
+          <rect class="node acc" x="220" y="70" width="180" height="150" rx="11"/>
+          <text class="tb" x="310" y="94" text-anchor="middle">ZA_Reflex</text>
+          <text class="s" x="310" y="116" text-anchor="middle">BurstDetector</text>
+          <text class="s" x="310" y="132" text-anchor="middle" fill="var(--signal)">→ ValveGuard (loopback)</text>
+          <text class="s" x="310" y="150" text-anchor="middle">LeakLocalizer</text>
+          <text class="s" x="310" y="168" text-anchor="middle">3× GaugeTracker</text>
+          <text class="s" x="310" y="184" text-anchor="middle">Watchdog (1 s pulse)</text>
+
+          <!-- valve -->
+          <rect class="node" x="220" y="290" width="180" height="56" rx="10"/>
+          <text class="tb" x="310" y="312" text-anchor="middle">ZA_Valve</text>
+          <text class="s" x="310" y="330" text-anchor="middle">actuator + 1 s heartbeat</text>
+
+          <!-- zone arrows -->
+          <path class="flow" d="M160,90 L220,100" marker-end="url(#arrbf)"/>
+          <path class="flow" d="M160,145 L220,145" marker-end="url(#arrbf)"/>
+          <path class="flow dash" d="M160,200 L220,190" marker-end="url(#arrbf)"/>
+          <path class="flow" d="M280,220 L280,290" marker-end="url(#arrbf)"/>
+          <text class="sa" x="272" y="252" text-anchor="end">ValveCmd</text>
+          <path class="rel" d="M340,290 L340,220" marker-end="url(#arr)"/>
+          <text class="s" x="348" y="252">ValveState</text>
+
+          <!-- bridges -->
+          <rect class="node" x="470" y="110" width="140" height="52" rx="10"/>
+          <text class="tb" x="540" y="132" text-anchor="middle">ZA_Bridge1</text>
+          <text class="s" x="540" y="148" text-anchor="middle">path 1</text>
+          <rect class="node" x="470" y="230" width="140" height="52" rx="10"/>
+          <text class="tb" x="540" y="252" text-anchor="middle">ZA_Bridge2</text>
+          <text class="s" x="540" y="268" text-anchor="middle">path 2 — redundant</text>
+          <text class="s" x="540" y="200" text-anchor="middle" fill="var(--signal)">same stimuli, both paths</text>
+          <text class="s" x="540" y="213" text-anchor="middle" fill="var(--signal)">deduped at consumers</text>
+
+          <path class="flow march" d="M420,136 L470,136" marker-end="url(#arrbf)"/>
+          <path class="flow dash" d="M420,256 L470,256" marker-end="url(#arrbf)"/>
+          <path class="flow march" d="M610,136 L650,136" marker-end="url(#arrbf)"/>
+          <path class="flow dash" d="M610,256 L650,256" marker-end="url(#arrbf)"/>
+
+          <!-- Ops container -->
+          <rect x="650" y="36" width="210" height="350" rx="14" fill="none" stroke="var(--line-2)" stroke-width="1.5" stroke-dasharray="7 5"/>
+          <text class="s" x="666" y="58" fill="var(--ink-3)">Ops — the brain</text>
+          <rect class="node" x="670" y="80" width="170" height="44" rx="9"/>
+          <text class="tb" x="755" y="98" text-anchor="middle">OpsTrend</text>
+          <text class="s" x="755" y="114" text-anchor="middle">fleet analytics</text>
+          <rect class="node" x="670" y="150" width="170" height="56" rx="9"/>
+          <text class="tb" x="755" y="170" text-anchor="middle">Console</text>
+          <text class="s" x="755" y="186" text-anchor="middle">inject overrides</text>
+          <text class="s" x="755" y="199" text-anchor="middle">extract alarms</text>
+          <rect class="node" x="670" y="240" width="170" height="44" rx="9"/>
+          <text class="tb" x="755" y="258" text-anchor="middle">OpsEvents</text>
+          <text class="s" x="755" y="274" text-anchor="middle">audit spool</text>
+          <path class="rel dash" d="M670,178 L610,158" marker-end="url(#arr)"/>
+          <text class="s" x="640" y="152" text-anchor="middle" fill="var(--ink-3)">override</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig 7.1 · Topology.</b> Two domains joined only by dual redundant bridges. The
+        live run showed the framework's dedup doing real work, trace included:
+        <b>ZA_Pressure ⇒ ZA_Router ⇒ ZA_Bridge1 ⇒ OpsRouter</b>. Cutting either bridge loses
+        nothing; cutting both is the demo.</figcaption>
+    </figure>
+
+    <h3>The reflex cell — seven activators, one loopback</h3>
+    <p>Same composition techniques as §06: <code>BurstDetector</code> joins fresh pressure + flow
+      (a 4 Hz dataflow fusion), its <code>Anomaly</code> loops back into <code>ValveGuard</code>,
+      which joins it with the valve's actual state — hysteresis as a join, and the 1 Hz heartbeat
+      makes <em>the slowest input set the control-loop rate</em>. <code>LeakLocalizer</code> holds a
+      three-way join that cannot complete until the acoustic sensor exists.</p>
+
+    <div class="callout">
+      <div class="eyebrow">The watchdog — detecting absence</div>
+      <p>A dataflow gate cannot fire on the <b>absence</b> of a stimulus — a dead sensor stalls its
+        joins silently. The watchdog closes the gap with two cooperating activator roles sharing
+        state through cell properties: each <code>GaugeTracker</code> stamps its sensor's arrival
+        time on every reading, and a <code>PulsedActivator</code> compares the stamps against the
+        clock each second. Never-seen sensors (acoustic, pre-hot-plug) are deliberately not alarmed.
+        Verified live — kill to page in ~2.4 s:</p>
+      <pre class="code">WATCHDOG: sensor ZA_Flow is DOWN (last reading 2388 ms ago)
+WATCHDOG: sensor ZA_Flow RECOVERED</pre>
+    </div>
+
+    <h3>The partition — as run</h3>
+    <figure>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 760 360" role="img" aria-label="Partition sequence: bridges killed, burst, local reflex closes valve, heal">
+          <text class="tb" x="75" y="22" text-anchor="middle">Sensors</text>
+          <text class="tb" x="245" y="22" text-anchor="middle">ZA_Reflex</text>
+          <text class="tb" x="405" y="22" text-anchor="middle">ZA_Valve</text>
+          <text class="tb" x="555" y="22" text-anchor="middle">Bridges 1+2</text>
+          <text class="tb" x="690" y="22" text-anchor="middle">Ops</text>
+          <line class="life" x1="75" y1="32" x2="75" y2="344"/>
+          <line class="life" x1="245" y1="32" x2="245" y2="344"/>
+          <line class="life" x1="405" y1="32" x2="405" y2="344"/>
+          <line class="life" x1="555" y1="32" x2="555" y2="344"/>
+          <line class="life" x1="690" y1="32" x2="690" y2="344"/>
+
+          <path class="flow" d="M75,56 L245,56" marker-end="url(#arrb)"/>
+          <text class="s" x="160" y="49" text-anchor="middle">Pressure + Flow @ 250 ms</text>
+          <path class="flow" d="M245,80 L690,80" marker-end="url(#arrb)"/>
+          <text class="s" x="467" y="73" text-anchor="middle">telemetry via both bridges — deduped</text>
+
+          <line x1="545" y1="95" x2="565" y2="115" stroke="var(--ink)" stroke-width="2"/>
+          <line x1="565" y1="95" x2="545" y2="115" stroke="var(--ink)" stroke-width="2"/>
+          <text class="sa" x="555" y="132" text-anchor="middle">partition — both bridges killed</text>
+
+          <path class="flow" d="M75,160 L245,160" marker-end="url(#arrb)"/>
+          <text class="s" x="160" y="153" text-anchor="middle">burst: 2.5 bar · 210 m3/h</text>
+          <path class="rel" d="M253,180 C298,188 298,200 253,208" marker-end="url(#arr)"/>
+          <text class="s" x="310" y="196">BurstDetector → Anomaly(3.03)</text>
+          <path class="rel" d="M253,224 C298,232 298,244 253,252" marker-end="url(#arr)"/>
+          <text class="s" x="310" y="240">ValveGuard join — loopback + ValveState</text>
+          <path class="flow" d="M245,272 L405,272" marker-end="url(#arrb)"/>
+          <text class="s" x="325" y="265" text-anchor="middle">ValveCmd close</text>
+          <path class="rel" d="M405,294 L245,294" marker-end="url(#arr)"/>
+          <text class="s" x="325" y="287" text-anchor="middle">ValveState: CLOSED</text>
+
+          <text class="sa" x="555" y="308" text-anchor="middle">heal — rewired in ~1.5 s</text>
+          <path class="flow march" d="M555,322 L690,322" marker-end="url(#arrb)"/>
+          <text class="s" x="622" y="338" text-anchor="middle">fresh trend 6.43 bar — no backlog</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig 7.2 · The money shot, as observed.</b> With both bridges dead, the scripted
+        burst produced <b>REFLEX: closing valve on Anomaly(severity=3.03)</b> and
+        <b>valve.pos: CLOSED</b> while the Ops log stayed flat. On heal, trends resumed showing
+        post-closure physics — current state only, no stale replay.</figcaption>
+    </figure>
+
+    <h3>The runbook, as run</h3>
+    <div class="tbl-scroll"><table>
+      <thead><tr><th>Action (chaos.sh)</th><th>Observed</th><th>Claim</th></tr></thead>
+      <tbody>
+        <tr><td><code>burst</code></td><td><code>VALVE CLOSED by ZA_Reflex: … severity=2.92</code></td><td>the dataflow reflex</td></tr>
+        <tr><td><code>kill-bridge1</code></td><td>telemetry uninterrupted via path 2</td><td>safe redundancy</td></tr>
+        <tr><td><code>kill-flow</code> / <code>start ZA_Flow</code></td><td>watchdog DOWN → RECOVERED; detection suspends, valve holds</td><td>watchdog + fail-safe stall</td></tr>
+        <tr><td><code>partition</code> + <code>burst</code></td><td><b>valve closed with the brain dark</b></td><td>the reflex arc</td></tr>
+        <tr><td><code>heal</code></td><td>fresh trends, no backlog flood</td><td>latest-value semantics</td></tr>
+        <tr><td><code>hotplug</code></td><td><code>[OPS] Zone_A: leak signature 0.84 — est. offset 101m</code></td><td>capability gating</td></tr>
+        <tr><td><code>zoneb</code></td><td><code>[OPS] Anomaly(Zone_B …)</code> — zero Ops changes</td><td>regex scale-out</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="grid g2">
+      <div class="card"><h4>Hysteresis by dataflow</h4><p><code>ValveGuard</code> needs a fresh
+        <code>ValveState</code> to fire and the valve heartbeats at 1 Hz — the slowest input bounds
+        the loop rate. No timers in the control logic.</p></div>
+      <div class="card"><h4>Capability gating</h4><p><code>LeakLocalizer</code> is configured from day
+        one; hot-plugging the acoustic sensor completes its three-way join and a feature turns on
+        with no reconfiguration anywhere.</p></div>
+      <div class="card"><h4>Latest-value reconnect</h4><p>A broker down for two minutes replays two
+        minutes of stale queue. The mesh comes back with <em>current</em> state only — for telemetry
+        that is the correct semantics, and it is free.</p></div>
+      <div class="card"><h4>Zone cloning</h4><p>Zone B is sed-generated XML plus
+        <code>-Dreflex.zone=B</code>. Its reflex closed its own valve independently, and Ops saw it
+        through pre-existing regex subscriptions.</p></div>
+    </div>
+
+    <p>Full case study with wiring tables and honest notes:
+      <code>documents/design/07-case-study-reflex-arc.md</code>. The broker-twin comparison
+      (same chaos script against a hub-and-spoke build) remains future work.</p>
   </section>
 
   </main>

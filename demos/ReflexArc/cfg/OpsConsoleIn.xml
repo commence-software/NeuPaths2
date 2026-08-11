@@ -1,0 +1,10 @@
+<injector_cell>
+  <name>OpsConsoleIn</name>
+  <synapses>
+    <synapse>Local#Stream#Peer#Ops#/tmp/reflex/ops1.sock</synapse>
+  </synapses>
+  <transmitter>
+    <name>ValveCmd</name>
+    <stimulus_class>ValveCmdStim</stimulus_class>
+  </transmitter>
+</injector_cell>

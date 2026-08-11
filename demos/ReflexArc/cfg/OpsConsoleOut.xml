@@ -1,0 +1,11 @@
+<extractor_cell>
+  <name>OpsConsoleOut</name>
+  <synapses>
+    <synapse>Local#Stream#Peer#Ops#/tmp/reflex/ops1.sock</synapse>
+  </synapses>
+  <subscription>
+    <cell_name>.*_Reflex|OpsTrend</cell_name>
+    <transmitter_name>Anomaly|Leak|SensorAlarm|Trend</transmitter_name>
+    <domain>Ops</domain>
+  </subscription>
+</extractor_cell>

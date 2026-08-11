@@ -1,0 +1,5 @@
+<event_cell>
+  <name>ZA_Events</name>
+  <synapse>Local#Stream#Peer#Zone_A#/tmp/reflex/za.sock</synapse>
+  <output_file>out/ZA_events.out</output_file>
+</event_cell>

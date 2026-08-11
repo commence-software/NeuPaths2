@@ -1,0 +1,12 @@
+<logic_cell>
+  <name>ZA_Flow</name>
+  <synapses>
+    <synapse>Local#Stream#Peer#Zone_A#/tmp/reflex/za.sock</synapse>
+  </synapses>
+  <activators>
+    <activator>
+      <class>FlowSim</class>
+    </activator>
+  </activators>
+  <pulse_interval_ms>250</pulse_interval_ms>
+</logic_cell>

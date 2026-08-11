@@ -1,0 +1,8 @@
+<cell_cluster>
+  <name>OpsConsole</name>
+  <cell_definitions>
+    <cell_definition>cfg/OpsConsoleIn.xml</cell_definition>
+    <cell_definition>cfg/OpsConsoleOut.xml</cell_definition>
+  </cell_definitions>
+  <logging_enabled>true</logging_enabled>
+</cell_cluster>

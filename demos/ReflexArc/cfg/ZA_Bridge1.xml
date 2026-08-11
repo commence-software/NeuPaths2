@@ -1,0 +1,19 @@
+<bridge_cell>
+  <name>ZA_Bridge1</name>
+  <synapses>
+    <synapse>Local#Stream#Peer#Zone_A#/tmp/reflex/za.sock</synapse>
+    <synapse>Local#Stream#Peer#Ops#/tmp/reflex/ops1.sock</synapse>
+  </synapses>
+  <subscriptions>
+    <bridge_subscription>
+      <cell_name>ZA_.*</cell_name>
+      <transmitter_name>Pressure|Flow|Acoustic|ValveState|Anomaly|Leak|SensorAlarm</transmitter_name>
+      <domain>Zone_A</domain>
+    </bridge_subscription>
+    <bridge_subscription>
+      <cell_name>OpsConsoleIn</cell_name>
+      <transmitter_name>ValveCmd</transmitter_name>
+      <domain>Ops</domain>
+    </bridge_subscription>
+  </subscriptions>
+</bridge_cell>

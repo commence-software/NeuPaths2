@@ -1,0 +1,9 @@
+<logic_cell>
+  <name>OpsTrend</name>
+  <synapses>
+    <synapse>Local#Stream#Peer#Ops#/tmp/reflex/ops1.sock</synapse>
+  </synapses>
+  <activators>
+    <activator><class>TrendAnalyzer</class></activator>
+  </activators>
+</logic_cell>

@@ -1,0 +1,7 @@
+<cell_cluster>
+  <name>ZA_Bridge2</name>
+  <cell_definitions>
+    <cell_definition>cfg/ZA_Bridge2.xml</cell_definition>
+  </cell_definitions>
+  <logging_enabled>true</logging_enabled>
+</cell_cluster>

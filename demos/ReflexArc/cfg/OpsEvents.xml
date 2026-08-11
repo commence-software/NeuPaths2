@@ -1,0 +1,5 @@
+<event_cell>
+  <name>OpsEvents</name>
+  <synapse>Local#Stream#Peer#Ops#/tmp/reflex/ops1.sock</synapse>
+  <output_file>out/Ops_events.out</output_file>
+</event_cell>

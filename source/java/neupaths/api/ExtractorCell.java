@@ -106,7 +106,7 @@ public class ExtractorCell extends Cell
    * @return    The stimulus.
    */
   @SuppressWarnings("unchecked")
-  public final
+  public synchronized final
   <T extends Stimulus> T
   extract ()
   {
@@ -142,7 +142,7 @@ public class ExtractorCell extends Cell
    * @return           The stimulus or {@code null} if request expired.
    */
   @SuppressWarnings("unchecked")
-  public final
+  public synchronized final
   <T extends Stimulus> T
   extract (long timeoutMs)
   {
@@ -183,7 +183,7 @@ public class ExtractorCell extends Cell
    * @return              The stimulus.
    */  
   @SuppressWarnings("unchecked")
-  public final
+  public synchronized final
   <T extends Stimulus> T
   extractFromTransaction (UUID transactionID)
   {
@@ -237,7 +237,7 @@ public class ExtractorCell extends Cell
    * @return              The stimulus or {@code null} if request expired.
    */  
   @SuppressWarnings("unchecked")
-  public final
+  public synchronized final
   <T extends Stimulus> T
   extractFromTransaction (UUID transactionID, long timeoutMs)
   {
@@ -293,7 +293,7 @@ public class ExtractorCell extends Cell
    * 
    * @param millisecs The window of time maintained in the transaction history.
    */
-  public
+  public synchronized
   void
   setTransactionHistoryWindow (long millisecs)
   {

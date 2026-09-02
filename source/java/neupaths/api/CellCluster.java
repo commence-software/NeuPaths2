@@ -408,7 +408,7 @@ public class CellCluster implements Iterable<Cell>
    *
    * @return The cluster's name.
    */
-  public
+  public synchronized
   String
   getName ()
   {
@@ -422,7 +422,7 @@ public class CellCluster implements Iterable<Cell>
    *
    * @return The cluster's instance ID.
    */
-  public
+  public synchronized
   UUID
   getInstanceID ()
   {
@@ -434,7 +434,7 @@ public class CellCluster implements Iterable<Cell>
   /**
    * Enables event logging for the cluster.
    */
-  public
+  public synchronized
   void
   enableLogging ()
   {
@@ -449,7 +449,7 @@ public class CellCluster implements Iterable<Cell>
   /**
    * Disables event logging for the cluster.
    */
-  public
+  public synchronized
   void
   disableLogging ()
   {
@@ -464,7 +464,7 @@ public class CellCluster implements Iterable<Cell>
   /**
    * Enables Runtime event logging for the cluster.
    */
-  public
+  public synchronized
   void
   enableRuntimeLogging ()
   {
@@ -479,7 +479,7 @@ public class CellCluster implements Iterable<Cell>
   /**
    * Disables Runtime event logging for the cluster.
    */
-  public
+  public synchronized
   void
   disableRuntimeLogging ()
   {
@@ -494,7 +494,7 @@ public class CellCluster implements Iterable<Cell>
   /**
    * Enables Trace event logging for the cluster.
    */
-  public
+  public synchronized
   void
   enableTraceLogging ()
   {
@@ -509,7 +509,7 @@ public class CellCluster implements Iterable<Cell>
   /**
    * Disables Trace event logging for the cluster.
    */
-  public
+  public synchronized
   void
   disableTraceLogging ()
   {
@@ -524,7 +524,7 @@ public class CellCluster implements Iterable<Cell>
   /**
    * Enables Debug event logging for the cluster.
    */
-  public
+  public synchronized
   void
   enableDebugLogging ()
   {
@@ -539,7 +539,7 @@ public class CellCluster implements Iterable<Cell>
   /**
    * Disables Debug event logging for the cluster.
    */
-  public
+  public synchronized
   void
   disableDebugLogging ()
   {
@@ -554,7 +554,7 @@ public class CellCluster implements Iterable<Cell>
   /**
    * Enables Runtime, Trace and Debug event logging for the cluster.
    */
-  public
+  public synchronized
   void
   enableSystemLogging ()
   {
@@ -569,7 +569,7 @@ public class CellCluster implements Iterable<Cell>
   /**
    * Disables Runtime, Trace and Debug event logging for the cluster.
    */
-  public
+  public synchronized
   void
   disableSystemLogging ()
   {
@@ -585,7 +585,7 @@ public class CellCluster implements Iterable<Cell>
    * Enables Debug output logging for the cluster.  Event data will
    * be output to standard output.
    */
-  public
+  public synchronized
   void
   enableDebugOutputLogging ()
   {
@@ -600,7 +600,7 @@ public class CellCluster implements Iterable<Cell>
   /**
    * Disables Debug output logging for the cluster.
    */
-  public
+  public synchronized
   void
   disableDebugOutputLogging ()
   {
@@ -615,7 +615,7 @@ public class CellCluster implements Iterable<Cell>
   /**
    * Allows propagation of subscriptions in the global domain.
    */
-  public
+  public synchronized
   void
   enableGlobalSubscriptionPropagation ()
   {
@@ -630,7 +630,7 @@ public class CellCluster implements Iterable<Cell>
   /**
    * Disables propagation of subscriptions in the global domain.
    */
-  public
+  public synchronized
   void
   disableGlobalSubscriptionPropagation ()
   {
@@ -652,7 +652,7 @@ public class CellCluster implements Iterable<Cell>
    * 
    * @param millisecs Duration of interval in milliseconds
    */
-  public
+  public synchronized
   void
   setDuplicateDetectionInterval (long millisecs)
   {
@@ -675,7 +675,7 @@ public class CellCluster implements Iterable<Cell>
    * 
    * @param millisecs Duration of interval in milliseconds
    */
-  public
+  public synchronized
   void
   setSubscriptionRefreshInterval (long millisecs)
   {
@@ -699,7 +699,7 @@ public class CellCluster implements Iterable<Cell>
    * 
    * @param millisecs Duration of interval in milliseconds
    */
-  public
+  public synchronized
   void
   setSubscriptionTraceInterval (long millisecs)
   {
@@ -722,7 +722,7 @@ public class CellCluster implements Iterable<Cell>
    *
    * @param millisecs Duration of pulse interval in milliseconds
    */
-  public
+  public synchronized
   void
   setPulseInterval (long millisecs)
   {
@@ -733,13 +733,31 @@ public class CellCluster implements Iterable<Cell>
   }
   
   //---------------------------------------------------------------------------
+
+  /**
+   * Sets a property for all cells in the cluster.
+   *
+   * @param name  The propery's name.
+   * @param value The property's value.
+   */
+  public synchronized
+  void
+  setProperty (String name, Object value)
+  {
+    for (Cell c : cells.values())
+    {
+      c.setProperty(name, value);
+    }
+  }
+  
+  //---------------------------------------------------------------------------
   
   /**
    * Advertises the cell's subscriptions to the cell system.  This method can
    * be used when subscription refresh has been turned off.  It should only be
    * invoked after the cell has been started.
    */
-  public
+  public synchronized
   void
   publishSubscriptions ()
   {
@@ -755,7 +773,7 @@ public class CellCluster implements Iterable<Cell>
    * Starts the cluster.  Cells will be started in the order they were
    * defined in the cluster definition file.
    */
-  public void start ()
+  public synchronized void start ()
   {
     for (Cell c : cells.values())
     {
@@ -769,7 +787,7 @@ public class CellCluster implements Iterable<Cell>
    * Pause the cluster.  Cells will be paused in the order they were
    * defined in the cluster definition file.
    */
-  public void pause ()
+  public synchronized void pause ()
   {
     for (Cell c : cells.values())
     {
@@ -783,7 +801,7 @@ public class CellCluster implements Iterable<Cell>
    * Resume the cluster.  Cells will be resumed in the order they were
    * defined in the cluster definition file.
    */
-  public void resume ()
+  public synchronized void resume ()
   {
     for (Cell c : cells.values())
     {
@@ -797,7 +815,7 @@ public class CellCluster implements Iterable<Cell>
    * Stops the cluster.  Cells will be stopped in the reverse order they were
    * defined in the cluster definition file.
    */
-  public void stop ()
+  public synchronized void stop ()
   {
     Cell[] tmpForTyping = new Cell[0];
     Cell[] cellObjs = cells.values().toArray(tmpForTyping);
@@ -816,7 +834,7 @@ public class CellCluster implements Iterable<Cell>
    * @param name The cell's name.
    */
   @SuppressWarnings("unchecked")
-  public
+  public synchronized
   <T extends Cell> T
   getCell (String name)
   {
@@ -826,7 +844,7 @@ public class CellCluster implements Iterable<Cell>
   //---------------------------------------------------------------------------
 
   @Override
-  public
+  public synchronized
   Iterator<Cell>
   iterator ()
   {

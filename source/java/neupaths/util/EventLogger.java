@@ -103,14 +103,16 @@ public class EventLogger
     UUID loggerID = UUID.randomUUID();
     String[] idFields = loggerID.toString().split("-");
 
-    if (Integer.valueOf(arguments.get("optCnt")) >= 2)
+    int optCnt = arguments.get("optCnt");
+    
+    if (optCnt >= 2)
     {
       eventCell = new EventCell("EventLogger_" + idFields[idFields.length-1],
                                 (String)arguments.get("opt1"),
                                 (String)arguments.get("opt2"),
                                 cryptoKey);
     }
-    else if (Integer.valueOf(arguments.get("optCnt")) == 1)
+    else if (optCnt == 1)
     {
       eventCell = new EventCell("EventLogger_" + idFields[idFields.length-1],
                                 (String)arguments.get("opt1"),

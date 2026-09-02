@@ -93,7 +93,7 @@ public class InjectorCell extends Cell
    * 
    * @param stimulus The stimulus to inject.
    */
-  public final
+  public synchronized final
   void
   inject (Stimulus stimulus)
   {
@@ -112,7 +112,7 @@ public class InjectorCell extends Cell
    * @param stimulus      The stimulus to inject.
    * @param transactionID The transaction to associate the stimulus with.
    */
-  public final
+  public synchronized final
   void
   injectWithTransaction (Stimulus stimulus, UUID transactionID)
   {
@@ -132,7 +132,7 @@ public class InjectorCell extends Cell
    * @param stimulus The stimulus to inject.
    * @return         The new transaction ID.
    */
-  public final
+  public synchronized final
   UUID
   injectAsTransaction (Stimulus stimulus)
   {

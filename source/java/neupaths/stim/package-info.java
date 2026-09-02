@@ -3,6 +3,6 @@
 // SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
 
 /**
- * Stimulus types for Java primitive types.
+ * Stimulus types for Java primitive types and collections.
  */
 package neupaths.stim;

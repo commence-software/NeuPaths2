@@ -20,9 +20,11 @@ public class CommandLine
 
   /**
    * Parses command-line arguments ensuring only expected flags are
-   * provided.  For non-flag arguments, each is stored in key "optN",
+   * provided.  Each non-flag argument is stored in key "optN",
    * where N is the instance number (starts at 1).  The number of
-   * optional arguments is stored in key "optCnt".
+   * optional arguments is stored in key "optCnt".  All argument
+   * values are stored as String objects.  The optCnt value is
+   * stored as an Integer object.
    * 
    * @param args  The command-line arguments.
    * @param valid List of valid flags (exclude the leading '-' or '--').
@@ -30,7 +32,8 @@ public class CommandLine
    *              with a value will store the value under a key
    *              equal to the flag name (excluding the '-' or '--').
    *              Non-flag arguments are stored with keys "optN", where
-   *              N is the instance number (starting at 1).
+   *              N is the instance number (starting at 1).  If an
+   *              invalid flag is provided, {@code null} is returned.
    */
   public static PropertySet parse (String[] args, String[] valid)
   {
@@ -93,7 +96,7 @@ public class CommandLine
       }
     }
     
-    arguments.set("optCnt", Integer.valueOf(opt_cnt).toString());
+    arguments.set("optCnt", Integer.valueOf(opt_cnt));
 
     if (error)
       return null;

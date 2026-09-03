@@ -67,12 +67,22 @@ public final class DictionaryStimulus extends Stimulus
   }
 
   /**
+   * Retrieves a value from the dictionary.
+   *
+   * @param name The dictionary value to retrieve
+   */
+  public <T> T get (String name)
+  {
+    return (T) map.get(name);
+  }
+  
+  /**
    * Adds a value to the dictionary.
    *
    * @param name  The value's name
    * @param value The value
    */
-  public void add (String name, Object value)
+  public void put (String name, Object value)
   {
     map.put(name, value);
   }

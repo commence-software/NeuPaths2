@@ -328,7 +328,7 @@ public class IssueCommandToDaemon
       }
     }
 
-    int optCnt = Integer.valueOf(arguments.get("optCnt"));
+    int optCnt = arguments.get("optCnt");
 
     // Should have at least two arguments: synapseName command
     if (optCnt < 2)

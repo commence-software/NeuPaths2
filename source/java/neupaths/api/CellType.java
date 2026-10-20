@@ -40,12 +40,12 @@ public enum CellType
   INJECTOR,
 
   /**
-   * A load balanced cell.
+   * A load-balanced cell.
    */
   LOAD_BALANCED,
 
   /**
-   * A load controller cell.
+   * A load-controller cell.
    */
   LOAD_CONTROLLER,
   
@@ -57,7 +57,12 @@ public enum CellType
   /**
    * A router cell.
    */
-  ROUTER;
+  ROUTER,
+
+  /**
+   * A custom cell derived from a primitive logic or load-balanced cell.
+   */
+  CUSTOM;
   
   @Override
   public
@@ -91,6 +96,9 @@ public enum CellType
         break;
       case ROUTER:
         value = "Router";
+        break;
+      case CUSTOM:
+        value = "Custom";
         break;
       default:
         value = "Unknown";

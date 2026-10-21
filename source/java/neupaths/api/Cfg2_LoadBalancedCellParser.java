@@ -200,17 +200,31 @@ final class Cfg2_LoadBalancedCellParser extends Cfg2_CellDefinitionParser
         // Load the activator class
         Class<?> actvtrClass = Class.forName(activator.className);
 
-        activators[a] =
-          (Activator) actvtrClass.getDeclaredConstructor
-                          (String.class,
-                           ReceptorSpec[].class,
-                           TransmitterSpec[].class,
-                           LogicSubscriptionSpec[].class).
-                      newInstance
-                          (activator.name,
-                           receptors,
-                           transmitters,
-                           subscriptions);
+        if (PulsedActivator.class.isAssignableFrom(actvtrClass) &&
+            receptors.length == 0 && subscriptions.length == 0)
+        {
+          activators[a] =
+            (Activator) actvtrClass.getDeclaredConstructor
+                            (String.class,
+                             TransmitterSpec[].class).
+                        newInstance
+                            (activator.name,
+                             transmitters);
+        }
+        else
+        {
+          activators[a] =
+            (Activator) actvtrClass.getDeclaredConstructor
+                            (String.class,
+                             ReceptorSpec[].class,
+                             TransmitterSpec[].class,
+                             LogicSubscriptionSpec[].class).
+                        newInstance
+                            (activator.name,
+                             receptors,
+                             transmitters,
+                             subscriptions);
+        }
         
         activators[a].setTransactionHistoryWindow(activator.transactionHistoryWindow);
       }

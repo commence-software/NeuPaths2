@@ -1,6 +1,6 @@
 # Version 2.0.2
 
-![NeuPaths_Logo_GitHub](https://github.com/user-attachments/assets/1b151bab-5797-4fb2-a23f-fc9a85545498)
+![NeuPaths_Logo_GitHub](assets/NeuPaths_Logo_GitHub.jpg)
 
 # A Nervous System for Distributed Software: Introducing NeuPaths
 

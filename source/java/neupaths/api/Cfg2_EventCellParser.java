@@ -47,11 +47,13 @@ final class Cfg2_EventCellParser extends Cfg2_CellDefinitionParser
   {
     Cfg2_EventCellHandler event = (Cfg2_EventCellHandler) handler;
 
-    return
-      new EventCell(handler.name,
-                    handler.synapseNames.toArray(String[]::new)[0],
-                    event.outputFileName,
-                    Cfg2_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
-                    
+    Cell newCell =  new EventCell(handler.name,
+                                  handler.synapseNames.toArray(String[]::new)[0],
+                                  event.outputFileName,
+                                  Cfg2_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+
+    applyCellOptions(newCell);
+
+    return newCell;
   }
 }

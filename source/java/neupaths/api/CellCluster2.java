@@ -285,8 +285,7 @@ public class CellCluster2 implements Iterable<Cell>
               Cell newCell = CellFactory2.createCell(handler,
                                                      cellDefinitionFile);
 
-              if (handler.loggingSpecified &&
-                  newCell.getType() != CellType.EVENT)
+              if (handler.loggingSpecified)
               {
                 if (handler.loggingEnabled)
                 {
@@ -298,8 +297,7 @@ public class CellCluster2 implements Iterable<Cell>
                 }
               }
 
-              if (handler.traceLoggingSpecified &&
-                  newCell.getType() != CellType.EVENT)
+              if (handler.traceLoggingSpecified)
               {
                 if (handler.traceLoggingEnabled)
                 {
@@ -311,8 +309,7 @@ public class CellCluster2 implements Iterable<Cell>
                 }
               }
 
-              if (handler.debugLoggingSpecified &&
-                  newCell.getType() != CellType.EVENT)
+              if (handler.debugLoggingSpecified)
               {
                 if (handler.debugLoggingEnabled)
                 {
@@ -324,8 +321,7 @@ public class CellCluster2 implements Iterable<Cell>
                 }
               }
 
-              if (handler.runtimeLoggingSpecified &&
-                  newCell.getType() != CellType.EVENT)
+              if (handler.runtimeLoggingSpecified)
               {
                 if (handler.runtimeLoggingEnabled)
                 {
@@ -368,7 +364,8 @@ public class CellCluster2 implements Iterable<Cell>
 
               if (handler.pulseSpecified &&
                   (newCell.getType() == CellType.LOGIC ||
-                   newCell.getType() == CellType.LOAD_BALANCED))
+                   newCell.getType() == CellType.LOAD_BALANCED ||
+                   newCell.getType() == CellType.CUSTOM))
               {
                 newCell.setPulseInterval(handler.pulseInterval);
               }

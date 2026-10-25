@@ -126,6 +126,71 @@ abstract class Cfg2_CellDefinitionParser
                                   cellDefinitionFile, ioe);
     }
   }
+
+  protected void applyCellOptions (Cell cell)
+  {
+    if (handler.loggingEnabled)
+    {
+      cell.enableLogging();
+    }
+    else
+    {
+      cell.disableLogging();
+    }
+
+    if (handler.traceLoggingEnabled)
+    {
+      cell.enableTraceLogging();
+    }
+    else
+    {
+      cell.disableTraceLogging();
+    }
+  
+    if (handler.debugLoggingEnabled)
+    {
+      cell.enableDebugLogging();
+    }
+    else
+    {
+      cell.disableDebugLogging();
+    }
+
+    if (handler.runtimeLoggingEnabled)
+    {
+      cell.enableRuntimeLogging();
+    }
+    else
+    {
+      cell.disableRuntimeLogging();
+    }
+
+    if (handler.propagateGlobalSubscriptions)
+    {
+      cell.enableGlobalSubscriptionPropagation();
+    }
+    else
+    {
+      cell.disableGlobalSubscriptionPropagation();
+    }
+
+    if (cell.getType() != CellType.INJECTOR &&
+        cell.getType() != CellType.ROUTER)
+    {
+      cell.setSubscriptionRefreshInterval(handler.subscriptionRefreshInterval);
+    }
+
+    cell.setDuplicateDetectionInterval(handler.duplicateDetectionInterval);
+
+    cell.setSubscriptionTraceInterval(handler.subscriptionTraceInterval);
+
+    if (cell.getType() == CellType.LOGIC ||
+        cell.getType() == CellType.LOAD_BALANCED ||
+        cell.getType() == CellType.CUSTOM)
+    {
+      cell.setPulseInterval(handler.pulseInterval);
+    }
+  }
   
   private static class XMLErrorHandler implements ErrorHandler
   {

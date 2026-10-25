@@ -258,6 +258,8 @@ final class Cfg2_LogicCellParser extends Cfg2_CellDefinitionParser
                             handler.synapseNames.toArray(String[]::new),
                             activators,
                             Cfg2_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+
+      applyCellOptions(newCell);
     }
     catch (NoSuchMethodException nsme)
     {

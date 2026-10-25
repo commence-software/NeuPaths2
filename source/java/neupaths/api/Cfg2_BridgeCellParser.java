@@ -49,6 +49,7 @@ final class Cfg2_BridgeCellParser extends Cfg2_CellDefinitionParser
   protected Cell instantiate ()
   {
     Cfg2_BridgeCellHandler bridge = (Cfg2_BridgeCellHandler) handler;
+    Cell newCell = null;
     
     BridgeSubscriptionSpec[] subscriptions =
       new BridgeSubscriptionSpec[bridge.subscriptions.size()];
@@ -62,10 +63,13 @@ final class Cfg2_BridgeCellParser extends Cfg2_CellDefinitionParser
                                                     subscription.domain);
     }
     
-    return
-      new BridgeCell(handler.name,
-                     handler.synapseNames.toArray(String[]::new),
-                     subscriptions,
-                     Cfg2_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+    newCell = new BridgeCell(handler.name,
+                             handler.synapseNames.toArray(String[]::new),
+                             subscriptions,
+                             Cfg2_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+
+    applyCellOptions(newCell);
+
+    return newCell;
   }
 }

@@ -46,16 +46,21 @@ final class Cfg2_ExtractorCellParser extends Cfg2_CellDefinitionParser
   protected Cell instantiate ()
   {
     Cfg2_ExtractorCellHandler extractor = (Cfg2_ExtractorCellHandler) handler;
+    Cell newCell = null;
 
     ExtractorSubscriptionSpec subscription =
       new ExtractorSubscriptionSpec(extractor.subscription.cellName,
                                     extractor.subscription.transmitterName,
                                     extractor.subscription.domain,
                                     extractor.subscription.filterTransactions);
-    return
-      new ExtractorCell(handler.name,
-                        handler.synapseNames.toArray(String[]::new),
-                        subscription,
-                        Cfg2_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+
+    newCell = new ExtractorCell(handler.name,
+                                handler.synapseNames.toArray(String[]::new),
+                                subscription,
+                                Cfg2_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+
+    applyCellOptions(newCell);
+
+    return newCell;
   }
 }

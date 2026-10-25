@@ -151,6 +151,8 @@ final class Cfg2_LoadControllerCellParser extends Cfg2_CellDefinitionParser
                             lch.cellNamePrefix,
                             lch.cellDomain,
                             Cfg2_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+
+      applyCellOptions(newCell);
     }
     catch (NoSuchMethodException nsme)
     {

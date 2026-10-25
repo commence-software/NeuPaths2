@@ -269,6 +269,8 @@ final class Cfg2_CustomCellParser extends Cfg2_CellDefinitionParser
                             handler.synapseNames.toArray(String[]::new),
                             activators,
                             Cfg2_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+
+      applyCellOptions(newCell);
     }
     catch (ClassNotFoundException cnfe)
     {

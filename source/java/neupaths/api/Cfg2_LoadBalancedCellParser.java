@@ -275,6 +275,8 @@ final class Cfg2_LoadBalancedCellParser extends Cfg2_CellDefinitionParser
                             lbh.controllerName,
                             lbh.controllerDomain,
                             Cfg2_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+
+      applyCellOptions(newCell);
     }
     catch (NoSuchMethodException nsme)
     {

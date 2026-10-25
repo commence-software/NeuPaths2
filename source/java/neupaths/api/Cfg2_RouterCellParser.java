@@ -35,9 +35,12 @@ final class Cfg2_RouterCellParser extends Cfg2_CellDefinitionParser
   
   protected Cell instantiate ()
   {
-    return
-      new RouterCell(handler.name,
-                     handler.synapseNames.toArray(String[]::new),
-                     Cfg2_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+    Cell newCell = new RouterCell(handler.name,
+                                  handler.synapseNames.toArray(String[]::new),
+                                  Cfg2_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+
+    applyCellOptions(newCell);
+
+    return newCell;
   }
 }

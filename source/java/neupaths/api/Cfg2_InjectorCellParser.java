@@ -42,6 +42,7 @@ final class Cfg2_InjectorCellParser extends Cfg2_CellDefinitionParser
   protected Cell instantiate ()
   {
     Cfg2_InjectorCellHandler injector = (Cfg2_InjectorCellHandler) handler;
+    Cell newCell = null;
 
     try
     {
@@ -54,11 +55,12 @@ final class Cfg2_InjectorCellParser extends Cfg2_CellDefinitionParser
                             stimTypeID,  // need to load class
                             injector.transmitter.trace);
 
-      return
-        new InjectorCell(handler.name,
-                         handler.synapseNames.toArray(String[]::new),
-                         transmitter,
-                         Cfg2_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+      newCell = new InjectorCell(handler.name,
+                                 handler.synapseNames.toArray(String[]::new),
+                                 transmitter,
+                                 Cfg2_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+
+      applyCellOptions(newCell);
     }
     catch (ClassNotFoundException cnfe)
     {
@@ -72,5 +74,7 @@ final class Cfg2_InjectorCellParser extends Cfg2_CellDefinitionParser
     {
       throw new NeuPathsException("Could not resolve TYPE_ID for transmitter in file " + cellDefinitionFile, nsfe);
     }
+
+    return newCell;
   }
 }

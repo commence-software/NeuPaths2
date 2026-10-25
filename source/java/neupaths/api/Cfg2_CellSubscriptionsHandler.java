@@ -37,11 +37,12 @@ final class Cfg2_CellSubscriptionsHandler extends Cfg2_ConfigHandler
         case EXTRACTOR:
           subType = SubscriptionType.EXTRACTOR;
           break;
+        case LOAD_BALANCED:
         case LOAD_CONTROLLER:
+        case LOGIC:
+        case CUSTOM:
           subType = SubscriptionType.LOGIC;
           break;
-        default:
-          throw new NeuPathsException("Invalid cell type " + cellType + " for subscription in file " + definitionFile);
       }
       
       Cfg2_CellSubscriptionHandler handler = new Cfg2_CellSubscriptionHandler(cellType, xPath + "/Subscription", subType);

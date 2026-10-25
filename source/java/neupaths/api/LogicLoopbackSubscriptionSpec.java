@@ -20,7 +20,16 @@ package neupaths.api;
  *                        stimulus.  This value <b>may not</b> contain
  *                        a regular expression.
  * </li>
+ * <li>
+ * <i>Filter Transactions</i> - For stimuli that are service responses, indicates
+ *                              if redundant responses should be filtered.
+ * </li>
  * </ul>
+ * </p>
+ * <p>
+ * <i>Filter Transactions</i> specifies whether the logic cell should
+ * filter redundant service responses for a given transaction ID.  This
+ * is useful when multiple cells are servicing the same transaction.
  * </p>
  * 
  * @author Aaron Caraveo
@@ -28,7 +37,8 @@ package neupaths.api;
 public final class LogicLoopbackSubscriptionSpec extends LogicSubscriptionSpec
 {
   /**
-   * Creates a Loopback subscription specification.
+   * Creates a Loopback subscription specification.  {@code Filter Transactions}
+   * defaults to {@link TransactionFilter#DISABLED}.
    * 
    * @param transmitterName    The name of the transmitter that emitted the
    *                           stimulus.  This value may contain a regular
@@ -48,5 +58,31 @@ public final class LogicLoopbackSubscriptionSpec extends LogicSubscriptionSpec
           receptorName,
           Syn.GLOBAL_DOMAIN,
           TransactionFilter.DISABLED);
+  }
+
+  /**
+   * Creates a Loopback subscription specification.
+   * 
+   * @param transmitterName    The name of the transmitter that emitted the
+   *                           stimulus.  This value may contain a regular
+   *                           expression.
+   * @param receptorName       The name of the receptor to receive the
+   *                           stimulus.  This value <b>may not</b> contain
+   *                           a regular expression.
+   * @param filterTransactions For stimuli that are service responses, filters
+   *                           redundant responses.
+   */
+  public
+  LogicLoopbackSubscriptionSpec
+    (String            transmitterName,
+     String            receptorName,
+     TransactionFilter filterTransactions)
+  {
+    super(SubscriptionType.LOOPBACK,
+          "N/A",
+          transmitterName,
+          receptorName,
+          Syn.GLOBAL_DOMAIN,
+          filterTransactions);
   }
 }

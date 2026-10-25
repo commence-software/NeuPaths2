@@ -51,8 +51,7 @@ final class Cfg2_CellSubscriptionHandler extends Cfg2_ConfigHandler
       domain = Cfg2_Utils.getNodeText(node);
     }
     else if (nodeName.equals("FILTER_TRANSACTIONS") &&
-             subType != SubscriptionType.BRIDGE &&
-             subType != SubscriptionType.LOOPBACK)
+             subType != SubscriptionType.BRIDGE)
     {
       try
       {

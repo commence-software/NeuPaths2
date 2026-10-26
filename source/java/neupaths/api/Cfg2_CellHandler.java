@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
 package neupaths.api;
 
-import neupaths.util.PropertySet;
 import java.util.HashSet;
 import java.util.LinkedList;
 

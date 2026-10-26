@@ -15,27 +15,28 @@ final class Cfg_CellDefinitionsHandler extends Cfg_ConfigHandler
 {
   Cfg_CellDefinitionsHandler (String xPath)
   {
-    super(xPath);
+    super(null, xPath);
 
     cellDefinitionFiles = new LinkedList<>();
   }
 
-  void processNode (String configFile, Node node)
+  void processNode (String definitionFile, Node node)
   {
     String nodeName = node.getNodeName().toUpperCase();
     
     if (nodeName.equals("CELL_DEFINITION"))
     {
-      cellDefinitionFiles.addLast(Cfg_Utils.getNodeText(node));
+      cellDefinitionFiles.add(Cfg_Utils.getNodeText(node));
     }
     else
     {
       throw new NeuPathsException("Unexpected Cell_Cluster/Cell_Definitions configuration tag '" +
-                                     nodeName + "' in file " + configFile);
+                                  nodeName + "' in file " + definitionFile);
     }
   }
   
-  void processElement (String configFile, Cfg_ConfigHandler parentHandler)
+  void processElement (String             definitionFile,
+                       Cfg_ConfigHandler parentHandler)
   {
     Cfg_CellClusterHandler handler = (Cfg_CellClusterHandler) parentHandler;
     handler.cellDefinitionFiles = cellDefinitionFiles;

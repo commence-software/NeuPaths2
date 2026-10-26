@@ -14,23 +14,23 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-final class Cfg2_ExtractorCellParser extends Cfg2_CellDefinitionParser
+final class Cfg_ExtractorCellParser extends Cfg_CellDefinitionParser
 {
-  Cfg2_ExtractorCellParser (String cellDefinitionFile)
+  Cfg_ExtractorCellParser (String cellDefinitionFile)
   {
     super(CellType.EXTRACTOR,
           cellDefinitionFile,
-          new Cfg2_ExtractorCellHandler());
+          new Cfg_ExtractorCellHandler());
   }
 
   protected void parseNode (Node root)
   {
-    Cfg2_Utils.processElement(cellDefinitionFile, null, handler, root);
+    Cfg_Utils.processElement(cellDefinitionFile, null, handler, root);
   }
 
   protected void validate ()
   {
-    Cfg2_ExtractorCellHandler extractor = (Cfg2_ExtractorCellHandler) handler;
+    Cfg_ExtractorCellHandler extractor = (Cfg_ExtractorCellHandler) handler;
 
     if (extractor.subscription == null)
     {
@@ -45,7 +45,7 @@ final class Cfg2_ExtractorCellParser extends Cfg2_CellDefinitionParser
   
   protected Cell instantiate ()
   {
-    Cfg2_ExtractorCellHandler extractor = (Cfg2_ExtractorCellHandler) handler;
+    Cfg_ExtractorCellHandler extractor = (Cfg_ExtractorCellHandler) handler;
     Cell newCell = null;
 
     ExtractorSubscriptionSpec subscription =
@@ -57,7 +57,7 @@ final class Cfg2_ExtractorCellParser extends Cfg2_CellDefinitionParser
     newCell = new ExtractorCell(handler.name,
                                 handler.synapseNames.toArray(String[]::new),
                                 subscription,
-                                Cfg2_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+                                Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
 
     applyCellOptions(newCell);
 

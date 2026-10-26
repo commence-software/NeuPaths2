@@ -12,13 +12,17 @@ import org.w3c.dom.Node;
  */
 abstract class Cfg_ConfigHandler
 {
-  Cfg_ConfigHandler (String xPath)
+  Cfg_ConfigHandler (CellType cellType, String xPath)
   {
+    this.cellType = cellType;
     this.xPath = xPath;
   }
   
-  void processNode (String configFile, Node node) {}
-  void processElement (String configFile, Cfg_ConfigHandler parentHandler) {}
+  void processNode (String definitionFile, Node node) {}
+  
+  void processElement (String             definitionFile,
+                       Cfg_ConfigHandler parentHandler) {}
 
+  CellType cellType;
   String xPath;
 }

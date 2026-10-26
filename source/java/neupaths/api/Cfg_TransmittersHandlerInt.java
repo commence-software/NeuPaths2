@@ -10,5 +10,5 @@ package neupaths.api;
  */
 interface Cfg_TransmittersHandlerInt
 {
-  void addTransmitters (TransmitterSpecSet transmitterSpecs);
+  void addTransmitter (Cfg_CellTransmitterHandler transmitter);
 }

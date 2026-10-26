@@ -787,7 +787,8 @@ public class CellFactory
     if (clusterHandler != null)
     {
       LinkedList<String> clusterOptions = new LinkedList<>();
-      clusterOptions.addLast(System.getProperty("java.io.tmpdir") + File.separator + "cluster_" +
+      clusterOptions.addLast(clusterHandler.synapseDirectory + File.separator +
+                             "cluster_" +
                              Math.abs(clusterHandler.clusterName.hashCode()) +
                              ".syn");
   
@@ -820,200 +821,52 @@ public class CellFactory
       
       if (nodes.getLength() == 1)
       {
-        Node node = nodes.item(0);
-        String nodeName = node.getNodeName().toUpperCase();
+        Node root = nodes.item(0);
 
-        if (node.getNodeType() == Node.ELEMENT_NODE)
+        if (root.getNodeType() == Node.ELEMENT_NODE)
         {
-          if (nodeName.equals("BRIDGE_CELL"))
+          String nodeName = root.getNodeName().toUpperCase();
+          Cfg_CellDefinitionParser parser = null;
+
+          switch (nodeName)
           {
-            Cfg_BridgeCellHandler handler = new Cfg_BridgeCellHandler();
-            Cfg_Utils.processElement(cellDefinitionFile, null, handler, node);
-
-            if (clusterSynapse != null)
-              handler.synapseNames.add(clusterSynapse.toString());
-
-            newCell = new BridgeCell(handler.name,
-                                     handler.synapseNames.toArray(String[]::new),
-                                     handler.subscriptions.toArray(BridgeSubscriptionSpec[]::new),
-                                     Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
-
-            applyCellOptions(clusterHandler, handler, newCell);
+            case "BRIDGE_CELL":
+              parser = new Cfg_BridgeCellParser(cellDefinitionFile);
+              break;
+            case "EVENT_CELL":
+              parser = new Cfg_EventCellParser(cellDefinitionFile);
+              break;
+            case "EXTRACTOR_CELL":
+              parser = new Cfg_ExtractorCellParser(cellDefinitionFile);
+              break;
+            case "INJECTOR_CELL":
+              parser = new Cfg_InjectorCellParser(cellDefinitionFile);
+              break;
+            case "LOAD_BALANCED_CELL":
+              parser = new Cfg_LoadBalancedCellParser(cellDefinitionFile);
+              break;
+            case "LOAD_CONTROLLER_CELL":
+              parser = new Cfg_LoadControllerCellParser(cellDefinitionFile);
+              break;
+            case "LOGIC_CELL":
+              parser = new Cfg_LogicCellParser(cellDefinitionFile);
+              break;
+            case "ROUTER_CELL":
+              parser = new Cfg_RouterCellParser(cellDefinitionFile);
+              break;
+            case "CUSTOM_CELL":
+              parser = new Cfg_CustomCellParser(cellDefinitionFile);
+              break;
+            default:
+              throw new NeuPathsException("Cell definition file " +
+                                          cellDefinitionFile +
+                                          " contains invalid top-level element:" +
+                                          nodeName);
           }
-          else if (nodeName.equals("EVENT_CELL"))
-          {
-            Cfg_EventCellHandler handler = new Cfg_EventCellHandler();
-            Cfg_Utils.processElement(cellDefinitionFile, null, handler, node);
 
-            newCell = new EventCell(handler.name,
-                                    handler.synapseName,
-                                    handler.outputFileName,
-                                    Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
-
-            applyCellOptions(clusterHandler, handler, newCell);
-          }
-          else if (nodeName.equals("EXTRACTOR_CELL"))
-          {
-            Cfg_ExtractorCellHandler handler = new Cfg_ExtractorCellHandler();
-            Cfg_Utils.processElement(cellDefinitionFile, null, handler, node);
-
-            if (clusterSynapse != null)
-              handler.synapseNames.add(clusterSynapse.toString());
-
-            newCell = new ExtractorCell(handler.name,
-                                        handler.synapseNames.toArray(String[]::new),
-                                        handler.subscription,
-                                        Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
-
-            applyCellOptions(clusterHandler, handler, newCell);
-          }
-          else if (nodeName.equals("INJECTOR_CELL"))
-          {
-            Cfg_InjectorCellHandler handler = new Cfg_InjectorCellHandler();
-            Cfg_Utils.processElement(cellDefinitionFile, null, handler, node);
-
-            if (clusterSynapse != null)
-              handler.synapseNames.add(clusterSynapse.toString());
-
-            newCell = new InjectorCell(handler.name,
-                                       handler.synapseNames.toArray(String[]::new),
-                                       handler.transmitter,
-                                       Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
-
-            applyCellOptions(clusterHandler, handler, newCell);
-          }
-          else if (nodeName.equals("LOAD_BALANCED_CELL"))
-          {
-            Cfg_LoadBalancedCellHandler handler = new Cfg_LoadBalancedCellHandler();
-            Cfg_Utils.processElement(cellDefinitionFile, null, handler, node);
-
-            if (clusterSynapse != null)
-              handler.synapseNames.add(clusterSynapse.toString());
-
-            newCell = new LoadBalancedCell(
-                              handler.name,
-                              handler.synapseNames.toArray(String[]::new),
-                              handler.activators.toArray(Activator[]::new),
-                              handler.controllerName,
-                              handler.controllerDomain,
-                              Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
-
-            newCell.setProperties(handler.properties);
-            
-            applyCellOptions(clusterHandler, handler, newCell);
-          }
-          else if (nodeName.equals("LOAD_CONTROLLER_CELL"))
-          {
-            Cfg_LoadControllerCellHandler handler = new Cfg_LoadControllerCellHandler();
-            Cfg_Utils.processElement(cellDefinitionFile, null, handler, node);
-
-            if (clusterSynapse != null)
-              handler.synapseNames.add(clusterSynapse.toString());
-
-            newCell = new LoadControllerCell(
-                              handler.name,
-                              handler.synapseNames.toArray(String[]::new),
-                              handler.receptors.toArray(ReceptorSpec[]::new),
-                              handler.subscriptions.toArray(LogicSubscriptionSpec[]::new),
-                              handler.cellNamePrefix,
-                              handler.cellDomain,
-                              Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
-
-            applyCellOptions(clusterHandler, handler, newCell);
-          }
-          else if (nodeName.equals("LOGIC_CELL"))
-          {
-            Cfg_LogicCellHandler handler = new Cfg_LogicCellHandler();
-            Cfg_Utils.processElement(cellDefinitionFile, null, handler, node);
-
-            if (clusterSynapse != null)
-              handler.synapseNames.add(clusterSynapse.toString());
-
-            newCell = new LogicCell(handler.name,
-                                    handler.synapseNames.toArray(String[]::new),
-                                    handler.activators.toArray(Activator[]::new),
-                                    Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
-
-            newCell.setProperties(handler.properties);
-            
-            applyCellOptions(clusterHandler, handler, newCell);
-          }
-          else if (nodeName.equals("ROUTER_CELL"))
-          {
-            Cfg_RouterCellHandler handler = new Cfg_RouterCellHandler();
-            Cfg_Utils.processElement(cellDefinitionFile, null, handler, node);
-
-            if (clusterSynapse != null)
-              handler.synapseNames.add(clusterSynapse.toString());
-
-            newCell = new RouterCell(handler.name,
-                                     handler.synapseNames.toArray(String[]::new),
-                                     Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
-
-            applyCellOptions(clusterHandler, handler, newCell);
-          }
-          else if (nodeName.equals("SPECIALIZED_CELL"))
-          {
-            Cfg_SpecializedCellHandler handler = new Cfg_SpecializedCellHandler();
-            Cfg_Utils.processElement(cellDefinitionFile, null, handler, node);
-
-            if (handler.className == null)
-            {
-              throw new NeuPathsException("Specialized class name must be provided in file " + cellDefinitionFile);
-            }
-            
-            if (clusterSynapse != null)
-              handler.synapseNames.add(clusterSynapse.toString());
-
-            try
-            {
-              // Load the specialized class
-              Class<?> specialClass = Class.forName(handler.className);
-  
-              // Instantiate the specialized class
-              newCell =
-                (Cell) specialClass.getDeclaredConstructor
-                    (String.class,
-                     String[].class,
-                     Activator[].class,
-                     byte[].class).
-                newInstance(handler.name,
-                            handler.synapseNames.toArray(String[]::new),
-                            handler.activators.toArray(Activator[]::new),
-                            Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
-            }
-            catch (ClassNotFoundException cnfe)
-            {
-              throw new NeuPathsException("Could not instantiate cell in file " + cellDefinitionFile, cnfe);
-            }
-            catch (NoSuchMethodException nsme)
-            {
-              throw new NeuPathsException("Could not instantiate cell in file " + cellDefinitionFile, nsme);
-            }
-            catch (InstantiationException ie)
-            {
-              throw new NeuPathsException("Could not instantiate cell in file " + cellDefinitionFile, ie);
-            }
-            catch (IllegalAccessException iae)
-            {
-              throw new NeuPathsException("Could not instantiate cell in file " + cellDefinitionFile, iae);
-            }
-            catch (java.lang.reflect.InvocationTargetException ite)
-            {
-              throw new NeuPathsException("Could not instantiate cell in file " + cellDefinitionFile, ite);
-            }
-
-            newCell.setProperties(handler.properties);
-            
-            applyCellOptions(clusterHandler, handler, newCell);
-          }
-          else
-          {
-            throw new NeuPathsException("Cell definition file " +
-                                        cellDefinitionFile +
-                                        " contains invalid top-level element:" +
-                                        nodeName);
-          }
+          parser.parseNode(root);
+          parser.validate();
+          newCell = parser.instantiate();
         }
       }
       else
@@ -1042,100 +895,6 @@ public class CellFactory
     return newCell;
   }
 
-  private static
-  void applyCellOptions (Cfg_CellClusterHandler clusterHandler,
-                         Cfg_CellHandler        cellHandler,
-                         Cell                   cell)
-  {
-    if ((clusterHandler == null || !clusterHandler.loggingSpecified) &&
-        cell.getType() != CellType.EVENT)
-    {
-      if (cellHandler.loggingEnabled)
-      {
-        cell.enableLogging();
-      }
-      else
-      {
-        cell.disableLogging();
-      }
-    }
-
-    if ((clusterHandler == null || !clusterHandler.traceLoggingSpecified) &&
-        cell.getType() != CellType.EVENT)
-    {
-      if (cellHandler.traceLoggingEnabled)
-      {
-        cell.enableTraceLogging();
-      }
-      else
-      {
-        cell.disableTraceLogging();
-      }
-    }
-  
-    if ((clusterHandler == null || !clusterHandler.debugLoggingSpecified) &&
-        cell.getType() != CellType.EVENT)
-    {
-      if (cellHandler.debugLoggingEnabled)
-      {
-        cell.enableDebugLogging();
-      }
-      else
-      {
-        cell.disableDebugLogging();
-      }
-    }
-
-    if ((clusterHandler == null || !clusterHandler.runtimeLoggingSpecified) &&
-        cell.getType() != CellType.EVENT)
-    {
-      if (cellHandler.runtimeLoggingEnabled)
-      {
-        cell.enableRuntimeLogging();
-      }
-      else
-      {
-        cell.disableRuntimeLogging();
-      }
-    }
-
-    if (clusterHandler == null || !clusterHandler.propagateGlobalSpecified)
-    {
-      if (cellHandler.propagateGlobalSubscriptions)
-      {
-        cell.enableGlobalSubscriptionPropagation();
-      }
-      else
-      {
-        cell.disableGlobalSubscriptionPropagation();
-      }
-    }
-
-    if ((clusterHandler == null || !clusterHandler.subscriptionRefreshSpecified) &&
-        cell.getType() != CellType.INJECTOR &&
-        cell.getType() != CellType.ROUTER)
-    {
-      cell.setSubscriptionRefreshInterval(cellHandler.subscriptionRefreshInterval);
-    }
-
-    if (clusterHandler == null || !clusterHandler.duplicateDetectionSpecified)
-    {
-      cell.setDuplicateDetectionInterval(cellHandler.duplicateDetectionInterval);
-    }
-
-    if (clusterHandler == null || !clusterHandler.subscriptionTraceSpecified)
-    {
-      cell.setSubscriptionTraceInterval(cellHandler.subscriptionTraceInterval);
-    }
-
-    if ((clusterHandler == null || !clusterHandler.pulseSpecified) &&
-        (cell.getType() == CellType.LOGIC ||
-         cell.getType() == CellType.LOAD_BALANCED))
-    {
-      cell.setPulseInterval(cellHandler.pulseInterval);
-    }
-  }
-  
   private static class XMLErrorHandler implements ErrorHandler
   {
     public void error (SAXParseException exception) throws SAXException

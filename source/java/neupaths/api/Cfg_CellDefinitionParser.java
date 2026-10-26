@@ -14,11 +14,11 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-abstract class Cfg2_CellDefinitionParser
+abstract class Cfg_CellDefinitionParser
 {
-  Cfg2_CellDefinitionParser (CellType         cellType,
+  Cfg_CellDefinitionParser (CellType         cellType,
                              String           cellDefinitionFile,
-                             Cfg2_CellHandler handler)
+                             Cfg_CellHandler handler)
   {
     this.cellType = cellType;
     this.cellDefinitionFile = cellDefinitionFile;
@@ -212,6 +212,6 @@ abstract class Cfg2_CellDefinitionParser
   
   CellType cellType;
   String cellDefinitionFile;
-  Cfg2_CellHandler handler;
+  Cfg_CellHandler handler;
   String rootNode;
 }

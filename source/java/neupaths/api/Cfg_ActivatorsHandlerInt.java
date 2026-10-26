@@ -12,5 +12,5 @@ import java.util.LinkedList;
  */
 interface Cfg_ActivatorsHandlerInt
 {
-  void addActivator (Activator activators);
+  void addActivator (Cfg_CellActivatorHandler activator);
 }

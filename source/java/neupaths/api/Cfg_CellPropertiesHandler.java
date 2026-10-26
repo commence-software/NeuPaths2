@@ -7,43 +7,50 @@ import java.util.LinkedList;
 import org.w3c.dom.Node;
 
 /**
- * Handler for parsing a {@link Cell}'s properties.
+ * Handler for parsing {@link Cell} properties.
  *
  * @author Aaron Caraveo
  */
 final class Cfg_CellPropertiesHandler extends Cfg_ConfigHandler
+    implements Cfg_PropertiesHandlerInt
 {
-  Cfg_CellPropertiesHandler (String xPath)
+  Cfg_CellPropertiesHandler (CellType cellType, String xPath)
   {
-    super(xPath);
+    super(cellType, xPath);
     
     properties = new LinkedList<>();
   }
   
-  void processNode (String configFile, Node node)
+  void processNode (String definitionFile, Node node)
   {
     String nodeName = node.getNodeName().toUpperCase();
     
     if (nodeName.equals("PROPERTY"))
     {
-      Cfg_CellPropertyHandler handler = new Cfg_CellPropertyHandler(xPath + "/Property");
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_CellPropertyHandler handler = new Cfg_CellPropertyHandler(cellType, xPath + "/Property");
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else
     {
       throw new NeuPathsException("Unexpected " + xPath + " configuration tag '" +
-                                  nodeName + "' in file " + configFile);
+                                  nodeName + "' in file " + definitionFile);
     }
   }
   
-  void processElement (String configFile, Cfg_ConfigHandler parentHandler)
+  void processElement (String             definitionFile,
+                       Cfg_ConfigHandler parentHandler)
   {
-    Cfg_CellHandler handler = (Cfg_CellHandler) parentHandler;
+    Cfg_PropertiesHandlerInt handler = (Cfg_PropertiesHandlerInt) parentHandler;
     
-    for (Cfg_CellPropertyHandler context : properties)
+    for (Cfg_CellPropertyHandler property : properties)
     {
-      handler.properties.set(context.name, context.value);
+      handler.addProperty(property);
     }
+  }
+  
+  public void addProperty (Cfg_CellPropertyHandler property)
+  {
+    properties.add(property);
   }
   
   LinkedList<Cfg_CellPropertyHandler> properties;

@@ -13,9 +13,11 @@ import org.w3c.dom.Node;
  */
 final class Cfg_CellClusterHandler extends Cfg_ConfigHandler
 {
-  Cfg_CellClusterHandler ()
+  Cfg_CellClusterHandler (String synapseDirectory)
   {
-    super("Cell_Cluster");
+    super(null, "Cell_Cluster");
+
+    this.synapseDirectory = synapseDirectory;
     
     clusterName = null;
     cellDefinitionFiles = null;
@@ -40,7 +42,7 @@ final class Cfg_CellClusterHandler extends Cfg_ConfigHandler
     cryptoKeyFile = null;
   }
 
-  void processNode (String configFile, Node node)
+  void processNode (String definitionFile, Node node)
   {
     String nodeName = node.getNodeName().toUpperCase();
 
@@ -51,7 +53,7 @@ final class Cfg_CellClusterHandler extends Cfg_ConfigHandler
     else if (nodeName.equals("CELL_DEFINITIONS"))
     {
       Cfg_CellDefinitionsHandler handler = new Cfg_CellDefinitionsHandler(xPath + "/Cell_Definitions");
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else if (nodeName.equals("LOGGING_ENABLED"))
     {
@@ -106,10 +108,12 @@ final class Cfg_CellClusterHandler extends Cfg_ConfigHandler
     else
     {
       throw new NeuPathsException("Unexpected Cell_Cluster configuration tag '" +
-                                  nodeName + "' in file " + configFile);
+                                  nodeName + "' in file " + definitionFile);
     }
   }
 
+  String synapseDirectory;
+  
   String clusterName;
   LinkedList<String> cellDefinitionFiles;
   boolean loggingEnabled;

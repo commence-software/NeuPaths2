@@ -17,47 +17,35 @@ import org.xml.sax.SAXParseException;
 
 import neupaths.util.PropertySet;
 
-final class Cfg2_LoadBalancedCellParser extends Cfg2_CellDefinitionParser
+final class Cfg_LogicCellParser extends Cfg_CellDefinitionParser
 {
-  Cfg2_LoadBalancedCellParser (String cellDefinitionFile)
+  Cfg_LogicCellParser (String cellDefinitionFile)
   {
-    super(CellType.LOAD_BALANCED,
+    super(CellType.LOGIC,
           cellDefinitionFile,
-          new Cfg2_LoadBalancedCellHandler());
+          new Cfg_LogicCellHandler());
   }
 
   protected void parseNode (Node root)
   {
-    Cfg2_Utils.processElement(cellDefinitionFile, null, handler, root);
+    Cfg_Utils.processElement(cellDefinitionFile, null, handler, root);
   }
 
   protected void validate ()
   {
-    Cfg2_LoadBalancedCellHandler lbh = (Cfg2_LoadBalancedCellHandler) handler;
-
-    if (lbh.controllerName == null)
-    {
-      throw new NeuPathsException("Load-balanced cells require a controller name");
-    }
-
-    if (lbh.controllerDomain == null)
-    {
-      throw new NeuPathsException("Load-balanced cells require a controller domain");
-    }
-    
     if (handler.activators.size() == 0)
     {
-      throw new NeuPathsException("Load-balanced cells require at least one activator");
+      throw new NeuPathsException("Logic cells require at least one activator");
     }
 
-    for (Cfg2_CellActivatorHandler activator : handler.activators)
+    for (Cfg_CellActivatorHandler activator : handler.activators)
     {
       if (activator.className == null)
       {
         throw new NeuPathsException("Activators must provide a class name");
       }
       
-      for (Cfg2_CellReceptorHandler receptor : activator.receptors)
+      for (Cfg_CellReceptorHandler receptor : activator.receptors)
       {
         if (receptor.stimulusClassName == null)
         {
@@ -65,7 +53,7 @@ final class Cfg2_LoadBalancedCellParser extends Cfg2_CellDefinitionParser
         }
       }
       
-      for (Cfg2_CellTransmitterHandler transmitter : activator.transmitters)
+      for (Cfg_CellTransmitterHandler transmitter : activator.transmitters)
       {
         if (transmitter.stimulusClassName == null)
         {
@@ -73,13 +61,13 @@ final class Cfg2_LoadBalancedCellParser extends Cfg2_CellDefinitionParser
         }
       }
       
-      for (Cfg2_CellSubscriptionHandler subscription : activator.subscriptions)
+      for (Cfg_CellSubscriptionHandler subscription : activator.subscriptions)
       {
         if (subscription.subType != SubscriptionType.LOGIC &&
             subscription.subType != SubscriptionType.MAP &&
             subscription.subType != SubscriptionType.LOOPBACK)
         {
-          throw new NeuPathsException("Load-balanced cells only accept logic-based subscriptions");
+          throw new NeuPathsException("Logic cells only accept logic-based subscriptions");
         }
       }
     }
@@ -87,21 +75,20 @@ final class Cfg2_LoadBalancedCellParser extends Cfg2_CellDefinitionParser
   
   protected Cell instantiate ()
   {
-    Cfg2_LoadBalancedCellHandler lbh = (Cfg2_LoadBalancedCellHandler) handler;
     Cell newCell = null;
 
     Activator[] activators = new Activator[handler.activators.size()];
 
     for (int a = 0; a < handler.activators.size(); a++)
     {
-      Cfg2_CellActivatorHandler activator = handler.activators.get(a);
+      Cfg_CellActivatorHandler activator = handler.activators.get(a);
 
       ReceptorSpec[] receptors =
         new ReceptorSpec[activator.receptors.size()];
 
       for (int r = 0; r < activator.receptors.size(); r++)
       {
-        Cfg2_CellReceptorHandler receptor = activator.receptors.get(r);
+        Cfg_CellReceptorHandler receptor = activator.receptors.get(r);
         
         try
         {
@@ -133,7 +120,7 @@ final class Cfg2_LoadBalancedCellParser extends Cfg2_CellDefinitionParser
 
       for (int t = 0; t < activator.transmitters.size(); t++)
       {
-        Cfg2_CellTransmitterHandler transmitter = activator.transmitters.get(t);
+        Cfg_CellTransmitterHandler transmitter = activator.transmitters.get(t);
 
         try
         {
@@ -165,7 +152,7 @@ final class Cfg2_LoadBalancedCellParser extends Cfg2_CellDefinitionParser
 
       for (int s = 0; s < activator.subscriptions.size(); s++)
       {
-        Cfg2_CellSubscriptionHandler subscription =
+        Cfg_CellSubscriptionHandler subscription =
           activator.subscriptions.get(s);
 
         switch (subscription.subType)
@@ -191,7 +178,7 @@ final class Cfg2_LoadBalancedCellParser extends Cfg2_CellDefinitionParser
                                                 subscription.receptorName);
             break;
           default:
-            throw new NeuPathsException("Load-balanced cells only accept logic-based subscriptions");
+            throw new NeuPathsException("Logic cells only accept logic-based subscriptions");
         }
       }
       
@@ -252,29 +239,25 @@ final class Cfg2_LoadBalancedCellParser extends Cfg2_CellDefinitionParser
 
     PropertySet properties = new PropertySet();
 
-    for (Cfg2_CellPropertyHandler property : handler.properties)
+    for (Cfg_CellPropertyHandler property : handler.properties)
     {
       properties.set(property.name, property.value);
     }
     
     try
     {
-      newCell = (Cell) LoadBalancedCell.class.getDeclaredConstructor
+      newCell = (Cell) LogicCell.class.getDeclaredConstructor
                            (String.class,
                             PropertySet.class,
                             String[].class,
                             Activator[].class,
-                            String.class,
-                            String.class,
                             byte[].class).
                        newInstance
                            (handler.name,
                             properties,
                             handler.synapseNames.toArray(String[]::new),
                             activators,
-                            lbh.controllerName,
-                            lbh.controllerDomain,
-                            Cfg2_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+                            Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
 
       applyCellOptions(newCell);
     }

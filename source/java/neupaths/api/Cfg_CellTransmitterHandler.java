@@ -7,22 +7,22 @@ import java.util.UUID;
 import org.w3c.dom.Node;
 
 /**
- * Handler for parsing an {@link InjectorCell}'s transmitter.
+ * Handler for parsing a {@link Cell} transmitter.
  *
  * @author Aaron Caraveo
  */
 final class Cfg_CellTransmitterHandler extends Cfg_ConfigHandler
 {
-  Cfg_CellTransmitterHandler (String xPath)
+  Cfg_CellTransmitterHandler (CellType cellType, String xPath)
   {
-    super(xPath);
+    super(cellType, xPath);
     
     name = null;
     stimulusClassName = null;
     trace = StimulusTrace.ENABLED;
   }
 
-  void processNode (String configFile, Node node)
+  void processNode (String definitionFile, Node node)
   {
     String nodeName = node.getNodeName().toUpperCase();
     
@@ -43,43 +43,21 @@ final class Cfg_CellTransmitterHandler extends Cfg_ConfigHandler
       catch (IllegalArgumentException iae)
       {
         throw new NeuPathsException("Illegal value for " + xPath + "/Trace '" +
-                                    Cfg_Utils.getNodeText(node) + "' in file " + configFile);
+                                    Cfg_Utils.getNodeText(node) + "' in file " + definitionFile);
       }
     }
     else
     {
       throw new NeuPathsException("Unexpected " + xPath + " configuration tag '" +
-                                     nodeName + "' in file " + configFile);
+                                     nodeName + "' in file " + definitionFile);
     }
   }
   
-  void processElement (String configFile, Cfg_ConfigHandler parentHandler)
+  void processElement (String             definitionFile,
+                       Cfg_ConfigHandler parentHandler)
   {
-    Cfg_TransmitterHandlerInt handler = (Cfg_TransmitterHandlerInt) parentHandler;
-
-    try
-    {
-      // Load the stimulus class
-      Class<?> stimClass = Class.forName(stimulusClassName);
-      UUID stimTypeID = (UUID) stimClass.getField("TYPE_ID").get(null);
-
-      handler.addTransmitter(
-          new TransmitterSpec(name,
-                              stimTypeID,  // need to load class
-                              trace));
-    }
-    catch (ClassNotFoundException cnfe)
-    {
-      throw new NeuPathsException("Could not resolve TYPE_ID for transmitter in file " + configFile, cnfe);
-    }
-    catch (IllegalAccessException iae)
-    {
-      throw new NeuPathsException("Could not resolve TYPE_ID for transmitter in file " + configFile, iae);
-    }
-    catch (NoSuchFieldException nsfe)
-    {
-      throw new NeuPathsException("Could not resolve TYPE_ID for transmitter in file " + configFile, nsfe);
-    }
+    Cfg_TransmittersHandlerInt handler = (Cfg_TransmittersHandlerInt) parentHandler;
+    handler.addTransmitter(this);
   }
 
   String name;

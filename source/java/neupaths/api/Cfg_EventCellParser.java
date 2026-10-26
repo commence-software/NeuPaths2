@@ -14,18 +14,18 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-final class Cfg2_EventCellParser extends Cfg2_CellDefinitionParser
+final class Cfg_EventCellParser extends Cfg_CellDefinitionParser
 {
-  Cfg2_EventCellParser (String cellDefinitionFile)
+  Cfg_EventCellParser (String cellDefinitionFile)
   {
     super(CellType.EVENT,
           cellDefinitionFile,
-          new Cfg2_EventCellHandler());
+          new Cfg_EventCellHandler());
   }
 
   protected void parseNode (Node root)
   {
-    Cfg2_Utils.processElement(cellDefinitionFile, null, handler, root);
+    Cfg_Utils.processElement(cellDefinitionFile, null, handler, root);
   }
 
   protected void validate ()
@@ -35,7 +35,7 @@ final class Cfg2_EventCellParser extends Cfg2_CellDefinitionParser
       throw new NeuPathsException("Event cells require a single synapse");
     }
 
-    Cfg2_EventCellHandler event = (Cfg2_EventCellHandler) handler;
+    Cfg_EventCellHandler event = (Cfg_EventCellHandler) handler;
     
     if (event.outputFileName == null)
     {
@@ -45,12 +45,12 @@ final class Cfg2_EventCellParser extends Cfg2_CellDefinitionParser
   
   protected Cell instantiate ()
   {
-    Cfg2_EventCellHandler event = (Cfg2_EventCellHandler) handler;
+    Cfg_EventCellHandler event = (Cfg_EventCellHandler) handler;
 
     Cell newCell =  new EventCell(handler.name,
                                   handler.synapseNames.toArray(String[]::new)[0],
                                   event.outputFileName,
-                                  Cfg2_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+                                  Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
 
     applyCellOptions(newCell);
 

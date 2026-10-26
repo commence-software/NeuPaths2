@@ -7,79 +7,44 @@ import java.util.LinkedList;
 import org.w3c.dom.Node;
 
 /**
- * Handler for parsing a {@link Cell}s activator configuration.
+ * Handler for parsing a {@link Cell} activator configuration.
  *
  * @author Aaron Caraveo
  */
-final class Cfg_CellActivatorsHandler extends Cfg_ConfigHandler implements Cfg_ActivatorHandlerInt
+final class Cfg_CellActivatorsHandler extends Cfg_ConfigHandler
+    implements Cfg_ActivatorsHandlerInt
 {
-  Cfg_CellActivatorsHandler (String xPath)
+  Cfg_CellActivatorsHandler (CellType cellType, String xPath)
   {
-    super(xPath);
+    super(cellType, xPath);
     
     activators = new LinkedList<>();
   }
   
-  void processNode (String configFile, Node node)
+  void processNode (String definitionFile, Node node)
   {
     String nodeName = node.getNodeName().toUpperCase();
 
     if (nodeName.equals("ACTIVATOR"))
     {
-      Cfg_CellActivatorHandler handler = new Cfg_CellActivatorHandler(xPath + "/Activator");
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_CellActivatorHandler handler = new Cfg_CellActivatorHandler(cellType, xPath + "/Activator");
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else
     {
       throw new NeuPathsException("Unexpected " + xPath + " configuration tag '" +
-                                  nodeName + "' in file " + configFile);
+                                  nodeName + "' in file " + definitionFile);
     }
   }
 
-  void processElement (String configFile, Cfg_ConfigHandler parentHandler)
+  void processElement (String             definitionFile,
+                       Cfg_ConfigHandler parentHandler)
   {
     Cfg_ActivatorsHandlerInt handler = (Cfg_ActivatorsHandlerInt) parentHandler;
     
-    for (Cfg_CellActivatorHandler context : activators)
+    for (Cfg_CellActivatorHandler activator : activators)
     {
-      try
-      {
-        if (context.className == null)
-        {
-          throw new NeuPathsException("Activator class name must be provided in file " + configFile);
-        }
-        
-        // Load the activator class
-        Class<?> actvtrClass = Class.forName(context.className);
-
-        // Instantiate the activator class
-        Activator actvtrObj =
-            (Activator) actvtrClass.getDeclaredConstructor().newInstance();
-        
-        actvtrObj.setTransactionHistoryWindow(context.transactionHistoryWindow);
-
-        handler.addActivator(actvtrObj);
-      }
-      catch (ClassNotFoundException cnfe)
-      {
-        throw new NeuPathsException("Could not instantiate activator in file " + configFile, cnfe);
-      }
-      catch (NoSuchMethodException nsme)
-      {
-        throw new NeuPathsException("Could not instantiate activator in file " + configFile, nsme);
-      }
-      catch (InstantiationException ie)
-      {
-        throw new NeuPathsException("Could not instantiate activator in file " + configFile, ie);
-      }
-      catch (IllegalAccessException iae)
-      {
-        throw new NeuPathsException("Could not instantiate activator in file " + configFile, iae);
-      }
-      catch (java.lang.reflect.InvocationTargetException ite)
-      {
-        throw new NeuPathsException("Could not instantiate activator in file " + configFile, ite);
-      }
+      handler.addActivator(activator);
     }
   }
 

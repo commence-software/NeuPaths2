@@ -11,19 +11,21 @@ import org.w3c.dom.Node;
  *
  * @author Aaron Caraveo
  */
-final class Cfg_LoadControllerCellHandler extends Cfg_CellHandler implements Cfg_ReceptorsHandlerInt, Cfg_SubscriptionsHandlerInt
+final class Cfg_LoadControllerCellHandler extends Cfg_CellHandler
+    implements Cfg_ReceptorsHandlerInt,
+               Cfg_SubscriptionsHandlerInt
 {
   Cfg_LoadControllerCellHandler ()
   {
     super(CellType.LOAD_CONTROLLER, "/Load_Controller_Cell");
 
-    receptors = new ReceptorSpecSet();
-    subscriptions = new SubscriptionSpecSet();
+    receptors = new LinkedList<>();
+    subscriptions = new LinkedList<>();
     cellNamePrefix = null;
     cellDomain = null;
   }
 
-  public void processNode (String configFile, Node node)
+  public void processNode (String definitionFile, Node node)
   {
     String nodeName = node.getNodeName().toUpperCase();
 
@@ -33,18 +35,18 @@ final class Cfg_LoadControllerCellHandler extends Cfg_CellHandler implements Cfg
     }
     else if (nodeName.equals("SYNAPSES"))
     {
-      Cfg_CellSynapsesHandler handler = new Cfg_CellSynapsesHandler(xPath + "/Synapses");
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_CellSynapsesHandler handler = new Cfg_CellSynapsesHandler(cellType, xPath + "/Synapses");
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else if (nodeName.equals("RECEPTORS"))
     {
-      Cfg_CellReceptorsHandler handler = new Cfg_CellReceptorsHandler(xPath + "/Receptors");
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_CellReceptorsHandler handler = new Cfg_CellReceptorsHandler(cellType, xPath + "/Receptors");
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else if (nodeName.equals("SUBSCRIPTIONS"))
     {
-      Cfg_CellSubscriptionsHandler handler = new Cfg_CellSubscriptionsHandler(xPath + "/Subscriptions", cellType);
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_CellSubscriptionsHandler handler = new Cfg_CellSubscriptionsHandler(cellType, xPath + "/Subscriptions");
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else if (nodeName.equals("CELL_NAME_PREFIX"))
     {
@@ -98,22 +100,22 @@ final class Cfg_LoadControllerCellHandler extends Cfg_CellHandler implements Cfg
     else
     {
       throw new NeuPathsException("Unexpected " + xPath + " configuration tag '" +
-                                  nodeName + "' in file " + configFile);
+                                  nodeName + "' in file " + definitionFile);
     }
   }
 
-  public void addReceptor (ReceptorSpec receptorSpec)
+  public void addReceptor (Cfg_CellReceptorHandler receptor)
   {
-    receptors.add(receptorSpec);
+    receptors.add(receptor);
   }
   
-  public void addSubscription (SubscriptionSpec subscriptionSpec)
+  public void addSubscription (Cfg_CellSubscriptionHandler subscription)
   {
-    subscriptions.add(subscriptionSpec);
+    subscriptions.add(subscription);
   }
-
-  ReceptorSpecSet receptors;
-  SubscriptionSpecSet subscriptions;
+  
+  LinkedList<Cfg_CellReceptorHandler> receptors;
+  LinkedList<Cfg_CellSubscriptionHandler> subscriptions;
   String cellNamePrefix;
   String cellDomain;
 }

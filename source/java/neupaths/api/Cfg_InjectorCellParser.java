@@ -15,23 +15,23 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-final class Cfg2_InjectorCellParser extends Cfg2_CellDefinitionParser
+final class Cfg_InjectorCellParser extends Cfg_CellDefinitionParser
 {
-  Cfg2_InjectorCellParser (String cellDefinitionFile)
+  Cfg_InjectorCellParser (String cellDefinitionFile)
   {
     super(CellType.INJECTOR,
           cellDefinitionFile,
-          new Cfg2_InjectorCellHandler());
+          new Cfg_InjectorCellHandler());
   }
 
   protected void parseNode (Node root)
   {
-    Cfg2_Utils.processElement(cellDefinitionFile, null, handler, root);
+    Cfg_Utils.processElement(cellDefinitionFile, null, handler, root);
   }
 
   protected void validate ()
   {
-    Cfg2_InjectorCellHandler ih = (Cfg2_InjectorCellHandler) handler;
+    Cfg_InjectorCellHandler ih = (Cfg_InjectorCellHandler) handler;
 
     if (ih.transmitter == null)
     {
@@ -41,7 +41,7 @@ final class Cfg2_InjectorCellParser extends Cfg2_CellDefinitionParser
   
   protected Cell instantiate ()
   {
-    Cfg2_InjectorCellHandler injector = (Cfg2_InjectorCellHandler) handler;
+    Cfg_InjectorCellHandler injector = (Cfg_InjectorCellHandler) handler;
     Cell newCell = null;
 
     try
@@ -58,7 +58,7 @@ final class Cfg2_InjectorCellParser extends Cfg2_CellDefinitionParser
       newCell = new InjectorCell(handler.name,
                                  handler.synapseNames.toArray(String[]::new),
                                  transmitter,
-                                 Cfg2_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+                                 Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
 
       applyCellOptions(newCell);
     }

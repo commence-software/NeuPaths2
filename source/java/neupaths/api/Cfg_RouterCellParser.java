@@ -14,18 +14,18 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-final class Cfg2_RouterCellParser extends Cfg2_CellDefinitionParser
+final class Cfg_RouterCellParser extends Cfg_CellDefinitionParser
 {
-  Cfg2_RouterCellParser (String cellDefinitionFile)
+  Cfg_RouterCellParser (String cellDefinitionFile)
   {
     super(CellType.ROUTER,
           cellDefinitionFile,
-          new Cfg2_RouterCellHandler());
+          new Cfg_RouterCellHandler());
   }
 
   protected void parseNode (Node root)
   {
-    Cfg2_Utils.processElement(cellDefinitionFile, null, handler, root);
+    Cfg_Utils.processElement(cellDefinitionFile, null, handler, root);
   }
 
   protected void validate ()
@@ -37,7 +37,7 @@ final class Cfg2_RouterCellParser extends Cfg2_CellDefinitionParser
   {
     Cell newCell = new RouterCell(handler.name,
                                   handler.synapseNames.toArray(String[]::new),
-                                  Cfg2_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+                                  Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
 
     applyCellOptions(newCell);
 

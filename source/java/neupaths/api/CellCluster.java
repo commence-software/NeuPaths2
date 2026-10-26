@@ -186,10 +186,18 @@ public class CellCluster implements Iterable<Cell>
    *
    * @param clusterDefinitionFile Pathname of a cluster definition XML file.
    */
-  public CellCluster (String clusterDefinitionFile)
+  public CellCluster (String clusterDefinitionFile,
+                      String synapseDirectory)
   {
     cells = new LinkedHashMap<>();
 
+    String appliedSynapseDirectory = System.getProperty("java.io.tmpdir");
+
+    if (synapseDirectory != null)
+    {
+      appliedSynapseDirectory = synapseDirectory;
+    }
+    
     try
     {
       DocumentBuilderFactory documentFactory = DocumentBuilderFactory.newInstance();
@@ -213,7 +221,7 @@ public class CellCluster implements Iterable<Cell>
         {
           if (nodeName.equals("CELL_CLUSTER"))
           {
-            Cfg_CellClusterHandler handler = new Cfg_CellClusterHandler();
+            Cfg_CellClusterHandler handler = new Cfg_CellClusterHandler(appliedSynapseDirectory);
             Cfg_Utils.processElement(clusterDefinitionFile, null, handler, node);
 
             if (handler.clusterName == null)
@@ -225,7 +233,7 @@ public class CellCluster implements Iterable<Cell>
             try
             {
               LinkedList<String> daemonOptions = new LinkedList<>();
-              daemonOptions.addLast(System.getProperty("java.io.tmpdir") + File.separator + "daemon_" + Math.abs(handler.clusterName.hashCode()) + ".syn");
+              daemonOptions.addLast(appliedSynapseDirectory + File.separator + "daemon_" + Math.abs(handler.clusterName.hashCode()) + ".syn");
 
               // Daemon to Cluster
               daemonSynapse =
@@ -236,7 +244,7 @@ public class CellCluster implements Iterable<Cell>
                                daemonOptions);
 
               LinkedList<String> clusterOptions = new LinkedList<>();
-              clusterOptions.addLast(System.getProperty("java.io.tmpdir") + File.separator + "cluster_" + Math.abs(handler.clusterName.hashCode()) + ".syn");
+              clusterOptions.addLast(appliedSynapseDirectory + File.separator + "cluster_" + Math.abs(handler.clusterName.hashCode()) + ".syn");
 
               // Cell to Cluster 
               clusterSynapse =
@@ -277,8 +285,7 @@ public class CellCluster implements Iterable<Cell>
               Cell newCell = CellFactory.createCell(handler,
                                                     cellDefinitionFile);
 
-              if (handler.loggingSpecified &&
-                  newCell.getType() != CellType.EVENT)
+              if (handler.loggingSpecified)
               {
                 if (handler.loggingEnabled)
                 {
@@ -290,8 +297,7 @@ public class CellCluster implements Iterable<Cell>
                 }
               }
 
-              if (handler.traceLoggingSpecified &&
-                  newCell.getType() != CellType.EVENT)
+              if (handler.traceLoggingSpecified)
               {
                 if (handler.traceLoggingEnabled)
                 {
@@ -303,8 +309,7 @@ public class CellCluster implements Iterable<Cell>
                 }
               }
 
-              if (handler.debugLoggingSpecified &&
-                  newCell.getType() != CellType.EVENT)
+              if (handler.debugLoggingSpecified)
               {
                 if (handler.debugLoggingEnabled)
                 {
@@ -316,8 +321,7 @@ public class CellCluster implements Iterable<Cell>
                 }
               }
 
-              if (handler.runtimeLoggingSpecified &&
-                  newCell.getType() != CellType.EVENT)
+              if (handler.runtimeLoggingSpecified)
               {
                 if (handler.runtimeLoggingEnabled)
                 {
@@ -360,7 +364,8 @@ public class CellCluster implements Iterable<Cell>
 
               if (handler.pulseSpecified &&
                   (newCell.getType() == CellType.LOGIC ||
-                   newCell.getType() == CellType.LOAD_BALANCED))
+                   newCell.getType() == CellType.LOAD_BALANCED ||
+                   newCell.getType() == CellType.CUSTOM))
               {
                 newCell.setPulseInterval(handler.pulseInterval);
               }

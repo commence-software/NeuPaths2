@@ -6,21 +6,21 @@ package neupaths.api;
 import org.w3c.dom.Node;
 
 /**
- * Handler for an {@link Cell} property.
+ * Handler for a {@link Cell} property.
  *
  * @author Aaron Caraveo
  */
 final class Cfg_CellPropertyHandler extends Cfg_ConfigHandler
 {
-  Cfg_CellPropertyHandler (String xPath)
+  Cfg_CellPropertyHandler (CellType cellType, String xPath)
   {
-    super(xPath);
+    super(cellType, xPath);
     
     name = null;
     value = null;
   }
   
-  void processNode (String configFile, Node node)
+  void processNode (String definitionFile, Node node)
   {
     String nodeName = node.getNodeName().toUpperCase();
     
@@ -32,19 +32,25 @@ final class Cfg_CellPropertyHandler extends Cfg_ConfigHandler
     {
       value = Cfg_Utils.getNodeText(node);
     }
+    else if (nodeName.equals("TYPE"))
+    {
+      type = Cfg_Utils.getNodeText(node);
+    }
     else
     {
       throw new NeuPathsException("Unexpected " + xPath + " configuration tag '" +
-                                  nodeName + "' in file " + configFile);
+                                  nodeName + "' in file " + definitionFile);
     }
   }
   
-  void processElement (String configFile, Cfg_ConfigHandler parentHandler)
+  void processElement (String             definitionFile,
+                       Cfg_ConfigHandler parentHandler)
   {
-    Cfg_CellPropertiesHandler handler = (Cfg_CellPropertiesHandler) parentHandler;
-    handler.properties.add(this);
+    Cfg_PropertiesHandlerInt handler = (Cfg_PropertiesHandlerInt) parentHandler;
+    handler.addProperty(this);
   }
   
   String name;
   String value;
+  String type;
 }

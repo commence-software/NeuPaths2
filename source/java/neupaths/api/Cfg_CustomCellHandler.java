@@ -12,9 +12,9 @@ import org.w3c.dom.Node;
  *
  * @author Aaron Caraveo
  */
-final class Cfg2_CustomCellHandler extends Cfg2_CellHandler
+final class Cfg_CustomCellHandler extends Cfg_CellHandler
 {
-  Cfg2_CustomCellHandler ()
+  Cfg_CustomCellHandler ()
   {
     super(CellType.CUSTOM, "/Custom_Cell");
 
@@ -27,67 +27,67 @@ final class Cfg2_CustomCellHandler extends Cfg2_CellHandler
 
     if (nodeName.equals("CLASS"))
     {
-      className = Cfg2_Utils.getNodeText(node);
+      className = Cfg_Utils.getNodeText(node);
     }
     else if (nodeName.equals("NAME"))
     {
-      name = Cfg2_Utils.getNodeText(node);
+      name = Cfg_Utils.getNodeText(node);
     }
     else if (nodeName.equals("PROPERTIES"))
     {
-      Cfg2_CellPropertiesHandler handler = new Cfg2_CellPropertiesHandler(cellType, xPath + "/Properties");
-      Cfg2_Utils.processElement(definitionFile, this, handler, node);
+      Cfg_CellPropertiesHandler handler = new Cfg_CellPropertiesHandler(cellType, xPath + "/Properties");
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else if (nodeName.equals("SYNAPSES"))
     {
-      Cfg2_CellSynapsesHandler handler = new Cfg2_CellSynapsesHandler(cellType, xPath + "/Synapses");
-      Cfg2_Utils.processElement(definitionFile, this, handler, node);
+      Cfg_CellSynapsesHandler handler = new Cfg_CellSynapsesHandler(cellType, xPath + "/Synapses");
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else if (nodeName.equals("ACTIVATORS"))
     {
-      Cfg2_CellActivatorsHandler handler = new Cfg2_CellActivatorsHandler(cellType, xPath + "/Activators");
-      Cfg2_Utils.processElement(definitionFile, this, handler, node);
+      Cfg_CellActivatorsHandler handler = new Cfg_CellActivatorsHandler(cellType, xPath + "/Activators");
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else if (nodeName.equals("LOGGING_ENABLED"))
     {
-      loggingEnabled = Boolean.parseBoolean(Cfg2_Utils.getNodeText(node));
+      loggingEnabled = Boolean.parseBoolean(Cfg_Utils.getNodeText(node));
     }
     else if (nodeName.equals("TRACE_LOGGING_ENABLED"))
     {
-      traceLoggingEnabled = Boolean.parseBoolean(Cfg2_Utils.getNodeText(node));
+      traceLoggingEnabled = Boolean.parseBoolean(Cfg_Utils.getNodeText(node));
     }
     else if (nodeName.equals("DEBUG_LOGGING_ENABLED"))
     {
-      debugLoggingEnabled = Boolean.parseBoolean(Cfg2_Utils.getNodeText(node));
+      debugLoggingEnabled = Boolean.parseBoolean(Cfg_Utils.getNodeText(node));
     }
     else if (nodeName.equals("RUNTIME_LOGGING_ENABLED"))
     {
-      runtimeLoggingEnabled = Boolean.parseBoolean(Cfg2_Utils.getNodeText(node));
+      runtimeLoggingEnabled = Boolean.parseBoolean(Cfg_Utils.getNodeText(node));
     }
     else if (nodeName.equals("PROPAGATE_GLOBAL_SUBSCRIPTIONS"))
     {
       propagateGlobalSubscriptions =
-        Boolean.parseBoolean(Cfg2_Utils.getNodeText(node));
+        Boolean.parseBoolean(Cfg_Utils.getNodeText(node));
     }
     else if (nodeName.equals("SUBSCRIPTION_REFRESH_INTERVAL_MS"))
     {
-      subscriptionRefreshInterval = Long.parseLong(Cfg2_Utils.getNodeText(node));
+      subscriptionRefreshInterval = Long.parseLong(Cfg_Utils.getNodeText(node));
     }
     else if (nodeName.equals("DUPLICATE_DETECTION_INTERVAL_MS"))
     {
-      duplicateDetectionInterval = Long.parseLong(Cfg2_Utils.getNodeText(node));
+      duplicateDetectionInterval = Long.parseLong(Cfg_Utils.getNodeText(node));
     }
     else if (nodeName.equals("SUBSCRIPTION_TRACE_INTERVAL_MS"))
     {
-      subscriptionTraceInterval = Long.parseLong(Cfg2_Utils.getNodeText(node));
+      subscriptionTraceInterval = Long.parseLong(Cfg_Utils.getNodeText(node));
     }
     else if (nodeName.equals("PULSE_INTERVAL_MS"))
     {
-      pulseInterval = Long.parseLong(Cfg2_Utils.getNodeText(node));
+      pulseInterval = Long.parseLong(Cfg_Utils.getNodeText(node));
     }
     else if (nodeName.equals("CRYPTO_KEY_FILE"))
     {
-      cryptoKeyFile = Cfg2_Utils.getNodeText(node);
+      cryptoKeyFile = Cfg_Utils.getNodeText(node);
     }
     else
     {

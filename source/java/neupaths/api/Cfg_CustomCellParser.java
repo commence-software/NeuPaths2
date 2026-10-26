@@ -17,23 +17,23 @@ import org.xml.sax.SAXParseException;
 
 import neupaths.util.PropertySet;
 
-final class Cfg2_CustomCellParser extends Cfg2_CellDefinitionParser
+final class Cfg_CustomCellParser extends Cfg_CellDefinitionParser
 {
-  Cfg2_CustomCellParser (String cellDefinitionFile)
+  Cfg_CustomCellParser (String cellDefinitionFile)
   {
     super(CellType.CUSTOM,
           cellDefinitionFile,
-          new Cfg2_CustomCellHandler());
+          new Cfg_CustomCellHandler());
   }
 
   protected void parseNode (Node root)
   {
-    Cfg2_Utils.processElement(cellDefinitionFile, null, handler, root);
+    Cfg_Utils.processElement(cellDefinitionFile, null, handler, root);
   }
 
   protected void validate ()
   {
-    Cfg2_CustomCellHandler ch = (Cfg2_CustomCellHandler) handler;
+    Cfg_CustomCellHandler ch = (Cfg_CustomCellHandler) handler;
 
     if (ch.className == null)
     {
@@ -45,14 +45,14 @@ final class Cfg2_CustomCellParser extends Cfg2_CellDefinitionParser
       throw new NeuPathsException("Custom cells require at least one activator");
     }
 
-    for (Cfg2_CellActivatorHandler activator : handler.activators)
+    for (Cfg_CellActivatorHandler activator : handler.activators)
     {
       if (activator.className == null)
       {
         throw new NeuPathsException("Activators must provide a class name");
       }
       
-      for (Cfg2_CellReceptorHandler receptor : activator.receptors)
+      for (Cfg_CellReceptorHandler receptor : activator.receptors)
       {
         if (receptor.stimulusClassName == null)
         {
@@ -60,7 +60,7 @@ final class Cfg2_CustomCellParser extends Cfg2_CellDefinitionParser
         }
       }
       
-      for (Cfg2_CellTransmitterHandler transmitter : activator.transmitters)
+      for (Cfg_CellTransmitterHandler transmitter : activator.transmitters)
       {
         if (transmitter.stimulusClassName == null)
         {
@@ -68,7 +68,7 @@ final class Cfg2_CustomCellParser extends Cfg2_CellDefinitionParser
         }
       }
       
-      for (Cfg2_CellSubscriptionHandler subscription : activator.subscriptions)
+      for (Cfg_CellSubscriptionHandler subscription : activator.subscriptions)
       {
         if (subscription.subType != SubscriptionType.LOGIC &&
             subscription.subType != SubscriptionType.MAP &&
@@ -82,21 +82,21 @@ final class Cfg2_CustomCellParser extends Cfg2_CellDefinitionParser
   
   protected Cell instantiate ()
   {
-    Cfg2_CustomCellHandler ch = (Cfg2_CustomCellHandler) handler;
+    Cfg_CustomCellHandler ch = (Cfg_CustomCellHandler) handler;
     Cell newCell = null;
 
     Activator[] activators = new Activator[handler.activators.size()];
 
     for (int a = 0; a < handler.activators.size(); a++)
     {
-      Cfg2_CellActivatorHandler activator = handler.activators.get(a);
+      Cfg_CellActivatorHandler activator = handler.activators.get(a);
 
       ReceptorSpec[] receptors =
         new ReceptorSpec[activator.receptors.size()];
 
       for (int r = 0; r < activator.receptors.size(); r++)
       {
-        Cfg2_CellReceptorHandler receptor = activator.receptors.get(r);
+        Cfg_CellReceptorHandler receptor = activator.receptors.get(r);
         
         try
         {
@@ -128,7 +128,7 @@ final class Cfg2_CustomCellParser extends Cfg2_CellDefinitionParser
 
       for (int t = 0; t < activator.transmitters.size(); t++)
       {
-        Cfg2_CellTransmitterHandler transmitter = activator.transmitters.get(t);
+        Cfg_CellTransmitterHandler transmitter = activator.transmitters.get(t);
 
         try
         {
@@ -160,7 +160,7 @@ final class Cfg2_CustomCellParser extends Cfg2_CellDefinitionParser
 
       for (int s = 0; s < activator.subscriptions.size(); s++)
       {
-        Cfg2_CellSubscriptionHandler subscription =
+        Cfg_CellSubscriptionHandler subscription =
           activator.subscriptions.get(s);
 
         switch (subscription.subType)
@@ -247,7 +247,7 @@ final class Cfg2_CustomCellParser extends Cfg2_CellDefinitionParser
 
     PropertySet properties = new PropertySet();
 
-    for (Cfg2_CellPropertyHandler property : handler.properties)
+    for (Cfg_CellPropertyHandler property : handler.properties)
     {
       properties.set(property.name, property.value);
     }
@@ -268,7 +268,7 @@ final class Cfg2_CustomCellParser extends Cfg2_CellDefinitionParser
                             properties,
                             handler.synapseNames.toArray(String[]::new),
                             activators,
-                            Cfg2_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+                            Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
 
       applyCellOptions(newCell);
     }

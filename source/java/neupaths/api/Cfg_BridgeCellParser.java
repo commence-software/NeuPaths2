@@ -14,30 +14,30 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-final class Cfg2_BridgeCellParser extends Cfg2_CellDefinitionParser
+final class Cfg_BridgeCellParser extends Cfg_CellDefinitionParser
 {
-  Cfg2_BridgeCellParser (String cellDefinitionFile)
+  Cfg_BridgeCellParser (String cellDefinitionFile)
   {
     super(CellType.BRIDGE,
           cellDefinitionFile,
-          new Cfg2_BridgeCellHandler());
+          new Cfg_BridgeCellHandler());
   }
 
   protected void parseNode (Node root)
   {
-    Cfg2_Utils.processElement(cellDefinitionFile, null, handler, root);
+    Cfg_Utils.processElement(cellDefinitionFile, null, handler, root);
   }
 
   protected void validate ()
   {
-    Cfg2_BridgeCellHandler bridge = (Cfg2_BridgeCellHandler) handler;
+    Cfg_BridgeCellHandler bridge = (Cfg_BridgeCellHandler) handler;
     
     if (bridge.subscriptions.size() == 0)
     {
       throw new NeuPathsException("Bridge cells require at least one subscription");
     }
 
-    for (Cfg2_CellSubscriptionHandler subscription : bridge.subscriptions)
+    for (Cfg_CellSubscriptionHandler subscription : bridge.subscriptions)
     {
       if (subscription.subType != SubscriptionType.BRIDGE)
       {
@@ -48,7 +48,7 @@ final class Cfg2_BridgeCellParser extends Cfg2_CellDefinitionParser
   
   protected Cell instantiate ()
   {
-    Cfg2_BridgeCellHandler bridge = (Cfg2_BridgeCellHandler) handler;
+    Cfg_BridgeCellHandler bridge = (Cfg_BridgeCellHandler) handler;
     Cell newCell = null;
     
     BridgeSubscriptionSpec[] subscriptions =
@@ -56,7 +56,7 @@ final class Cfg2_BridgeCellParser extends Cfg2_CellDefinitionParser
 
     for (int i = 0; i < bridge.subscriptions.size(); i++)
     {
-      Cfg2_CellSubscriptionHandler subscription = bridge.subscriptions.get(i);
+      Cfg_CellSubscriptionHandler subscription = bridge.subscriptions.get(i);
       
       subscriptions[i] = new BridgeSubscriptionSpec(subscription.cellName,
                                                     subscription.transmitterName,
@@ -66,7 +66,7 @@ final class Cfg2_BridgeCellParser extends Cfg2_CellDefinitionParser
     newCell = new BridgeCell(handler.name,
                              handler.synapseNames.toArray(String[]::new),
                              subscriptions,
-                             Cfg2_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+                             Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
 
     applyCellOptions(newCell);
 

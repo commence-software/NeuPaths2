@@ -8,7 +8,7 @@ package neupaths.api;
  *
  * @author Aaron Caraveo
  */
-interface Cfg2_PropertiesHandlerInt
+interface Cfg_PropertiesHandlerInt
 {
-  void addProperty (Cfg2_CellPropertyHandler property);
+  void addProperty (Cfg_CellPropertyHandler property);
 }

@@ -146,7 +146,7 @@ class DaemonCmdActv extends Activator
 
           try
           {
-            cluster = new CellCluster(configTopDir + File.separator + cmd.params);
+            cluster = new CellCluster(configTopDir + File.separator + cmd.params, null);
             cluster.start();
             clusters.put(cluster.getName(), cluster);
           }

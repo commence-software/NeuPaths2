@@ -12,10 +12,10 @@ import org.w3c.dom.Node;
  *
  * @author Aaron Caraveo
  */
-final class Cfg2_CellTransmittersHandler extends Cfg2_ConfigHandler
-    implements Cfg2_TransmittersHandlerInt
+final class Cfg_CellTransmittersHandler extends Cfg_ConfigHandler
+    implements Cfg_TransmittersHandlerInt
 {
-  Cfg2_CellTransmittersHandler (CellType cellType, String xPath)
+  Cfg_CellTransmittersHandler (CellType cellType, String xPath)
   {
     super(cellType, xPath);
 
@@ -28,8 +28,8 @@ final class Cfg2_CellTransmittersHandler extends Cfg2_ConfigHandler
 
     if (nodeName.equals("TRANSMITTER"))
     {
-      Cfg2_CellTransmitterHandler handler = new Cfg2_CellTransmitterHandler(cellType, xPath + "/Transmitter");
-      Cfg2_Utils.processElement(definitionFile, this, handler, node);
+      Cfg_CellTransmitterHandler handler = new Cfg_CellTransmitterHandler(cellType, xPath + "/Transmitter");
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else
     {
@@ -39,20 +39,20 @@ final class Cfg2_CellTransmittersHandler extends Cfg2_ConfigHandler
   }
 
   void processElement (String             definitionFile,
-                       Cfg2_ConfigHandler parentHandler)
+                       Cfg_ConfigHandler parentHandler)
   {
-    Cfg2_TransmittersHandlerInt handler = (Cfg2_TransmittersHandlerInt) parentHandler;
+    Cfg_TransmittersHandlerInt handler = (Cfg_TransmittersHandlerInt) parentHandler;
     
-    for (Cfg2_CellTransmitterHandler transmitter : transmitters)
+    for (Cfg_CellTransmitterHandler transmitter : transmitters)
     {
       handler.addTransmitter(transmitter);
     }
   }
 
-  public void addTransmitter (Cfg2_CellTransmitterHandler transmitter)
+  public void addTransmitter (Cfg_CellTransmitterHandler transmitter)
   {
     transmitters.add(transmitter);
   }
   
-  LinkedList<Cfg2_CellTransmitterHandler> transmitters;
+  LinkedList<Cfg_CellTransmitterHandler> transmitters;
 }

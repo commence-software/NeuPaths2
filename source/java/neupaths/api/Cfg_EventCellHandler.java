@@ -6,7 +6,7 @@ package neupaths.api;
 import org.w3c.dom.Node;
 
 /**
- * Handler for parsing an {@link EventCell}'s configuration.
+ * Handler for parsing an {@link EventCell} configuration.
  *
  * @author Aaron Caraveo
  */
@@ -16,12 +16,10 @@ final class Cfg_EventCellHandler extends Cfg_CellHandler
   {
     super(CellType.EVENT, "/Event_Cell");
 
-    name = null;
-    synapseName = null;
     outputFileName = null;
   }
 
-  void processNode (String configFile, Node node)
+  void processNode (String definitionFile, Node node)
   {
     String nodeName = node.getNodeName().toUpperCase();
 
@@ -31,7 +29,7 @@ final class Cfg_EventCellHandler extends Cfg_CellHandler
     }
     else if (nodeName.equals("SYNAPSE"))
     {
-      synapseName = Cfg_Utils.getNodeText(node);
+      synapseNames.add(Cfg_Utils.getNodeText(node));
     }
     else if (nodeName.equals("OUTPUT_FILE"))
     {
@@ -61,11 +59,9 @@ final class Cfg_EventCellHandler extends Cfg_CellHandler
     else
     {
       throw new NeuPathsException("Unexpected " + xPath + " configuration tag '" +
-                                  nodeName + "' in file " + configFile);
+                                  nodeName + "' in file " + definitionFile);
     }
   }
 
-  String name;
-  String synapseName;
   String outputFileName;
 }

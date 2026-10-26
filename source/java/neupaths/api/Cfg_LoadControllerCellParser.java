@@ -15,23 +15,23 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-final class Cfg2_LoadControllerCellParser extends Cfg2_CellDefinitionParser
+final class Cfg_LoadControllerCellParser extends Cfg_CellDefinitionParser
 {
-  Cfg2_LoadControllerCellParser (String cellDefinitionFile)
+  Cfg_LoadControllerCellParser (String cellDefinitionFile)
   {
     super(CellType.LOAD_CONTROLLER,
           cellDefinitionFile,
-          new Cfg2_LoadControllerCellHandler());
+          new Cfg_LoadControllerCellHandler());
   }
 
   protected void parseNode (Node root)
   {
-    Cfg2_Utils.processElement(cellDefinitionFile, null, handler, root);
+    Cfg_Utils.processElement(cellDefinitionFile, null, handler, root);
   }
 
   protected void validate ()
   {
-    Cfg2_LoadControllerCellHandler lch = (Cfg2_LoadControllerCellHandler) handler;
+    Cfg_LoadControllerCellHandler lch = (Cfg_LoadControllerCellHandler) handler;
 
     if (lch.cellNamePrefix == null)
     {
@@ -43,7 +43,7 @@ final class Cfg2_LoadControllerCellParser extends Cfg2_CellDefinitionParser
       throw new NeuPathsException("Load-controller cells require a cell domain");
     }
     
-    for (Cfg2_CellReceptorHandler receptor : lch.receptors)
+    for (Cfg_CellReceptorHandler receptor : lch.receptors)
     {
       if (receptor.stimulusClassName == null)
       {
@@ -51,7 +51,7 @@ final class Cfg2_LoadControllerCellParser extends Cfg2_CellDefinitionParser
       }
     }
     
-    for (Cfg2_CellSubscriptionHandler subscription : lch.subscriptions)
+    for (Cfg_CellSubscriptionHandler subscription : lch.subscriptions)
     {
       if (subscription.subType != SubscriptionType.LOGIC &&
           subscription.subType != SubscriptionType.MAP &&
@@ -64,7 +64,7 @@ final class Cfg2_LoadControllerCellParser extends Cfg2_CellDefinitionParser
   
   protected Cell instantiate ()
   {
-    Cfg2_LoadControllerCellHandler lch = (Cfg2_LoadControllerCellHandler) handler;
+    Cfg_LoadControllerCellHandler lch = (Cfg_LoadControllerCellHandler) handler;
     Cell newCell = null;
 
     ReceptorSpec[] receptors =
@@ -72,7 +72,7 @@ final class Cfg2_LoadControllerCellParser extends Cfg2_CellDefinitionParser
 
     for (int r = 0; r < lch.receptors.size(); r++)
     {
-      Cfg2_CellReceptorHandler receptor = lch.receptors.get(r);
+      Cfg_CellReceptorHandler receptor = lch.receptors.get(r);
       
       try
       {
@@ -104,7 +104,7 @@ final class Cfg2_LoadControllerCellParser extends Cfg2_CellDefinitionParser
 
     for (int s = 0; s < lch.subscriptions.size(); s++)
     {
-      Cfg2_CellSubscriptionHandler subscription = lch.subscriptions.get(s);
+      Cfg_CellSubscriptionHandler subscription = lch.subscriptions.get(s);
 
       switch (subscription.subType)
       {
@@ -150,7 +150,7 @@ final class Cfg2_LoadControllerCellParser extends Cfg2_CellDefinitionParser
                             subscriptions,
                             lch.cellNamePrefix,
                             lch.cellDomain,
-                            Cfg2_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+                            Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
 
       applyCellOptions(newCell);
     }

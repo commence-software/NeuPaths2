@@ -89,6 +89,7 @@ final class Cfg_LoadBalancedCellParser extends Cfg_CellDefinitionParser
   {
     Cfg_LoadBalancedCellHandler lbh = (Cfg_LoadBalancedCellHandler) handler;
     Cell newCell = null;
+    boolean loadBalancedActivator = false;
 
     Activator[] activators = new Activator[handler.activators.size()];
 
@@ -200,8 +201,28 @@ final class Cfg_LoadBalancedCellParser extends Cfg_CellDefinitionParser
         // Load the activator class
         Class<?> actvtrClass = Class.forName(activator.className);
 
-        if (PulsedActivator.class.isAssignableFrom(actvtrClass) &&
-            receptors.length == 0 && subscriptions.length == 0)
+        if (LoadBalancedActivator.class.isAssignableFrom(actvtrClass))
+        {
+          loadBalancedActivator = true;
+          
+          activators[a] =
+            (Activator) actvtrClass.getDeclaredConstructor
+                            (String.class,
+                             ReceptorSpec[].class,
+                             TransmitterSpec[].class,
+                             LogicSubscriptionSpec[].class,
+                             String.class,
+                             String.class).
+                        newInstance
+                            (activator.name,
+                             receptors,
+                             transmitters,
+                             subscriptions,
+                             lbh.controllerName,
+                             lbh.controllerDomain);
+        }
+        else if (PulsedActivator.class.isAssignableFrom(actvtrClass) &&
+                 receptors.length == 0 && subscriptions.length == 0)
         {
           activators[a] =
             (Activator) actvtrClass.getDeclaredConstructor
@@ -250,6 +271,11 @@ final class Cfg_LoadBalancedCellParser extends Cfg_CellDefinitionParser
       }
     }
 
+    if (!loadBalancedActivator)
+    {
+      throw new NeuPathsException("Load-balanced cells require a Load-balanced Activator");
+    }
+    
     PropertySet properties = new PropertySet();
 
     for (Cfg_CellPropertyHandler property : handler.properties)
@@ -257,43 +283,16 @@ final class Cfg_LoadBalancedCellParser extends Cfg_CellDefinitionParser
       properties.set(property.name, property.value);
     }
     
-    try
-    {
-      newCell = (Cell) LoadBalancedCell.class.getDeclaredConstructor
-                           (String.class,
-                            PropertySet.class,
-                            String[].class,
-                            Activator[].class,
-                            String.class,
-                            String.class,
-                            byte[].class).
-                       newInstance
-                           (handler.name,
-                            properties,
-                            handler.synapseNames.toArray(String[]::new),
-                            activators,
-                            lbh.controllerName,
-                            lbh.controllerDomain,
-                            Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+    newCell = new LoadBalancedCell
+                      (handler.name,
+                       properties,
+                       handler.synapseNames.toArray(String[]::new),
+                       activators,
+                       lbh.controllerName,
+                       lbh.controllerDomain,
+                       Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
 
-      applyCellOptions(newCell);
-    }
-    catch (NoSuchMethodException nsme)
-    {
-      throw new NeuPathsException("Could not instantiate cell in file " + cellDefinitionFile, nsme);
-    }
-    catch (InstantiationException ie)
-    {
-      throw new NeuPathsException("Could not instantiate cell in file " + cellDefinitionFile, ie);
-    }
-    catch (IllegalAccessException iae)
-    {
-      throw new NeuPathsException("Could not instantiate cell in file " + cellDefinitionFile, iae);
-    }
-    catch (java.lang.reflect.InvocationTargetException ite)
-    {
-      throw new NeuPathsException("Could not instantiate cell in file " + cellDefinitionFile, ite);
-    }
+    applyCellOptions(newCell);
 
     return newCell;
   }

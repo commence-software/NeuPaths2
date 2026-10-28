@@ -62,10 +62,30 @@ import java.util.LinkedList;
  * </ul>
  * </p>
  * <p>
- * <b>Note:</b> Activators declared in Cell Definition files (see
- * {@link CellFactory}) must use the single expression method and provide a
- * zero-argument constructor.  The activator class and constructor must be
- * {@code public}.
+ * <b>Note:</b> Activators specified in Cell Definition files (see
+ * {@link CellFactory}) must have constructors like the following.
+ * The activator class and constructor must be {@code public}.
+ * </p>
+ * <p>
+ * <ul>
+ * <pre> public class MyCustomActivator extends Activator
+ * {
+ *   public MyCustomActivator
+ *     (String                  name,
+ *      ReceptorSpec[]          receptors,
+ *      TransmitterSpec[]       transmitters,
+ *      LogicSubscriptionSpec[] subscriptions)
+ *   {
+ *     super(name, receptors, transmittres, subscriptions);
+ *     ...
+ *   }
+ *
+ *   protected void evaluate ()
+ *   {
+ *     ...
+ *   }
+ * }</pre>
+ * </ul>
  * </p>
  * 
  * @see ReceptorSpec

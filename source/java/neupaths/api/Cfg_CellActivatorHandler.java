@@ -32,13 +32,13 @@ final class Cfg_CellActivatorHandler extends Cfg_ConfigHandler
   {
     String nodeName = node.getNodeName().toUpperCase();
 
-    if (nodeName.equals("NAME"))
-    {
-      name = Cfg_Utils.getNodeText(node);
-    }
-    else if (nodeName.equals("CLASS"))
+    if (nodeName.equals("CLASS"))
     {
       className = Cfg_Utils.getNodeText(node);
+    }
+    else if (nodeName.equals("NAME"))
+    {
+      name = Cfg_Utils.getNodeText(node);
     }
     else if (nodeName.equals("RECEPTORS"))
     {

@@ -133,43 +133,16 @@ final class Cfg_LoadControllerCellParser extends Cfg_CellDefinitionParser
       }
     }
 
-    try
-    {
-      newCell = (Cell) LoadControllerCell.class.getDeclaredConstructor
-                           (String.class,
-                            String[].class,
-                            ReceptorSpec[].class,
-                            LogicSubscriptionSpec[].class,
-                            String.class,
-                            String.class,
-                            byte[].class).
-                       newInstance
-                           (handler.name,
-                            handler.synapseNames.toArray(String[]::new),
-                            receptors,
-                            subscriptions,
-                            lch.cellNamePrefix,
-                            lch.cellDomain,
-                            Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+    newCell = new LoadControllerCell
+                      (handler.name,
+                       handler.synapseNames.toArray(String[]::new),
+                       receptors,
+                       subscriptions,
+                       lch.cellNamePrefix,
+                       lch.cellDomain,
+                       Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
 
-      applyCellOptions(newCell);
-    }
-    catch (NoSuchMethodException nsme)
-    {
-      throw new NeuPathsException("Could not instantiate cell in file " + cellDefinitionFile, nsme);
-    }
-    catch (InstantiationException ie)
-    {
-      throw new NeuPathsException("Could not instantiate cell in file " + cellDefinitionFile, ie);
-    }
-    catch (IllegalAccessException iae)
-    {
-      throw new NeuPathsException("Could not instantiate cell in file " + cellDefinitionFile, iae);
-    }
-    catch (java.lang.reflect.InvocationTargetException ite)
-    {
-      throw new NeuPathsException("Could not instantiate cell in file " + cellDefinitionFile, ite);
-    }
+    applyCellOptions(newCell);
 
     return newCell;
   }

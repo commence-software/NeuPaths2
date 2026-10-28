@@ -21,8 +21,15 @@ import org.xml.sax.SAXParseException;
  * Creates cells according to cell definition files.
  * <p>
  * A cell definition file contains an XML schema for one of the NeuPaths cell
- * types: {@link BridgeCell}, {@link EventCell}, {@link ExtractorCell},
- * {@link InjectorCell}, {@link LogicCell} or {@link RouterCell}.  The
+ * types: <a href="#BridgeCells">BridgeCell</a>,
+ * <a href="#EventCells">EventCell</a>,
+ * <a href="#ExtractorCells">ExtractorCell</a>,
+ * <a href="#InjectorCells">InjectorCell</a>,
+ * <a href="#LoadBalancedCells">LoadBalancedCell</a>,
+ * <a href="#LoadControllerCells">LoadControllerCell</a>,
+ * <a href="#LogicCells">LogicCell</a>,
+ * <a href="#RouterCells">RouterCell</a> or
+ * <a href="#CustomCells">Custom</a> cell.  The
  * {@link #createCell} method instantiates a NeuPaths cell according to the
  * definition, returning a reference to the specific NeuPaths cell type.
  * For example, a cell definition file that specifies a Logic cell would be
@@ -38,7 +45,7 @@ import org.xml.sax.SAXParseException;
  * <ul>
  * {@code Cell myCell = CellFactory.createCell(myCellDefinition);}
  * </ul>
- * <h2>Bridge Cells</h2>
+ * <h2><a id="BridgeCells">Bridge Cells</a></h2>
  * <p>
  * A {@link BridgeCell} is specified as follows:
  * </p>
@@ -72,16 +79,11 @@ import org.xml.sax.SAXParseException;
  * </ul>
  * </p>
  * <p>
- * <b>Notes</b>:
- * <ol>
- * <li>Subscriptions are optional.  When no subscriptions are provided, the
- * cell operates as a {@link RouterCell}.</li>
- * <li>Only Bridge subscriptions are accepted (see {@link BridgeSubscriptionSpec}).
+ * <b>Note</b>: Only Bridge subscriptions are accepted (see {@link BridgeSubscriptionSpec}).
  * In this case, the {@literal <subscription>} element is an alias for
- * {@literal <bridge_subscription>}.</li>
- * </ol>
+ * {@literal <bridge_subscription>}.
  * </p>
- * <h2>Event Cells</h2>
+ * <h2><a id="EventCells">Event Cells</a></h2>
  * <p>
  * An {@link EventCell} is specified as follows:
  * </p>
@@ -100,7 +102,7 @@ import org.xml.sax.SAXParseException;
  * {@literal </event_cell>}</pre>
  * </ul>
  * </p>
- * <h2>Extractor Cells</h2>
+ * <h2><a id="ExtractorCells">Extractor Cells</a></h2>
  * <p>
  * An {@link ExtractorCell} is specified as follows:
  * </p>
@@ -136,7 +138,7 @@ import org.xml.sax.SAXParseException;
  * In this case, the {@literal <subscription>} element is an alias for
  * {@literal <extractor_subscription>}.
  * </p>
- * <h2>Injector Cells</h2>
+ * <h2><a id="InjectorCells">Injector Cells</a></h2>
  * <p>
  * An {@link InjectorCell} is specified as follows:
  * </p>
@@ -165,7 +167,7 @@ import org.xml.sax.SAXParseException;
  * {@literal </injector_cell>}</pre>
  * </ul>
  * </p>
- * <h2>Load-Balanced Cells</h2>
+ * <h2><a id="LoadBalancedCells">Load-Balanced Cells</a></h2>
  * <p>
  * A {@link LoadBalancedCell} is specified as follows:
  * </p>
@@ -188,6 +190,51 @@ import org.xml.sax.SAXParseException;
  * {@literal     <activators>}
  * {@literal         <activator>}
  * {@literal             <class></class>}
+ * {@literal             <name></name>}
+ * {@literal             <receptors>}
+ * {@literal                 <receptor>}
+ * {@literal                     <name></name>}
+ * {@literal                     <mode>buffered|non_buffered</mode>}
+ * {@literal                     <stimulus_class></stimulus_class>}
+ * {@literal                 </receptor>}
+ * {@literal                 ...}
+ * {@literal             </receptors>}
+ * {@literal             <transmitters>}
+ * {@literal                 <transmitter>}
+ * {@literal                     <name></name>}
+ * {@literal                     <stimulus_class></stimulus_class>}
+ * {@literal                     <trace>enabled|disabled</trace>}
+ * {@literal                 </transmitter>}
+ * {@literal                 ...}
+ * {@literal             </transmitters>}
+ * {@literal             <subscriptions>}
+ * {@literal                 <subscription>}
+ * {@literal                     <cell_name></cell_name>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <receptor_name></receptor_name>}
+ * {@literal                     <domain></domain>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </subscription>}
+ * {@literal                 <logic_subscription>}
+ * {@literal                     <cell_name></cell_name>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <receptor_name></receptor_name>}
+ * {@literal                     <domain></domain>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </logic_subscription>}
+ * {@literal                 <loopback_subscription>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <receptor_name></receptor_name>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </loopback_subscription>}
+ * {@literal                 <map_subscription>}
+ * {@literal                     <cell_name></cell_name>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <domain></domain>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </map_subscription>}
+ * {@literal                 ...}
+ * {@literal             </subscriptions>}
  * {@literal             <transaction_history_window_ms>n</transaction_history_window_ms>}
  * {@literal         </activator>}
  * {@literal         ...}
@@ -204,13 +251,28 @@ import org.xml.sax.SAXParseException;
  * {@literal     <subscription_trace_interval_ms>n</subscription_trace_interval_ms>}
  * {@literal     <pulse_interval_ms>n</pulse_interval_ms>}
  * {@literal     <crypto_key_file>pathname</crypto_key_file>}
- * {@literal <load_balanced_cell>}</pre>
+ * {@literal </load_balanced_cell>}</pre>
  * </ul>
  * </p>
  * <p>
- * <b>Note</b>: Cell properties are optional.
+ * <b>Notes</b>:
+ * <ol>
+ * <li>
+ * A {@link LoadBalancedActivator} must be provided.  Additional activators
+ * may be used.
+ * </li>
+ * <li>Cell properties are optional.</li>
+ * <li>Activator transmitters are optional.</li>
+ * <li>Subscription filter_transactions are optional.  They default to disabled.</li>
+ * <li>
+ * Only Logic-based subscriptions are accepted (see {@link LogicSubscriptionSpec}).
+ * In this case, the {@literal <subscription>} element is an alias for
+ * {@literal <logic_subscription>}.  Loopback ({@literal <loopback_subscription>}) and
+ * Map ({@literal <map_subscription>}) subscriptions are also accepted.
+ * </li>
+ * </ol>
  * </p>
- * <h2>Load-Controller Cells</h2>
+ * <h2><a id="LoadControllerCells">Load-Controller Cells</a></h2>
  * <p>
  * A {@link LoadControllerCell} is specified as follows:
  * </p>
@@ -224,7 +286,7 @@ import org.xml.sax.SAXParseException;
  * {@literal         ...}
  * {@literal     </synapses>}
  * {@literal     <receptors>}
- * {@literal         <receptor>}\
+ * {@literal         <receptor>}
  * {@literal             <name></name>}
  * {@literal             <mode>buffered|non_buffered</mode>}
  * {@literal             <stimulus_class></stimulus_class>}
@@ -237,21 +299,25 @@ import org.xml.sax.SAXParseException;
  * {@literal             <transmitter_name></transmitter_name>}
  * {@literal             <receptor_name></receptor_name>}
  * {@literal             <domain></domain>}
+ * {@literal             <filter_transactions>enabled|disabled</filter_transactions>}
  * {@literal         </subscription>}
  * {@literal         <logic_subscription>}
  * {@literal             <cell_name></cell_name>}
  * {@literal             <transmitter_name></transmitter_name>}
  * {@literal             <receptor_name></receptor_name>}
  * {@literal             <domain></domain>}
+ * {@literal             <filter_transactions>enabled|disabled</filter_transactions>}
  * {@literal         </logic_subscription>}
  * {@literal         <loopback_subscription>}
  * {@literal             <transmitter_name></transmitter_name>}
  * {@literal             <receptor_name></receptor_name>}
+ * {@literal             <filter_transactions>enabled|disabled</filter_transactions>}
  * {@literal         </loopback_subscription>}
  * {@literal         <map_subscription>}
  * {@literal             <cell_name></cell_name>}
  * {@literal             <transmitter_name></transmitter_name>}
  * {@literal             <domain></domain>}
+ * {@literal             <filter_transactions>enabled|disabled</filter_transactions>}
  * {@literal         </map_subscription>}
  * {@literal         ...}
  * {@literal     </subscriptions>}
@@ -266,16 +332,22 @@ import org.xml.sax.SAXParseException;
  * {@literal     <duplicate_detection_interval_ms>n</duplicate_detection_interval_ms>}
  * {@literal     <subscription_trace_interval_ms>n</subscription_trace_interval_ms>}
  * {@literal     <crypto_key_file>pathname</crypto_key_file>}
- * {@literal <load_controller_cell>}</pre>
+ * {@literal </load_controller_cell>}</pre>
  * </ul>
  * </p>
  * <p>
- * <b>Note</b>: Only Logic-based subscriptions are accepted (see {@link LogicSubscriptionSpec}).
+ * <b>Notes</b>:
+ * <ol>
+ * <li>Subscription filter_transactions are optional.  They default to disabled.</li>
+ * <li>
+ * Only Logic-based subscriptions are accepted (see {@link LogicSubscriptionSpec}).
  * In this case, the {@literal <subscription>} element is an alias for
  * {@literal <logic_subscription>}.  Loopback ({@literal <loopback_subscription>}) and
  * Map ({@literal <map_subscription>}) subscriptions are also accepted.
+ * </li>
+ * </ol>
  * </p>
- * <h2>Logic Cells</h2>
+ * <h2><a id="LogicCells">Logic Cells</a></h2>
  * <p>
  * A {@link LogicCell} is specified as follows:
  * </p>
@@ -298,6 +370,51 @@ import org.xml.sax.SAXParseException;
  * {@literal     <activators>}
  * {@literal         <activator>}
  * {@literal             <class></class>}
+ * {@literal             <name></name>}
+ * {@literal             <receptors>}
+ * {@literal                 <receptor>}
+ * {@literal                     <name></name>}
+ * {@literal                     <mode>buffered|non_buffered</mode>}
+ * {@literal                     <stimulus_class></stimulus_class>}
+ * {@literal                 </receptor>}
+ * {@literal                 ...}
+ * {@literal             </receptors>}
+ * {@literal             <transmitters>}
+ * {@literal                 <transmitter>}
+ * {@literal                     <name></name>}
+ * {@literal                     <stimulus_class></stimulus_class>}
+ * {@literal                     <trace>enabled|disabled</trace>}
+ * {@literal                 </transmitter>}
+ * {@literal                 ...}
+ * {@literal             </transmitters>}
+ * {@literal             <subscriptions>}
+ * {@literal                 <subscription>}
+ * {@literal                     <cell_name></cell_name>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <receptor_name></receptor_name>}
+ * {@literal                     <domain></domain>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </subscription>}
+ * {@literal                 <logic_subscription>}
+ * {@literal                     <cell_name></cell_name>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <receptor_name></receptor_name>}
+ * {@literal                     <domain></domain>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </logic_subscription>}
+ * {@literal                 <loopback_subscription>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <receptor_name></receptor_name>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </loopback_subscription>}
+ * {@literal                 <map_subscription>}
+ * {@literal                     <cell_name></cell_name>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <domain></domain>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </map_subscription>}
+ * {@literal                 ...}
+ * {@literal             </subscriptions>}
  * {@literal             <transaction_history_window_ms>n</transaction_history_window_ms>}
  * {@literal         </activator>}
  * {@literal         ...}
@@ -316,9 +433,20 @@ import org.xml.sax.SAXParseException;
  * </ul>
  * </p>
  * <p>
- * <b>Note</b>: Cell properties are optional.
+ * <b>Notes</b>:
+ * <ol>
+ * <li>Cell properties are optional.</li>
+ * <li>Activator transmitters are optional.</li>
+ * <li>Subscription filter_transactions are optional.  They default to disabled.</li>
+ * <li>
+ * Only Logic-based subscriptions are accepted (see {@link LogicSubscriptionSpec}).
+ * In this case, the {@literal <subscription>} element is an alias for
+ * {@literal <logic_subscription>}.  Loopback ({@literal <loopback_subscription>}) and
+ * Map ({@literal <map_subscription>}) subscriptions are also accepted.
+ * </li>
+ * </ol>
  * </p>
- * <h2>Router Cells</h2>
+ * <h2><a id="RouterCells">Router Cells</a></h2>
  * <p>
  * A {@link RouterCell} is specified as follows:
  * </p>
@@ -342,7 +470,7 @@ import org.xml.sax.SAXParseException;
  * {@literal </router_cell>}</pre>
  * </ul>
  * </p>
- * <h2>Specialized Cells</h2>
+ * <h2><a id="CustomCells">Custom Cells</a></h2>
  * <p>
  * A cell derived from {@link LogicCell} or {@link LoadBalancedCell} is
  * specified as follows:
@@ -350,7 +478,7 @@ import org.xml.sax.SAXParseException;
  * <p>
  * <ul>
  * <pre>
- * {@literal <specialized_cell>}
+ * {@literal <custom_cell>}
  * {@literal     <class></class>}
  * {@literal     <name></name>}
  * {@literal     <properties>}
@@ -367,6 +495,51 @@ import org.xml.sax.SAXParseException;
  * {@literal     <activators>}
  * {@literal         <activator>}
  * {@literal             <class></class>}
+ * {@literal             <name></name>}
+ * {@literal             <receptors>}
+ * {@literal                 <receptor>}
+ * {@literal                     <name></name>}
+ * {@literal                     <mode>buffered|non_buffered</mode>}
+ * {@literal                     <stimulus_class></stimulus_class>}
+ * {@literal                 </receptor>}
+ * {@literal                 ...}
+ * {@literal             </receptors>}
+ * {@literal             <transmitters>}
+ * {@literal                 <transmitter>}
+ * {@literal                     <name></name>}
+ * {@literal                     <stimulus_class></stimulus_class>}
+ * {@literal                     <trace>enabled|disabled</trace>}
+ * {@literal                 </transmitter>}
+ * {@literal                 ...}
+ * {@literal             </transmitters>}
+ * {@literal             <subscriptions>}
+ * {@literal                 <subscription>}
+ * {@literal                     <cell_name></cell_name>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <receptor_name></receptor_name>}
+ * {@literal                     <domain></domain>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </subscription>}
+ * {@literal                 <logic_subscription>}
+ * {@literal                     <cell_name></cell_name>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <receptor_name></receptor_name>}
+ * {@literal                     <domain></domain>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </logic_subscription>}
+ * {@literal                 <loopback_subscription>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <receptor_name></receptor_name>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </loopback_subscription>}
+ * {@literal                 <map_subscription>}
+ * {@literal                     <cell_name></cell_name>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <domain></domain>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </map_subscription>}
+ * {@literal                 ...}
+ * {@literal             </subscriptions>}
  * {@literal             <transaction_history_window_ms>n</transaction_history_window_ms>}
  * {@literal         </activator>}
  * {@literal         ...}
@@ -381,30 +554,40 @@ import org.xml.sax.SAXParseException;
  * {@literal     <subscription_trace_interval_ms>n</subscription_trace_interval_ms>}
  * {@literal     <pulse_interval_ms>n</pulse_interval_ms>}
  * {@literal     <crypto_key_file>pathname</crypto_key_file>}
- * {@literal </specialized_cell>}</pre>
+ * {@literal </custom_cell>}</pre>
  * </ul>
  * </p>
  * <p>
  * <b>Notes</b>:
- * <ul>
+ * <ol>
  * <li>Cell properties are optional.</li>
+ * <li>Activator transmitters are optional.</li>
+ * <li>Subscription filter_transactions are optional.  They default to disabled.</li>
+ * <li>
+ * Only Logic-based subscriptions are accepted (see {@link LogicSubscriptionSpec}).
+ * In this case, the {@literal <subscription>} element is an alias for
+ * {@literal <logic_subscription>}.  Loopback ({@literal <loopback_subscription>}) and
+ * Map ({@literal <map_subscription>}) subscriptions are also accepted.
+ * </li>
+ * <li>The custom cell class and constructor must be {@code public}.</li>
  * <li>The custom cell class must have a constructor like the following:
  * <p>
  * <pre> public class MyCustomCell extends LogicCell
  * {
  *   public MyCustomCell (String      name,
+ *                        PropertySet properties,
  *                        String[]    synapseNames,
  *                        Activator[] activators,
  *                        byte[]      cryptoKey)
  *   {
+ *     super(name, properties, synapseName, activators, cryptoKey);
  *     ...
  *   }
  * }
  * </pre>
  * </p>
  * </li>
- * <li>The custom cell class and constructor must be {@code public}.</li>
- * </ul>
+ * </ol>
  * </p>
  * <h2>Cell Definition Element Types</h2>
  * <p>

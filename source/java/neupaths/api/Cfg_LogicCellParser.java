@@ -244,39 +244,14 @@ final class Cfg_LogicCellParser extends Cfg_CellDefinitionParser
       properties.set(property.name, property.value);
     }
     
-    try
-    {
-      newCell = (Cell) LogicCell.class.getDeclaredConstructor
-                           (String.class,
-                            PropertySet.class,
-                            String[].class,
-                            Activator[].class,
-                            byte[].class).
-                       newInstance
-                           (handler.name,
-                            properties,
-                            handler.synapseNames.toArray(String[]::new),
-                            activators,
-                            Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
+    newCell = new LogicCell
+                      (handler.name,
+                       properties,
+                       handler.synapseNames.toArray(String[]::new),
+                       activators,
+                       Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
 
-      applyCellOptions(newCell);
-    }
-    catch (NoSuchMethodException nsme)
-    {
-      throw new NeuPathsException("Could not instantiate cell in file " + cellDefinitionFile, nsme);
-    }
-    catch (InstantiationException ie)
-    {
-      throw new NeuPathsException("Could not instantiate cell in file " + cellDefinitionFile, ie);
-    }
-    catch (IllegalAccessException iae)
-    {
-      throw new NeuPathsException("Could not instantiate cell in file " + cellDefinitionFile, iae);
-    }
-    catch (java.lang.reflect.InvocationTargetException ite)
-    {
-      throw new NeuPathsException("Could not instantiate cell in file " + cellDefinitionFile, ite);
-    }
+    applyCellOptions(newCell);
 
     return newCell;
   }

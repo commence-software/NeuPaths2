@@ -30,8 +30,8 @@ import org.xml.sax.SAXParseException;
  * </p>
  * <p>
  * A cluster definition file contains an XML schema that lists the
- * cell definition file for each cell in the cluster.  Logging and
- * interval settings override the settings in the individual cell
+ * cell definition file for each cell in the cluster.  Logging, interval
+ * and crypto file settings override the settings in the individual cell
  * definition files.
  * </p>
  * <ul>
@@ -185,6 +185,9 @@ public class CellCluster implements Iterable<Cell>
    * cell definitions listed in a cluster definition file.
    *
    * @param clusterDefinitionFile Pathname of a cluster definition XML file.
+   * @param synapseDirectory      Directory where cluster synapses are created.
+   *                              If {@code null}, the system temporary
+   *                              directory is used.
    */
   public CellCluster (String clusterDefinitionFile,
                       String synapseDirectory)

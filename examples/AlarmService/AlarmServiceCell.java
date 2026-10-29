@@ -2,6 +2,7 @@
 // Required Notice: This software is licensed under PolyForm Shield License 1.0.0 (https://polyformproject.org/licenses/shield/1.0.0)
 // SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
 import neupaths.api.*;
+import neupaths.util.*;
 import java.util.Collections;
 import java.util.LinkedList;
 
@@ -9,11 +10,12 @@ public class AlarmServiceCell extends LogicCell
 {
   public
   AlarmServiceCell (String name,
+                    PropertySet properties,
                     String[]  synapseNames,
                     Activator[] activators,
                     byte[] cryptoKey)
   {
-    super(name, synapseNames, activators, cryptoKey);
+    super(name, properties, synapseNames, activators, cryptoKey);
   }
 
   protected

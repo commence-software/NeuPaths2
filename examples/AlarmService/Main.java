@@ -15,7 +15,7 @@ class Main
   public static void main (String[] args)
   {
     // Construct and start the cluster
-    CellCluster cluster = new CellCluster("cfg/AlarmCluster.xml");
+    CellCluster cluster = new CellCluster("cfg/AlarmCluster.xml", null);
     cluster.start();
 
     // Retrieve injector and extractor from cluster

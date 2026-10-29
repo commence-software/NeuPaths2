@@ -13,12 +13,11 @@ import java.time.Instant;
 
 public class AlarmActivator extends PulsedActivator
 {
-  public AlarmActivator ()
+  public AlarmActivator
+    (String             name,
+     TransmitterSpec[]  transmitters)
   {
-    super("AlarmActivator",
-          new TransmitterSpec[] {
-            new TransmitterSpec("AlarmExpiration",
-                                AlarmExpiration.TYPE_ID) });
+    super(name, transmitters);
   }
 
   public void evaluate ()

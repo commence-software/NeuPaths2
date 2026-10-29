@@ -8,26 +8,13 @@ import java.util.UUID;
 
 public class ClusterRequestActivator extends Activator
 {
-  public ClusterRequestActivator ()
+  public ClusterRequestActivator
+    (String                  name,
+     ReceptorSpec[]          receptors,
+     TransmitterSpec[]       transmitters,
+     LogicSubscriptionSpec[] subscriptions)
   {
-    super("ClusterRequestActivator",
-          new ReceptorSpec[] {
-              new ReceptorSpec("ClusterRequest",
-                               ReceptorMode.BUFFERED,
-                               ClusterRequest.TYPE_ID)
-          },
-          new TransmitterSpec[] {
-              new TransmitterSpec("PropertyRequest",
-                                  PropertyRequest.TYPE_ID,
-                                  StimulusTrace.ENABLED)
-          },
-          new LogicSubscriptionSpec[] {
-              new LogicSubscriptionSpec(".*",
-                                        "ClusterRequest",
-                                        "ClusterRequest",
-                                        "@",
-                                        TransactionFilter.DISABLED)
-          });
+    super(name, receptors, transmitters, subscriptions);
   }
 
   @Override

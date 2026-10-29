@@ -4,9 +4,31 @@
     <synapse>Local#Stream#Peer#Test#/tmp/lc.sock</synapse>
   </synapses>
   <activators>
-  <activator>
-    <class>LBActivator</class>
-  </activator>
+    <activator>
+      <class>LBActivator</class>
+      <name>LBActivator3</name>
+      <receptors>
+        <receptor>
+          <name>Request</name>
+          <mode>non_buffered</mode>
+          <stimulus_class>neupaths.stim.SignalStimulus</stimulus_class>
+        </receptor>
+      </receptors>
+      <transmitters>
+        <transmitter>
+          <name>Response</name>
+          <stimulus_class>neupaths.stim.StringStimulus</stimulus_class>
+        </transmitter>
+      </transmitters>
+      <subscriptions>
+        <map_subscription>
+          <cell_name>TestInjector</cell_name>
+          <transmitter_name>Request</transmitter_name>
+          <domain>Test</domain>
+          <filter_transactions>enabled</filter_transactions>
+        </map_subscription>
+      </subscriptions>
+    </activator>
   </activators>
   <controller_name>TestController</controller_name>
   <controller_domain>Test</controller_domain>

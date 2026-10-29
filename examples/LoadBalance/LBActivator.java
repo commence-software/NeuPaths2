@@ -6,24 +6,15 @@ import neupaths.stim.*;
 
 public class LBActivator extends LoadBalancedActivator
 {
-  public LBActivator ()
+  public LBActivator
+    (String                  name,
+     ReceptorSpec[]          receptors,
+     TransmitterSpec[]       transmitters,
+     LogicSubscriptionSpec[] subscriptions,
+     String                  controllerName,
+     String                  controllerDomain)
   {
-    super("LBActivator",
-          new ReceptorSpec[] {
-            new ReceptorSpec("Request",
-                             ReceptorMode.NON_BUFFERED,
-                             SignalStimulus.TYPE_ID) },
-          new TransmitterSpec[] {
-            new TransmitterSpec("Response",
-                                StringStimulus.TYPE_ID) },
-          new LogicSubscriptionSpec[] {
-            new LogicSubscriptionSpec("TestInjector",
-                                      "Request",
-                                      "Request",
-                                      "Test",
-                                      TransactionFilter.ENABLED) },
-          "TestController",
-          "Test");
+    super(name, receptors, transmitters, subscriptions, controllerName, controllerDomain);
   }
 
   protected void evaluate ()

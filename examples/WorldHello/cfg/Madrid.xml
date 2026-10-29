@@ -17,6 +17,30 @@
   <activators>
     <activator>
       <class>WorldHelloActivator</class>
+      <name>WorldHelloActivator</name>
+      <receptors>
+        <receptor>
+          <name>Hail</name>
+          <mode>non_buffered</mode>
+          <stimulus_class>neupaths.stim.DateStimulus</stimulus_class>
+        </receptor>
+      </receptors>
+      <transmitters>
+        <transmitter>
+          <name>Salutation</name>
+          <stimulus_class>WorldHelloSalutation</stimulus_class>
+          <trace>enabled</trace>
+        </transmitter>
+      </transmitters>
+      <subscriptions>
+        <subscription>
+          <cell_name>HailInjector</cell_name>
+          <transmitter_name>Hello</transmitter_name>
+          <receptor_name>Hail</receptor_name>
+          <domain>Request</domain>
+          <filter_transactions>disabled</filter_transactions>
+        </subscription>
+      </subscriptions>
     </activator>
   </activators>
 </logic_cell>

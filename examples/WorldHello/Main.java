@@ -15,7 +15,7 @@ public class Main
       System.out.println("Initializing Cell Network...");
       
       // Construct and start the cluster
-      CellCluster cluster = new CellCluster("cfg/WorldCluster.xml");
+      CellCluster cluster = new CellCluster("cfg/WorldCluster.xml", null);
       cluster.start();
 
       // Retrieve injector and extractor from cluster

@@ -22,6 +22,7 @@ final class Cfg_CellActivatorHandler extends Cfg_ConfigHandler
 
     name = null;
     className = null;
+    useDefaultConstructor = false;
     receptors = new LinkedList<>();
     transmitters = new LinkedList<>();
     subscriptions = new LinkedList<>();
@@ -35,6 +36,10 @@ final class Cfg_CellActivatorHandler extends Cfg_ConfigHandler
     if (nodeName.equals("CLASS"))
     {
       className = Cfg_Utils.getNodeText(node);
+    }
+    else if (nodeName.equals("DEFAULT"))
+    {
+      useDefaultConstructor = true;
     }
     else if (nodeName.equals("NAME"))
     {
@@ -90,6 +95,7 @@ final class Cfg_CellActivatorHandler extends Cfg_ConfigHandler
   
   String name;
   String className;
+  boolean useDefaultConstructor;
   LinkedList<Cfg_CellReceptorHandler> receptors;
   LinkedList<Cfg_CellTransmitterHandler> transmitters;
   LinkedList<Cfg_CellSubscriptionHandler> subscriptions;

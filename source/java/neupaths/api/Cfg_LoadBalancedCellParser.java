@@ -201,51 +201,59 @@ final class Cfg_LoadBalancedCellParser extends Cfg_CellDefinitionParser
         // Load the activator class
         Class<?> actvtrClass = Class.forName(activator.className);
 
-        if (LoadBalancedActivator.class.isAssignableFrom(actvtrClass))
-        {
-          loadBalancedActivator = true;
-          
-          activators[a] =
-            (Activator) actvtrClass.getDeclaredConstructor
-                            (String.class,
-                             ReceptorSpec[].class,
-                             TransmitterSpec[].class,
-                             LogicSubscriptionSpec[].class,
-                             String.class,
-                             String.class).
-                        newInstance
-                            (activator.name,
-                             receptors,
-                             transmitters,
-                             subscriptions,
-                             lbh.controllerName,
-                             lbh.controllerDomain);
-        }
-        else if (PulsedActivator.class.isAssignableFrom(actvtrClass) &&
-                 receptors.length == 0 && subscriptions.length == 0)
+        if (activator.useDefaultConstructor)
         {
           activators[a] =
-            (Activator) actvtrClass.getDeclaredConstructor
-                            (String.class,
-                             TransmitterSpec[].class).
-                        newInstance
-                            (activator.name,
-                             transmitters);
+            (Activator) actvtrClass.getDeclaredConstructor().newInstance();
         }
         else
         {
-          activators[a] =
-            (Activator) actvtrClass.getDeclaredConstructor
-                            (String.class,
-                             ReceptorSpec[].class,
-                             TransmitterSpec[].class,
-                             LogicSubscriptionSpec[].class).
-                        newInstance
-                            (activator.name,
-                             receptors,
-                             transmitters,
-                             subscriptions);
-        }
+          if (LoadBalancedActivator.class.isAssignableFrom(actvtrClass))
+          {
+            loadBalancedActivator = true;
+            
+            activators[a] =
+              (Activator) actvtrClass.getDeclaredConstructor
+                              (String.class,
+                               ReceptorSpec[].class,
+                               TransmitterSpec[].class,
+                               LogicSubscriptionSpec[].class,
+                               String.class,
+                               String.class).
+                          newInstance
+                              (activator.name,
+                               receptors,
+                               transmitters,
+                               subscriptions,
+                               lbh.controllerName,
+                               lbh.controllerDomain);
+          }
+          else if (PulsedActivator.class.isAssignableFrom(actvtrClass) &&
+                   receptors.length == 0 && subscriptions.length == 0)
+          {
+            activators[a] =
+              (Activator) actvtrClass.getDeclaredConstructor
+                              (String.class,
+                               TransmitterSpec[].class).
+                          newInstance
+                              (activator.name,
+                               transmitters);
+          }
+          else
+          {
+            activators[a] =
+              (Activator) actvtrClass.getDeclaredConstructor
+                              (String.class,
+                               ReceptorSpec[].class,
+                               TransmitterSpec[].class,
+                               LogicSubscriptionSpec[].class).
+                          newInstance
+                              (activator.name,
+                               receptors,
+                               transmitters,
+                               subscriptions);
+          }
+        } // if useDefaultConstructor
         
         activators[a].setTransactionHistoryWindow(activator.transactionHistoryWindow);
       }

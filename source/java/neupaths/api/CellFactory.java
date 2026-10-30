@@ -191,6 +191,7 @@ import org.xml.sax.SAXParseException;
  * {@literal     <activators>}
  * {@literal         <activator>}
  * {@literal             <class></class>}
+ * {@literal             <default/>}
  * {@literal             <name></name>}
  * {@literal             <receptors>}
  * {@literal                 <receptor>}
@@ -371,6 +372,7 @@ import org.xml.sax.SAXParseException;
  * {@literal     <activators>}
  * {@literal         <activator>}
  * {@literal             <class></class>}
+ * {@literal             <default/>}
  * {@literal             <name></name>}
  * {@literal             <receptors>}
  * {@literal                 <receptor>}
@@ -496,6 +498,7 @@ import org.xml.sax.SAXParseException;
  * {@literal     <activators>}
  * {@literal         <activator>}
  * {@literal             <class></class>}
+ * {@literal             <default/>}
  * {@literal             <name></name>}
  * {@literal             <receptors>}
  * {@literal                 <receptor>}
@@ -1018,6 +1021,15 @@ import org.xml.sax.SAXParseException;
  * <td>No</td>
  * <td></td>
  * <td>myPackage.MyCustomActivator</td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>default</td>
+ * <td>Indicates activator's default constructor should be used</td>
+ * <td>activator/default</td>
+ * <td></td>
+ * <td>Yes</td>
+ * <td></td>
+ * <td></td>
  * </tr>
  * <tr align=left valign=top>
  * <td>name</td>

@@ -46,7 +46,7 @@ final class Cfg_ExtractorCellParser extends Cfg_CellDefinitionParser
   protected Cell instantiate ()
   {
     Cfg_ExtractorCellHandler extractor = (Cfg_ExtractorCellHandler) handler;
-    Cell newCell = null;
+    ExtractorCell newCell = null;
 
     ExtractorSubscriptionSpec subscription =
       new ExtractorSubscriptionSpec(extractor.subscription.cellName,
@@ -60,6 +60,8 @@ final class Cfg_ExtractorCellParser extends Cfg_CellDefinitionParser
                                 Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
 
     applyCellOptions(newCell);
+    
+    newCell.setTransactionHistoryWindow(extractor.transactionHistoryWindow);
 
     return newCell;
   }

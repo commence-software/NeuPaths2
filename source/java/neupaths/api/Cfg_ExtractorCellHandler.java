@@ -71,6 +71,10 @@ final class Cfg_ExtractorCellHandler extends Cfg_CellHandler
     {
       subscriptionTraceInterval = Long.parseLong(Cfg_Utils.getNodeText(node));
     }
+    else if (nodeName.equals("TRANSACTION_HISTORY_WINDOW_MS"))
+    {
+      transactionHistoryWindow = Long.parseLong(Cfg_Utils.getNodeText(node));
+    }
     else if (nodeName.equals("CRYPTO_KEY_FILE"))
     {
       cryptoKeyFile = Cfg_Utils.getNodeText(node);
@@ -95,4 +99,5 @@ final class Cfg_ExtractorCellHandler extends Cfg_CellHandler
   }
   
   Cfg_CellSubscriptionHandler subscription;  
+  long transactionHistoryWindow;
 }

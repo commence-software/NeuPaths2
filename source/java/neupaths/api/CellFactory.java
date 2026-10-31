@@ -1036,8 +1036,8 @@ import org.xml.sax.SAXParseException;
  * <td>Activator name</td>
  * <td>activator/name</td>
  * <td>String</td>
- * <td>No</td>
- * <td></td>
+ * <td>Yes</td>
+ * <td>Value of &lt;class&gt;</td>
  * <td>My_Activator</td>
  * </tr>
  * <tr align=left valign=top>
@@ -1045,7 +1045,7 @@ import org.xml.sax.SAXParseException;
  * <td>List of activator receptors</td>
  * <td>activator/receptors</td>
  * <td></td>
- * <td>No</td>
+ * <td>Yes (when &lt;default/&gt; specified)</td>
  * <td></td>
  * <td></td>
  * </tr>
@@ -1054,7 +1054,7 @@ import org.xml.sax.SAXParseException;
  * <td>List of activator subscriptions</td>
  * <td>activator/subscriptions</td>
  * <td></td>
- * <td>No</td>
+ * <td>Yes (when &lt;default/&gt; specified)</td>
  * <td></td>
  * <td></td>
  * </tr>

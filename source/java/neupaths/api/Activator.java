@@ -24,10 +24,14 @@ import java.util.LinkedList;
  * evaluation.
  * </p>
  * <p>
- * Activator specializations can be declared using a single expression.
+ * The Activator class can be specialized in numerous ways, but one of the
+ * following methods is required when using cell definition files (see
+ * {@link CellFactory}.) <b>Note:</b> The derived class and its constructor
+ * must both be {@code public}.
+ * <ul>
+ * <li>
+ * Single-expression specialization within a default constructor.
  * For example:
- * </p>
- * <p>
  * <ul>
  * <pre> public class WorldHelloActivator extends Activator
  * {
@@ -50,6 +54,7 @@ import java.util.LinkedList;
  *                                       "Hail",
  *                                       "Request",
  *                                       TransactionFilter.DISABLED)});
+ *     ...
  *   }
  *
  *   protected void evaluate ()
@@ -60,13 +65,9 @@ import java.util.LinkedList;
  * 
  * Activator worldHelloActivator = new WorldHelloActivator();</pre>
  * </ul>
- * </p>
- * <p>
- * <b>Note:</b> Activators specified in Cell Definition files (see
- * {@link CellFactory}) must have constructors like the following.
- * The activator class and constructor must be {@code public}.
- * </p>
- * <p>
+ * </li>
+ * <li>
+ * Pass-through specialization with full argument list.  For example:
  * <ul>
  * <pre> public class MyCustomActivator extends Activator
  * {
@@ -85,6 +86,8 @@ import java.util.LinkedList;
  *     ...
  *   }
  * }</pre>
+ * </ul>
+ * </li>
  * </ul>
  * </p>
  * 

@@ -6,6 +6,7 @@
   <activators>
     <activator>
       <class>PressureSim</class>
+      <default/>
     </activator>
   </activators>
   <pulse_interval_ms>250</pulse_interval_ms>

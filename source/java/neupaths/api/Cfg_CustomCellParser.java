@@ -91,6 +91,11 @@ final class Cfg_CustomCellParser extends Cfg_CellDefinitionParser
     {
       Cfg_CellActivatorHandler activator = handler.activators.get(a);
 
+      if (activator.name == null)
+      {
+        activator.name = activator.className;
+      }
+      
       ReceptorSpec[] receptors =
         new ReceptorSpec[activator.receptors.size()];
 

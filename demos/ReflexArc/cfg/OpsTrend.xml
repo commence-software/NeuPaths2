@@ -4,6 +4,9 @@
     <synapse>Local#Stream#Peer#Ops#/tmp/reflex/ops1.sock</synapse>
   </synapses>
   <activators>
-    <activator><class>TrendAnalyzer</class></activator>
+    <activator>
+      <class>TrendAnalyzer</class>
+      <default/>
+    </activator>
   </activators>
 </logic_cell>

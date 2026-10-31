@@ -90,6 +90,46 @@ import java.util.LinkedList;
  * </li>
  * </ul>
  * </p>
+ * <p>
+ * <h2>Pros and Cons of each method:</h2>
+ * <p>
+ * Single-expression specialization:
+ * <ul>
+ *   <li>
+ *   Pros:
+ *     <ul>
+ *       <li type=circle>Cell definition files are much cleaner.</li>
+ *       <li type=circle>Facilitates more complex Activator specializations.</li>
+ *     </ul>
+ *   </li>
+ *   <li>
+ *   Cons:
+ *     <ul>
+ *       <li type=circle>Must examine code to understand/debug stimuli transmission.</li>
+ *     </ul>
+ *   </li>
+ * </ul>
+ * </p>
+ * <p>
+ * Pass-through specialization:
+ * <ul>
+ *   <li>
+ *   Pros:
+ *     <ul>
+ *       <li type=circle>Facilitates static analysis of stimuli transmission without code analysis.</li>
+ *       <li type=circle>Offline tools/utilities can be used to analyze and document
+ *           the cellular system.</li>
+ *     </ul>
+ *   </li>
+ *   <li>
+ *   Cons:
+ *     <ul>
+ *       <li type=circle>Cell definition files are more complex.</li>
+ *       <li type=circle>Limits Activator specializations.</li>
+ *     </ul>
+ *   </li>
+ * </ul>
+ * </p>
  * 
  * @see ReceptorSpec
  * @see TransmitterSpec

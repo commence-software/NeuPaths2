@@ -1289,30 +1289,6 @@ public class CellFactory
                            String                 cellDefinitionFile)
   {
     Cell newCell = null;
-    Syn_Name clusterSynapse = null;
-
-    if (clusterHandler != null)
-    {
-      LinkedList<String> clusterOptions = new LinkedList<>();
-      clusterOptions.addLast(clusterHandler.synapseDirectory + File.separator +
-                             "cluster_" +
-                             Math.abs(clusterHandler.clusterName.hashCode()) +
-                             ".syn");
-  
-      try
-      {
-        clusterSynapse =
-            new Syn_Name(Syn_Scope.LOCAL,
-                         Syn_Type.STREAM,
-                         Syn_Mode.PEER,
-                         "Cluster:Ctrl",
-                         clusterOptions);
-      }
-      catch (Excp_SynapseFatal sfe)
-      {
-        throw new NeuPathsException("Could not create synapse name: " + sfe);
-      }
-    }
 
     try
     {

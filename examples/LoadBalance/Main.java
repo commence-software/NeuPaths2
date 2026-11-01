@@ -17,7 +17,7 @@ public class Main
     try
     {
       System.out.println("Creating cluster ...");
-      CellCluster cluster = new CellCluster("cfg/Cluster.xml", null);
+      CellCluster cluster = new CellCluster("cfg/Cluster.xml");
 
       InjectorCell inj = cluster.getCell("TestInjector");
       ExtractorCell extr = cluster.getCell("TestExtractor");

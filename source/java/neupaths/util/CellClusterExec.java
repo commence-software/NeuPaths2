@@ -45,7 +45,7 @@ public class CellClusterExec
 
     try
     {
-      CellCluster cluster = new CellCluster(args[0], null);
+      CellCluster cluster = new CellCluster(args[0]);
 
       cluster.start();
 

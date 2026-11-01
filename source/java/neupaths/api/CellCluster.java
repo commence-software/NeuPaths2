@@ -188,30 +188,8 @@ public class CellCluster implements Iterable<Cell>
    */
   public CellCluster (String clusterDefinitionFile)
   {
-    this(clusterDefinitionFile, null);
-  }
-  
-  /**
-   * Creates a collection of NeuPaths cell objects according to the
-   * cell definitions listed in a cluster definition file.
-   *
-   * @param clusterDefinitionFile Pathname of a cluster definition XML file.
-   * @param synapseDirectory      Directory where cluster synapses are created.
-   *                              If {@code null}, the system temporary
-   *                              directory is used.
-   */
-  public CellCluster (String clusterDefinitionFile,
-                      String synapseDirectory)
-  {
     cells = new LinkedHashMap<>();
 
-    String appliedSynapseDirectory = System.getProperty("java.io.tmpdir");
-
-    if (synapseDirectory != null)
-    {
-      appliedSynapseDirectory = synapseDirectory;
-    }
-    
     try
     {
       DocumentBuilderFactory documentFactory = DocumentBuilderFactory.newInstance();
@@ -228,14 +206,12 @@ public class CellCluster implements Iterable<Cell>
       {
         Node node = nodes.item(0);
         String nodeName = node.getNodeName().toUpperCase();
-        Syn_Name daemonSynapse = null;
-        Syn_Name clusterSynapse = null;
 
         if (node.getNodeType() == Node.ELEMENT_NODE)
         {
           if (nodeName.equals("CELL_CLUSTER"))
           {
-            Cfg_CellClusterHandler handler = new Cfg_CellClusterHandler(appliedSynapseDirectory);
+            Cfg_CellClusterHandler handler = new Cfg_CellClusterHandler();
             Cfg_Utils.processElement(clusterDefinitionFile, null, handler, node);
 
             if (handler.clusterName == null)
@@ -244,55 +220,8 @@ public class CellCluster implements Iterable<Cell>
                                           clusterDefinitionFile);
             }
 
-            try
-            {
-              LinkedList<String> daemonOptions = new LinkedList<>();
-              daemonOptions.addLast(appliedSynapseDirectory + File.separator + "daemon_" + Math.abs(handler.clusterName.hashCode()) + ".syn");
-
-              // Daemon to Cluster
-              daemonSynapse =
-                  new Syn_Name(Syn_Scope.LOCAL,
-                               Syn_Type.STREAM,
-                               Syn_Mode.LISTENER,
-                               "Daemon:Ctrl",
-                               daemonOptions);
-
-              LinkedList<String> clusterOptions = new LinkedList<>();
-              clusterOptions.addLast(appliedSynapseDirectory + File.separator + "cluster_" + Math.abs(handler.clusterName.hashCode()) + ".syn");
-
-              // Cell to Cluster 
-              clusterSynapse =
-                  new Syn_Name(Syn_Scope.LOCAL,
-                               Syn_Type.STREAM,
-                               Syn_Mode.LISTENER,
-                               "Cluster:Ctrl",
-                               clusterOptions);
-            }
-            catch (Excp_SynapseFatal sfe)
-            {
-              throw new NeuPathsException("Could not create synapse name: " + sfe);
-            }
-
-            BridgeCell clusterBridge =
-                new BridgeCell(handler.clusterName,
-                               new String[] {
-                                   daemonSynapse.toString(),
-                                   clusterSynapse.toString()
-                               },
-                               new BridgeSubscriptionSpec[] {
-                                   new BridgeSubscriptionSpec("MasterControl",
-                                                              "Command",
-                                                              "Daemon:Ctrl")
-                               },
-                               Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
-
-            // Don't propagate global subscriptions.  Doing so could result
-            // in stimuli crossing over the control domains to all clusters.
-            clusterBridge.disableGlobalSubscriptionPropagation();
-
-            cells.put(handler.clusterName, clusterBridge);
             name = handler.clusterName;
-            instanceID = clusterBridge.getInstanceID();
+            instanceID = UUID.randomUUID();
 
             for (String cellDefinitionFile : handler.cellDefinitionFiles)
             {
@@ -406,17 +335,17 @@ public class CellCluster implements Iterable<Cell>
     catch (ParserConfigurationException pce)
     {
       throw new NeuPathsException("Could not parse cluster definition file " +
-                                     clusterDefinitionFile, pce);
+                                  clusterDefinitionFile, pce);
     }
     catch (SAXException se)
     {
       throw new NeuPathsException("Could not parse cluster definition file " +
-                                     clusterDefinitionFile, se);
+                                  clusterDefinitionFile, se);
     }
     catch (IOException ioe)
     {
       throw new NeuPathsException("Could not parse cluster definition file " +
-                                     clusterDefinitionFile, ioe);
+                                  clusterDefinitionFile, ioe);
     }
   }
 

@@ -357,7 +357,7 @@ public class IssueCommandToDaemon
       // Create temp file name for synapse
       String internalSynapseFileName = System.getProperty("java.io.tmpdir") +
                                        File.separator +
-                                       "commandRouter_" + uuid + ".sock";
+                                       "commandRouter_" + uuid + ".syn";
 
       // Delete the file in case it exists
       File internalTmpFile = new File(internalSynapseFileName);
@@ -959,6 +959,9 @@ public class IssueCommandToDaemon
       // Give cluster time to process final events
       try {Thread.sleep(1000);} catch (InterruptedException ie) { /* ignore */ }
 
+      // Delete the internal synapse file
+      internalTmpFile.delete();
+      
       System.exit(0);      
     }
     catch (NeuPathsException bre)

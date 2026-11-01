@@ -13,12 +13,10 @@ import org.w3c.dom.Node;
  */
 final class Cfg_CellClusterHandler extends Cfg_ConfigHandler
 {
-  Cfg_CellClusterHandler (String synapseDirectory)
+  Cfg_CellClusterHandler ()
   {
     super(null, "Cell_Cluster");
 
-    this.synapseDirectory = synapseDirectory;
-    
     clusterName = null;
     cellDefinitionFiles = null;
     loggingEnabled = true;
@@ -112,8 +110,6 @@ final class Cfg_CellClusterHandler extends Cfg_ConfigHandler
     }
   }
 
-  String synapseDirectory;
-  
   String clusterName;
   LinkedList<String> cellDefinitionFiles;
   boolean loggingEnabled;

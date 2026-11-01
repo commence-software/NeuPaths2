@@ -185,6 +185,17 @@ public class CellCluster implements Iterable<Cell>
    * cell definitions listed in a cluster definition file.
    *
    * @param clusterDefinitionFile Pathname of a cluster definition XML file.
+   */
+  public CellCluster (String clusterDefinitionFile)
+  {
+    this(clusterDefinitionFile, null);
+  }
+  
+  /**
+   * Creates a collection of NeuPaths cell objects according to the
+   * cell definitions listed in a cluster definition file.
+   *
+   * @param clusterDefinitionFile Pathname of a cluster definition XML file.
    * @param synapseDirectory      Directory where cluster synapses are created.
    *                              If {@code null}, the system temporary
    *                              directory is used.

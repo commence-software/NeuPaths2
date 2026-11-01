@@ -6,13 +6,25 @@ import neupaths.stim.*;
 
 public class WorldHelloActivator extends Activator
 {
-  public WorldHelloActivator
-    (String                  name,
-     ReceptorSpec[]          receptors,
-     TransmitterSpec[]       transmitters,
-     LogicSubscriptionSpec[] subscriptions)
+  public WorldHelloActivator ()
   {
-    super(name, receptors, transmitters, subscriptions);
+    super("WorldHelloActivator",
+          new ReceptorSpec[] {
+            new ReceptorSpec("Hail",
+                             ReceptorMode.NON_BUFFERED,
+                             DateStimulus.TYPE_ID)
+          },
+          new TransmitterSpec[] {
+            new TransmitterSpec("Salutation",
+                                WorldHelloSalutation.TYPE_ID,
+                                StimulusTrace.ENABLED)
+          },
+          new LogicSubscriptionSpec[] {
+            new LogicSubscriptionSpec("HailInjector",
+                                      "Hello",
+                                      "Hail",
+                                      "Request",
+                                      TransactionFilter.DISABLED)});
   }
 
   @Override

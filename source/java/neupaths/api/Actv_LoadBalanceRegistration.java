@@ -90,9 +90,13 @@ final class Actv_LoadBalanceRegistration extends Activator
         {
           Thread.sleep(1000);
 
-          postStimulus(new Stim_LoadBalanceRequest(getCell().getInstanceID()),
-                       LB.REQUEST,
-                       null);
+          if (getCell().getState() == CellState.ONLINE ||
+              getCell().getState() == CellState.DEGRADED)
+          {
+            postStimulus(new Stim_LoadBalanceRequest(getCell().getInstanceID()),
+                         LB.REQUEST,
+                         null);
+          }
         }
         catch (InterruptedException ie)
         {

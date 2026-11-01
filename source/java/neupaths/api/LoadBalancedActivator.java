@@ -73,9 +73,13 @@ public abstract class LoadBalancedActivator extends Activator
     {
       evaluate();
       
-      postStimulus(new Stim_LoadBalanceRequest(getCell().getInstanceID()),
-                   LB.REQUEST,
-                   null);
+      if (getCell().getState() == CellState.ONLINE ||
+          getCell().getState() == CellState.DEGRADED)
+      {
+        postStimulus(new Stim_LoadBalanceRequest(getCell().getInstanceID()),
+                     LB.REQUEST,
+                     null);
+      }
     }
   }
 }

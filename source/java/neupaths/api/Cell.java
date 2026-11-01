@@ -776,7 +776,7 @@ public class Cell
   /**
    * Suspends processing of stimuli.
    */
-  public final
+  public
   void
   pause ()
   {
@@ -794,7 +794,7 @@ public class Cell
   /**
    * Resumes processing of stimuli.
    */
-  public final
+  public
   void
   resume ()
   {

@@ -267,4 +267,16 @@ public class LoadBalancedCell extends Cell
          controllerDomain,
          cryptoKey);
   }
+
+  //===========================================================================
+  // OVERRIDES
+  //===========================================================================
+
+  public
+  void
+  resume ()
+  {
+    super.resume();
+    transmitStimulus(new Stim_LoadBalanceRequest(getInstanceID()), false);
+  }
 }

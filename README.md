@@ -1,4 +1,4 @@
-# Version 2.0.2
+# Version 2.1.0
 
 ![NeuPaths_Logo_GitHub](https://github.com/user-attachments/assets/1b151bab-5797-4fb2-a23f-fc9a85545498)
 

@@ -7,6 +7,7 @@ all:
 	$(MAKE) -C Transaction all
 	$(MAKE) -C Transaction_Filter all
 	$(MAKE) -C WorldHello all
+	$(MAKE) -C ClusterDaemon all
 
 clean:
 	$(MAKE) -C AlarmService clean
@@ -15,4 +16,5 @@ clean:
 	$(MAKE) -C Transaction clean
 	$(MAKE) -C Transaction_Filter clean
 	$(MAKE) -C WorldHello clean
+	$(MAKE) -C ClusterDaemon clean
 

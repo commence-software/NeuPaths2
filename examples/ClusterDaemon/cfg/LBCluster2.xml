@@ -1,0 +1,10 @@
+<cell_cluster>
+  <name>LBCluster2</name>
+  <cell_definitions>
+    <cell_definition>cfg/LBC_4.xml</cell_definition>
+    <cell_definition>cfg/LBC_5.xml</cell_definition>
+  </cell_definitions>
+  <trace_logging_enabled>true</trace_logging_enabled>
+  <debug_logging_enabled>true</debug_logging_enabled>
+  <runtime_logging_enabled>true</runtime_logging_enabled>
+</cell_cluster>

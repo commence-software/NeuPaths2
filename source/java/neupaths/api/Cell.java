@@ -756,9 +756,9 @@ public class Cell
         catch (Throwable te)
         {
           throw new NeuPathsException(type,
-                                         name,
-                                         "Activator initialization failed",
-                                         te);
+                                      name,
+                                      "Activator initialization failed",
+                                      te);
         }
       }
   

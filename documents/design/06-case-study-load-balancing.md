@@ -267,11 +267,51 @@ stateDiagram-v2
     Holding --> Discarded : SIGNAL addressed to another worker
     Discarded --> Available
     Selected --> Available : evaluate() then post fresh credit
+    Available --> Drained : pause() — credit supply stops
+    Selected --> Drained : paused mid-job — credit withheld
+    Drained --> Available : resume() re-seeds one credit
 ```
 
 `Available` means "at least one of my credits is queued at the controller." `Holding` is the
 gate-blocked state that makes the whole design work: the worker already has the data and is
 waiting only for permission — so dispatch costs one small signal, not a data transfer.
+
+### Pausing a worker — draining by credit starvation
+
+A worker is removed from the pool by **pausing it**, and the mechanism is the credit flow
+itself rather than any deregistration message. Three places now check that the cell is
+`ONLINE` or `DEGRADED` before a credit goes out:
+
+| Site | Effect when the worker is paused |
+|------|----------------------------------|
+| `Actv_LoadBalanceRegistration`'s retry thread | Stops posting bootstrap credits — a worker paused before it ever registered simply stays out of the pool. |
+| `LoadBalancedActivator.activate()` | Withholds the post-job credit after `evaluate()` returns, so completing a job no longer re-arms the worker. |
+| `LoadBalancedCell.resume()` (override) | On the way back, calls `super.resume()` and transmits one `Stim_LoadBalanceRequest` — the credit that puts the worker back in contention. |
+
+In practice an operator reaches this through the daemon control plane rather than in code —
+`IssueCommandToDaemon pause cell <daemon> <cluster> <cellName>`, where `cellName` is a
+regular expression, so a whole slice of a pool can be drained in one command (see
+[§3.6](03-subsystems.md#36-utilities--the-daemon-control-plane)).
+
+The result is a drain rather than a cut-off: the controller is never told that a worker
+paused, it simply stops seeing credits from it and matchmaking naturally routes work to the
+peers that are still offering. Because `pause()` leaves the nucleus online
+(see [§5.6](05-execution-model.md#56-pause-semantics)), the worker keeps its synapses and
+subscriptions throughout, so there is no re-join handshake on the way back.
+
+That override is load-bearing, not decoration. Credits are the *only* thing that makes a
+worker selectable, so a worker resumed without re-seeding one would hold zero outstanding
+credits and — its registration thread long since terminated by the original acknowledgement —
+would never be selected again. Re-seeding exactly one credit restores the steady-state
+invariant of one outstanding credit per idle worker.
+
+> **A credit already queued outlives the pause.** Pausing stops *new* credits; it does not
+> revoke those the controller has already queued. A worker paused with a credit still in the
+> controller's queue can therefore be selected once more, and because a paused activator
+> thread consumes its stimuli without evaluating them
+> ([§5.6](05-execution-model.md#56-pause-semantics)), that work item is dropped. Quiesce a
+> worker before relying on it being idle, and layer an acknowledgement on top if work must
+> not be lost.
 
 ## 6.6 Techniques worth stealing
 
@@ -286,6 +326,7 @@ The subsystem is a catalogue of reusable patterns:
 | **Broadcast + address filter** | Send one signal to all; each recipient compares an id in the payload and self-selects. | Targeted dispatch without point-to-point addressing. |
 | **Credit / token flow** | A worker's `REQUEST` is a standing offer consumed by one work item; a fresh one is posted after each job. | Flow control and natural backpressure across a pool. |
 | **Self-terminating bootstrap** | Retry on a timer until an acknowledgement arrives, then stop the thread. | Joining a mesh whose peers may not be up yet. |
+| **Drain by credit starvation** | Withhold a participant's credits instead of deregistering it; the scheduler routes elsewhere on its own. | Taking a pool member out of rotation without a membership protocol. |
 | **Tag-shedding rendezvous** | Move an id from *tag* to *payload* to cross into the global bundle, then back to *tag*. | Joining transaction-scoped data against unscoped state. |
 | **Idempotence guard** | `TransactionFilter.ENABLED` drops repeat stimuli of the same type within a transaction. | Redundant mesh paths that may deliver twice. |
 
@@ -322,6 +363,8 @@ The subsystem is a catalogue of reusable patterns:
 | Worker cell; injects the registration activator | [`LoadBalancedCell.java`](../../source/java/neupaths/api/LoadBalancedCell.java) |
 | `activate()` override — address filter + credit return | [`LoadBalancedActivator.java`](../../source/java/neupaths/api/LoadBalancedActivator.java) |
 | Registration retry thread | [`Actv_LoadBalanceRegistration.java`](../../source/java/neupaths/api/Actv_LoadBalanceRegistration.java) |
+| `resume()` override — re-seeds one credit | [`LoadBalancedCell.java`](../../source/java/neupaths/api/LoadBalancedCell.java) |
+| Operator-facing `pause`/`resume` commands | [`IssueCommandToDaemon.java`](../../source/java/neupaths/util/IssueCommandToDaemon.java), [`DaemonCmdActv.java`](../../source/java/neupaths/util/DaemonCmdActv.java) |
 | Channel name constants | [`LB.java`](../../source/java/neupaths/api/LB.java) |
 | Transaction bundles and the global bundle | [`Rx_Collection.java`](../../source/java/neupaths/api/Rx_Collection.java) |
 | Runnable example | [`examples/LoadBalance`](../../examples/LoadBalance) |

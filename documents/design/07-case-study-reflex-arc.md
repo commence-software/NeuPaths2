@@ -198,6 +198,28 @@ The zone prefix and domain in the Java constructors come from `-Dreflex.zone` (d
 `A`), which is what lets `chaos.sh zoneb` clone an entire zone from sed-edited XML without
 touching a line of Java.
 
+That trick depends on *where* the wiring is declared. Every activator in this demo uses the
+**single-expression** form — a public no-argument constructor that passes its receptors,
+transmitters and subscriptions to `super()` inline — so each is declared in XML as nothing
+more than a class name plus `<default/>`:
+
+```xml
+<activators>
+  <activator>
+    <class>PressureSim</class>
+    <default/>
+  </activator>
+</activators>
+<pulse_interval_ms>250</pulse_interval_ms>
+```
+
+Because the receptor and subscription names are computed in Java from `reflex.zone` rather
+than spelled out in XML, the cell definitions carry no zone-specific wiring to rewrite —
+cloning a zone is a prefix substitution, not a re-wiring. The pass-through form would make
+the same configs explicit and analyzable but would also put every zone-qualified name in the
+XML, which is exactly the coupling this demo avoids (see
+[§2.4](02-domain-model.md#two-ways-to-specialize-an-activator)).
+
 ### Synapses (single-host build, Unix sockets)
 
 | Cell | Synapse name(s) |
@@ -316,6 +338,7 @@ demos/ReflexArc/              flat, default package — matching the examples/ h
 | Concern | Reference |
 |---------|-----------|
 | Pulse generator + `PulsedActivator` | [`Cell.java`](../../source/java/neupaths/api/Cell.java) (`setPulseInterval`), [`PulsedActivator.java`](../../source/java/neupaths/api/PulsedActivator.java) |
+| `<default/>` activator construction | [`Activator.java`](../../source/java/neupaths/api/Activator.java), design docs [§2.4](02-domain-model.md#two-ways-to-specialize-an-activator) and [§3.5](03-subsystems.md#35-configuration-subsystem-cfg_) |
 | Loopback subscriptions | [`LogicLoopbackSubscriptionSpec.java`](../../source/java/neupaths/api/LogicLoopbackSubscriptionSpec.java), used heavily in [§6](06-case-study-load-balancing.md) |
 | Bridge semantics | [`BridgeCell.java`](../../source/java/neupaths/api/BridgeCell.java) — bridge subs pull *to* the bridge; forwarding follows learned subscriptions |
 | Duplicate filtering (redundant paths) | [`Nuc_Nucleus.java`](../../source/java/neupaths/api/Nuc_Nucleus.java) `stimuliHistory`, design docs [§3.1](03-subsystems.md) |

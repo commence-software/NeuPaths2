@@ -6,8 +6,11 @@ directly. Internal subsystems (nucleus, transport, config) are covered in
 
 ## 2.1 The cell type hierarchy
 
-All eight primitive cell types extend the base `Cell`. A cell is created from an XML
+Eight primitive cell types extend the base `Cell`. A cell is created from an XML
 definition via `CellFactory`; related cells are grouped and operated as a `CellCluster`.
+A ninth `CellType` value, `CUSTOM`, tags a user-written cell derived from `LogicCell` or
+`LoadBalancedCell` — there is no `CustomCell` class, the type is reported by cells you
+specialize yourself.
 
 ```mermaid
 classDiagram
@@ -67,6 +70,7 @@ classDiagram
         LOAD_CONTROLLER
         LOGIC
         ROUTER
+        CUSTOM
     }
     class CellState {
         <<enumeration>>
@@ -91,6 +95,7 @@ classDiagram
 | `EventCell` | — | — | Collects `EventStimulus` log events for a domain (used by `EventLogger`). |
 | `LoadBalancedCell` | ✅ (`LoadBalancedActivator`) | ✅ (Logic) | A worker that shares load with peers running the same activator. |
 | `LoadControllerCell` | ✅ | ✅ (Logic) | Coordinator that decides which worker handles the next stimuli set. |
+| *(your subclass)* | ✅ | ✅ (Logic) | A cell you derive from `LogicCell` or `LoadBalancedCell`; reports `CellType.CUSTOM`. |
 
 ## 2.2 Cell composition & lifecycle machinery
 
@@ -137,6 +142,12 @@ classDiagram
   pulses by including a `PulsedActivator` (see §2.4).
 - `Actv_CycleDetection` is added transparently so stimuli cannot loop forever through
   redundant paths.
+- `pause()` and `resume()` are **overridable**. The base implementations flip an
+  `activatorsPaused` flag, which makes `getState()` report `CellState.PAUSED` while the
+  nucleus itself stays `ONLINE`/`DEGRADED` — so synapses and subscriptions survive a pause,
+  only activator firing stops. A subclass that must re-announce itself on the way back
+  overrides `resume()`; `LoadBalancedCell` does precisely this
+  (see [§6](06-case-study-load-balancing.md)).
 
 ## 2.3 Cluster creation & runtime
 
@@ -155,26 +166,32 @@ classDiagram
         +pause() void
         +resume() void
         +stop() void
+        +setProperty(String, Object) void
         +publishSubscriptions() void
     }
-    class CellBundle {
-        <<package-private>>
+    class Cfg_CellDefinitionParser {
+        <<abstract>>
+        +parseNode(Node) void
+        +validate() void
+        +instantiate() Cell
     }
     class NeuPathsRuntime
     class Cell
 
-    CellFactory ..> Cell : builds reflectively
-    CellFactory ..> Cfg_ConfigHandler : parses XML
+    CellFactory ..> Cfg_CellDefinitionParser : dispatches on root element
+    Cfg_CellDefinitionParser ..> Cell : builds reflectively
     CellCluster o-- "1..*" Cell : contains
-    CellCluster ..> CellBundle : uses
 ```
 
-- `CellFactory.createCell(defFile)` reads a cluster/cell **XML definition**, parses it with
-  the `Cfg_*` DOM handlers (see [§3.5](03-subsystems.md#35-configuration-subsystem-cfg_)),
-  and reflectively instantiates cells, activators, receptors and transmitters.
-- `CellCluster` is an `Iterable<Cell>` that applies lifecycle and tuning operations across
-  all its member cells at once. `CellBundle` (package-private) groups the cells produced
-  from a single definition file.
+- `CellFactory.createCell(defFile)` reads a cluster/cell **XML definition**, selects the
+  `Cfg_*Parser` matching the root element, and lets that parser validate the definition and
+  reflectively instantiate the cell, its activators, receptors and transmitters
+  (see [§3.5](03-subsystems.md#35-configuration-subsystem-cfg_)).
+- `CellCluster` is an `Iterable<Cell>` that applies lifecycle, tuning and property
+  operations across all its member cells at once. Its public methods are `synchronized`, so
+  cluster-wide operations are safe to issue from several threads; cluster-level logging,
+  interval and crypto-key settings override whatever the member cells' own definition files
+  specified.
 
 ## 2.4 The Activator model (dataflow logic)
 
@@ -237,8 +254,22 @@ participates in a worker pool. The `Actv_*` subclasses are internal control-plan
 > computes, and emits with `setStimulus(transmitter, stimulus)`. Between firings the thread
 > sleeps on a semaphore. See the activity diagram in [§4.3](04-behavior.md#43-dataflow-evaluation-activity).
 
-Constructor (package-private, invoked by subclasses):
+### Two ways to specialize an Activator
+
+The base constructor is `protected`:
 `Activator(String name, ReceptorSpec[] receptors, TransmitterSpec[] transmitters, LogicSubscriptionSpec[] subscriptions)`.
+A subclass reaches it one of two ways, and `CellFactory` instantiates whichever shape it
+finds. **Both the derived class and its constructor must be `public`.**
+
+| | **Single-expression** | **Pass-through** |
+|---|---|---|
+| Subclass constructor | `public MyActivator()` — no arguments; passes every spec to `super()` inline | `public MyActivator(String, ReceptorSpec[], TransmitterSpec[], LogicSubscriptionSpec[])` — forwards the factory's arguments to `super()` |
+| Cell definition file | Names the class and marks it `<default/>`; the specs live in code | Spells out receptors, transmitters and subscriptions as XML |
+| Pro | Much cleaner definition files; permits more complex specializations | Stimulus flow is visible to static analysis, so offline tools can document the mesh |
+| Con | You must read the code to trace stimulus transmission | More verbose definition files; limits how far you can specialize |
+
+Declaring `<default/>` is what selects the no-argument form — see
+[§3.5](03-subsystems.md#35-configuration-subsystem-cfg_).
 
 ## 2.5 Receptors, transmitters & the subscription model
 
@@ -382,6 +413,7 @@ classDiagram
     class StringStimulus
     class DateStimulus
     class SignalStimulus
+    class DictionaryStimulus
 
     Stimulus <|-- EventStimulus
     EventStimulus --> EventType
@@ -396,6 +428,7 @@ classDiagram
     Stimulus <|-- StringStimulus
     Stimulus <|-- DateStimulus
     Stimulus <|-- SignalStimulus
+    Stimulus <|-- DictionaryStimulus
 ```
 
 **The `neupaths.stim` pattern.** Every primitive stimulus follows the same shape: a wrapped
@@ -404,6 +437,20 @@ value, `get()`/`set()` accessors, `equals`/`hashCode`/`toString`, and two static
 subscriptions identify stimulus types across the wire without relying on class names. New
 custom stimulus types are generated with `GenerateStimulusType`, which stamps a fresh
 `TYPE_ID` (see [§3.6](03-subsystems.md#36-utilities--the-daemon-control-plane)).
+
+**`DictionaryStimulus` — the one open-ended member.** Where the other `neupaths.stim` types
+wrap a single Java primitive, `DictionaryStimulus` (`final`) carries a
+`HashMap<String, Object>` and exposes `get(name)`, `put(name, value)` and `entries()`. Its
+`get()` is generically typed (`<T> T`) and casts on the caller's behalf, so the compiler
+cannot check element types — the payload is schema-less by design, for messages whose shape
+is only known at runtime. The trade is the usual one: flexibility in exchange for the static
+type safety the single-value stimuli give you, and every value you put in it must itself be
+serializable.
+
+A subclass of `DictionaryStimulus` keeps the same `TYPE_ID` but takes a new type name — the
+`protected DictionaryStimulus(String typeName, …)` constructors exist for exactly that, so
+you can give a dictionary payload a domain-specific alias without minting a new type
+identity.
 
 > `EventType` has 15 values: `RUNTIME`, `TRACE`, `DEBUG`, `INFORMATION`, `WARNING`,
 > `ERROR`, and `AUDIT1` … `AUDIT9`.

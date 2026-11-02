@@ -13,7 +13,7 @@ public class ConsoleMain
 {
   public static void main (String[] args)
   {
-    CellCluster cluster = new CellCluster("cfg/Cl_OpsConsole.xml", null);
+    CellCluster cluster = new CellCluster("cfg/Cl_OpsConsole.xml");
     cluster.start();
 
     InjectorCell inj = cluster.getCell("OpsConsoleIn");

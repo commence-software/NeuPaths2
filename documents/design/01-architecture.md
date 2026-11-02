@@ -27,18 +27,18 @@ flowchart TB
         U3["Daemon control:<br/>DaemonCmdActv · DaemonCmdStim<br/>DaemonCmdRespStim · DaemonCellInfo"]
     end
 
-    subgraph stim["neupaths.stim — primitive stimuli"]
-        S1["BooleanStimulus · IntegerStimulus<br/>LongStimulus · DoubleStimulus · …<br/>StringStimulus · DateStimulus · SignalStimulus"]
+    subgraph stim["neupaths.stim — ready-made stimuli"]
+        S1["BooleanStimulus · IntegerStimulus<br/>LongStimulus · DoubleStimulus · …<br/>StringStimulus · DateStimulus · SignalStimulus<br/>DictionaryStimulus (key/value)"]
     end
 
     subgraph api["neupaths.api — framework core"]
         direction TB
-        A1["Public API:<br/>Cell &amp; 8 cell types · Activator<br/>Stimulus · CellFactory · CellCluster"]
+        A1["Public API:<br/>Cell &amp; 8 primitive cell types · Activator<br/>Stimulus · CellFactory · CellCluster"]
         A2["Wiring model:<br/>ReceptorSpec · TransmitterSpec<br/>SubscriptionSpec hierarchy"]
         A3["Nucleus (Nuc_*): routing engine"]
         A4["Transport (Syn_*, Bnd_*)"]
         A5["Crypto (Cryp_*) · Wire protocol (Msg_*)"]
-        A6["Configuration (Cfg_*): XML/DOM"]
+        A6["Configuration (Cfg_*):<br/>XML/DOM handlers + cell parsers"]
         A1 --> A2 --> A3 --> A4
         A3 --> A5
         A1 --> A6
@@ -50,7 +50,8 @@ flowchart TB
 ```
 
 `neupaths.api` is the core and is self-contained. `neupaths.stim` supplies ready-made
-`Stimulus` subclasses for Java primitives. `neupaths.util` sits on top, providing the
+`Stimulus` subclasses — one per Java primitive, plus `DictionaryStimulus` for schema-less
+key/value payloads. `neupaths.util` sits on top, providing the
 command-line entry points and a **daemon control plane** for deploying and operating
 clusters of cells.
 
@@ -97,7 +98,7 @@ flowchart LR
 ```mermaid
 flowchart TB
     L4["<b>Application layer</b><br/>Your Activators, custom Stimulus types, cluster XML definitions"]
-    L3["<b>Cell layer</b> — neupaths.api<br/>Cell · CellCluster · CellFactory · 8 cell types · Activator"]
+    L3["<b>Cell layer</b> — neupaths.api<br/>Cell · CellCluster · CellFactory · 8 primitive cell types · Activator"]
     L2["<b>Routing layer</b> — Nuc_*<br/>subscription matching · duplicate filtering · send/receive queues · tracing"]
     L1["<b>Transport layer</b> — Syn_* · Bnd_* · Cryp_* · Msg_*<br/>synapse channels · peer binders · encryption · wire protocol"]
     L0["<b>JDK</b><br/>java.nio channels · javax.crypto · java.util.concurrent · org.w3c.dom"]
@@ -153,7 +154,7 @@ flowchart LR
 | **Security** | `Cryp_*` | Per-stimulus symmetric encryption (AES-CBC or Blowfish) into `SealedObject`; cipher chosen by the first byte of the crypto key. |
 | **Resilience** | mesh shape + `Nuc_Nucleus` duplicate filtering + `Actv_CycleDetection` | No single point of failure; duplicates filtered by a time-windowed stimulus-history journal. |
 | **Observability** | `EventType`/`EventStimulus`, `Cell` logging toggles, `EventLogger`, stimulus tracing (`Stim_Trace`) | 15 event levels (RUNTIME, TRACE, DEBUG, INFORMATION, WARNING, ERROR, AUDIT1–9). |
-| **Configuration** | `Cfg_*` (XML/DOM) + `PropertySet` | Clusters and cells are declared in XML and instantiated reflectively by `CellFactory`. |
+| **Configuration** | `Cfg_*` (XML/DOM handlers + per-cell-type parsers) + `PropertySet` | Clusters and cells are declared in XML; handlers transcribe the document, parsers validate it and instantiate reflectively for `CellFactory`. |
 | **Flow control** | `LoadControllerCell` + `LoadBalancedCell` + `Actv_LoadBalance*` | A controller hands work signals to a pool of interchangeable worker cells. |
 | **Transactions** | `Stim_CreateTransaction` / `Stim_TerminateTransaction`, `Rx_Transaction` | Correlate a set of stimuli through a multi-step computation via a `transactionID`. |
 

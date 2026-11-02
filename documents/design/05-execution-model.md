@@ -138,6 +138,23 @@ and the thread still parks in `acquire()` between stimuli rather than polling.
 `resume()` clears the flag and evaluation continues with whatever arrives next. Use pause to
 quiesce a cell, not to hold work for later.
 
+**Pause is an activator-level state, not a transport-level one.** `pause()` sets an
+`activatorsPaused` flag and nothing else; the nucleus keeps running, so synapses stay
+connected, subscriptions keep refreshing and peers see no disconnect. `getState()` *derives*
+the answer — it reads the nucleus state and reports `PAUSED` only when the nucleus is
+`ONLINE` or `DEGRADED` and the flag is set. Two consequences fall out of that ordering:
+
+- `pause()` and `resume()` are no-ops on a cell that is `OFFLINE`, since there is nothing to
+  suspend; and
+- an `OFFLINE` or `DEGRADED` nucleus state always wins in `getState()`'s report, so a paused
+  cell that then loses its peers reports the transport problem rather than hiding it behind
+  `PAUSED`.
+
+**Both methods are overridable** (`getState()` is not). A subclass that must re-announce
+itself to the mesh on the way back overrides `resume()`, calls `super.resume()` and then
+transmits — which is exactly how a `LoadBalancedCell` rejoins its controller's worker pool
+(see [§6](06-case-study-load-balancing.md)).
+
 ## 5.7 Sharp edges
 
 - **No backpressure.** All queues are unbounded `LinkedList`s. A slow activator grows its own

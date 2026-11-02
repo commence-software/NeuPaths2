@@ -1,6 +1,6 @@
 # NeuPaths Software Design Documentation
 
-**Version 2.0.2 · Generated from `source/java` · UML diagrams in [Mermaid](https://mermaid.js.org/) (renders natively on GitHub)**
+**Version 2.1.0 · Generated from `source/java` · UML diagrams in [Mermaid](https://mermaid.js.org/) (renders natively on GitHub)**
 
 This documentation reconstructs the software design of the NeuPaths framework from its
 source code. NeuPaths is a **broker-less framework for event-driven, distributed and
@@ -28,7 +28,7 @@ There is no central broker — routing, subscription and duplicate-filtering hap
 | Concept | Type in code | Meaning |
 |---------|--------------|---------|
 | **Stimulus** | `neupaths.api.Stimulus` | An atomic, typed, serializable unit of data that flows through the system. |
-| **Cell** | `neupaths.api.Cell` | An autonomous processing node — a neuron. Eight primitive types. |
+| **Cell** | `neupaths.api.Cell` | An autonomous processing node — a neuron. Eight primitive types, plus `CUSTOM` for your own subclasses. |
 | **Synapse** | `neupaths.api.Syn_Synapse` | A transport-abstracting connection between cells (TCP, UDP, multicast, Unix socket). |
 | **Nucleus** | `neupaths.api.Nuc_Nucleus` | The per-cell routing engine: manages synapses, subscriptions, queues and duplicate filtering. |
 | **Activator** | `neupaths.api.Activator` | User-written logic. Fires only when **all** its receptors hold a stimulus (dataflow). |
@@ -41,8 +41,9 @@ There is no central broker — routing, subscription and duplicate-filtering hap
 
 ```
 neupaths.api    — the framework core: cells, activators, stimuli, synapses,
-                  binders, nucleus, configuration, crypto, wire protocol (≈150 types)
+                  binders, nucleus, configuration, crypto, wire protocol (≈165 types)
 neupaths.stim   — concrete Stimulus types for Java primitives (Boolean, Byte, …, String)
+                  plus DictionaryStimulus for schema-less key/value payloads
 neupaths.util   — command-line tools and the cluster daemon / control plane
 ```
 

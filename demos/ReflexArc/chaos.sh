@@ -36,7 +36,7 @@ gen_zone_b () {
     local G
     G=$(echo "$F" | sed -e 's/ZA_/ZB_/' -e 's/ZoneA/ZoneB/')
     sed -e 's/ZA_/ZB_/g' -e 's/Zone_A/Zone_B/g' -e 's/ZoneA/ZoneB/g' \
-        -e 's|/tmp/reflex/za\.sock|/tmp/reflex/zb.sock|g' \
+        -e 's|30010|30020|g' \
         -e 's|cfg/Z|cfg/gen/Z|g' \
         "cfg/${F}.xml" > "cfg/gen/${G}.xml"
   done

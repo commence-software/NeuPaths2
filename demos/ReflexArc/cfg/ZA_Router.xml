@@ -1,6 +1,6 @@
 <router_cell>
   <name>ZA_Router</name>
   <synapses>
-    <synapse>Local#Stream#Listener#Zone_A#/tmp/reflex/za.sock</synapse>
+    <synapse>Network#Stream#Listener#Zone_A#30010</synapse>
   </synapses>
 </router_cell>

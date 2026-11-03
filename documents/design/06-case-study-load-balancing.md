@@ -345,17 +345,64 @@ The subsystem is a catalogue of reusable patterns:
   every second until acknowledged, so a worker that took several attempts to register may hold
   several queued credits and receive several early work items in a row. It self-corrects in the
   steady state, where each worker maintains one outstanding credit.
-- **Failure of a chosen worker loses that work item.** The credit is consumed at match time and
-  the signal is fire-and-forget; nothing re-queues the item if the addressee dies before
-  completing. Applications needing at-least-once delivery should layer their own acknowledgement
-  on top — for example a response transaction the producer waits on, as the example does with
-  `extractFromTransaction()`.
+- **Failure of a chosen worker loses that work item — within that pool.** The credit is consumed
+  at match time and the signal is fire-and-forget; nothing re-queues the item if the addressee
+  dies before completing. The framework's answer is not retry but **redundant execution**: run
+  two independent pools, each with its own controller, both servicing the same request under the
+  original transaction. The requester accepts the first response and discards the rest by
+  transaction filtering (see [§6.8](#68-surviving-the-loss-of-a-worker)). The per-pool loss still
+  happens; it simply stops being observable.
+  > Worth stating precisely, because the precise version is the stronger claim: NeuPaths does not
+  > offer at-least-once *delivery*. It offers the primitives to build **at-least-one-of-N
+  > execution**, which recovers at the speed of the surviving path rather than waiting out a
+  > retry timeout — usually the better trade for a control system.
 - **Distribution order is credit-arrival order.** Because credits are consumed FIFO, the policy is
   closer to *least-recently-served* than strict round-robin, and it naturally favours workers that
   finish quickly — a fast worker returns its credit sooner and gets more work. That is usually the
   desired behaviour for heterogeneous pools.
 
-## 6.8 Where to look in the source
+## 6.8 Surviving the loss of a worker
+
+A pool protects you from a *slow* worker — credits stop coming and matchmaking routes elsewhere.
+It does not protect you from a worker that dies holding work. For that, run the pool twice.
+
+Both pools subscribe to the same requests and both answer under the **original transaction**.
+The requester takes whichever response arrives first and discards the others by transaction
+filtering, exactly as a cell discards a duplicate stimulus that reached it by a second path:
+
+```mermaid
+flowchart LR
+    REQ["Requester<br/>creates transaction T"]
+    subgraph PA["Pool A — host 1, subnet 1"]
+        CA["LoadControllerCell"] --> WA["workers"]
+    end
+    subgraph PB["Pool B — host 2, subnet 2"]
+        CB["LoadControllerCell"] --> WB["workers"]
+    end
+    REQ -->|"work tagged T"| PA
+    REQ -->|"work tagged T"| PB
+    WA -->|"response under T"| F
+    WB -->|"response under T"| F
+    F{{"transaction filter<br/>first wins, rest dropped"}}
+    F --> OUT["Requester"]
+```
+
+A worker in pool A dying mid-job now costs nothing observable: pool B answers, the requester
+proceeds, and pool A's lost item never surfaces. The redundancy is only as good as its
+independence, so the pools want separate hosts, separate network paths (a multi-homed requester
+with physically distinct subnets) and separate power.
+
+`examples/Transaction_Filter` demonstrates the mechanism end to end at the smallest useful
+scale — redundant service providers rather than redundant pools, with chained transactions and
+the extractor filtering the second response. The pool version is the same shape with a
+`LoadControllerCell` in front of each provider.
+
+> **This does not help with overload.** Redundancy addresses *independent* failure; saturation is
+> a *common-mode* failure. Two pools fed the same requests fall behind identically and
+> simultaneously, at 2× the resource cost for 1× the throughput — see
+> [§5.7](05-execution-model.md#57-sharp-edges).
+
+## 6.9 Where to look in the source
 
 | Concern | File |
 |---------|------|
@@ -364,6 +411,8 @@ The subsystem is a catalogue of reusable patterns:
 | `activate()` override — address filter + credit return | [`LoadBalancedActivator.java`](../../source/java/neupaths/api/LoadBalancedActivator.java) |
 | Registration retry thread | [`Actv_LoadBalanceRegistration.java`](../../source/java/neupaths/api/Actv_LoadBalanceRegistration.java) |
 | `resume()` override — re-seeds one credit | [`LoadBalancedCell.java`](../../source/java/neupaths/api/LoadBalancedCell.java) |
+| Transaction filtering (the dedup itself) | [`Activator.java`](../../source/java/neupaths/api/Activator.java) `isDuplicate()`, [`TransactionFilter.java`](../../source/java/neupaths/api/TransactionFilter.java) |
+| Redundant providers, working example | [`examples/Transaction_Filter/`](../../examples/Transaction_Filter/) |
 | Operator-facing `pause`/`resume` commands | [`IssueCommandToDaemon.java`](../../source/java/neupaths/util/IssueCommandToDaemon.java), [`DaemonCmdActv.java`](../../source/java/neupaths/util/DaemonCmdActv.java) |
 | Channel name constants | [`LB.java`](../../source/java/neupaths/api/LB.java) |
 | Transaction bundles and the global bundle | [`Rx_Collection.java`](../../source/java/neupaths/api/Rx_Collection.java) |

@@ -450,7 +450,7 @@
       <tbody>
         <tr><td>Concurrency</td><td>Cell &amp; Nucleus threads</td><td>One activator thread each; semaphore-blocked queues; <code>ReentrantLock</code>, <code>SafeBoolean</code>, <code>SafeLong</code>.</td></tr>
         <tr><td>Security</td><td><code>Cryp_*</code></td><td>Per-stimulus AES-CBC or Blowfish into a <code>SealedObject</code>; cipher chosen by the key's first byte.</td></tr>
-        <tr><td>Resilience</td><td>mesh + Nucleus + <code>Actv_CycleDetection</code></td><td>No single point of failure; duplicates filtered by a time-windowed history journal.</td></tr>
+        <tr><td>Resilience</td><td>mesh + duplicate filtering at two scopes + <code>Actv_CycleDetection</code></td><td>No single point of failure. Time-windowed filtering discards redundant arrivals per <em>stimulus</em> (making redundant paths safe) and per <em>transaction</em> (making redundant providers safe).</td></tr>
         <tr><td>Observability</td><td><code>EventType</code> / <code>EventCell</code></td><td>15 event levels (RUNTIME → ERROR, AUDIT1–9); <code>EventLogger</code> spools them; stimulus tracing.</td></tr>
         <tr><td>Flow control</td><td>Controller + workers</td><td><code>LoadControllerCell</code> hands work signals to a pool of interchangeable <code>LoadBalancedCell</code>s.</td></tr>
         <tr><td>Transactions</td><td><code>Stim_*Transaction</code></td><td>Correlate a set of stimuli through a multi-step computation via a <code>transactionID</code>.</td></tr>
@@ -617,6 +617,30 @@
         <code>LogicLoopback</code>, <code>LogicMap</code>, <code>Bridge</code>, <code>Extractor</code> —
         all extend <code>SubscriptionSpec</code>.</figcaption>
     </figure>
+
+    <h3>Duplicate filtering at two scopes — the redundancy primitive</h3>
+    <p>The framework discards redundant arrivals at <b>two</b> levels, and the pair is what makes
+      redundancy composable rather than something every application re-invents:</p>
+    <div class="tbl-scroll"><table>
+      <thead><tr><th>Scope</th><th>Where</th><th>Keyed on</th><th>Makes safe</th></tr></thead>
+      <tbody>
+        <tr><td><b>Stimulus</b></td><td><code>Nuc_Nucleus</code> <code>stimuliHistory</code>, always on</td><td>stimulus instance id</td><td>Redundant <b>paths</b> — the same stimulus arriving by two routes is delivered once</td></tr>
+        <tr><td><b>Transaction</b></td><td><code>Activator.isDuplicate()</code>, opt-in per subscription</td><td>(transaction, originator, stimulus, type)</td><td>Redundant <b>providers</b> — two services answering one request, first response wins</td></tr>
+      </tbody>
+    </table></div>
+    <p>Both are <b>time-windowed</b> rather than unbounded — the nucleus ages out its stimulus
+      journal, and the activator ages out transaction history after
+      <code>transactionHistoryWindowMs</code> (default 30 s). Neither grows without limit, and
+      neither asks the application to track what it has already seen. Transaction filtering is
+      opt-in via <code>TransactionFilter.ENABLED</code> on a logic, loopback or map subscription
+      (<code>&lt;filter_transactions&gt;</code> in a cell definition).</p>
+    <div class="callout">
+      <div class="eyebrow">Why it matters</div>
+      <p>Because a duplicate costs nothing, <b>you can afford to do the work twice.</b> Run two
+        bridges so a dead path is invisible; run two service providers — or two load-balanced
+        pools — so a dead worker is invisible. Redundancy becomes a deployment decision rather
+        than a code change.</p>
+    </div>
 
     <h3>Stimulus — the atomic data unit</h3>
     <p><code>Stimulus</code> is abstract and <code>Serializable</code>. Each instance carries type
@@ -1368,8 +1392,30 @@
         second until acknowledged, so a worker that took several attempts may hold several queued
         credits and receive several early items in a row. It self-corrects in steady state.</p></div>
       <div class="card"><h4>No re-queue on failure</h4><p>The credit is consumed at match time and the
-        signal is fire-and-forget; nothing recovers the item if the addressee dies mid-job. Layer
-        your own acknowledgement — e.g. a response transaction the producer waits on.</p></div>
+        signal is fire-and-forget; within a pool, nothing recovers the item if the addressee dies
+        mid-job. The answer is redundant execution rather than retry — see below.</p></div>
+    </div>
+
+    <h3>Surviving the loss of a worker</h3>
+    <p>A pool protects you from a <em>slow</em> worker: credits stop arriving and matchmaking routes
+      elsewhere. It does not protect you from one that dies holding work. For that, run the pool
+      twice — two independent pools, each with its own controller, both answering under the
+      <b>original transaction</b>. The requester takes whichever response lands first and discards
+      the rest by <b>transaction filtering</b>, exactly as a cell discards a duplicate stimulus that
+      reached it by a second path.</p>
+    <p>The per-pool loss still happens; it simply stops being observable. Worth stating precisely,
+      because the precise version is the stronger claim: NeuPaths does not offer at-least-once
+      <em>delivery</em> — it offers the primitives to build <b>at-least-one-of-N execution</b>, which
+      recovers at the speed of the surviving path instead of waiting out a retry timeout. The
+      redundancy is only as good as its independence, so the pools want separate hosts, separate
+      network paths and separate power.</p>
+    <div class="callout">
+      <div class="eyebrow">Caveat · this does not help with overload</div>
+      <p>Duplicate filtering at either scope addresses <em>independent</em> failure. Saturation is a
+        <em>common-mode</em> failure: two pools fed the same requests fall behind identically and
+        simultaneously, at 2× the resource cost for 1× the throughput. Note also that the credit
+        mechanism is dispatch control, not admission control — work stimuli are broadcast and fill
+        every worker's receptors on arrival, so the producer is never slowed by a credit shortage.</p>
     </div>
     <div class="callout">
       <div class="eyebrow">Scheduling policy, for free</div>

@@ -159,6 +159,18 @@ transmits — which is exactly how a `LoadBalancedCell` rejoins its controller's
 
 - **No backpressure.** All queues are unbounded `LinkedList`s. A slow activator grows its own
   queue without throttling upstream — watch this under sustained overload.
+
+  Two clarifications, because this edge is easy to mistake for one the framework already
+  handles. First, **the load-balancing credit mechanism is not backpressure.** Work stimuli are
+  broadcast to every worker and fill their receptors on arrival; the credit gates *evaluation*,
+  not *admission* (see [§6.4](06-case-study-load-balancing.md), phase 2 — every worker "sits
+  holding the work"). The producer is never slowed by a credit shortage. Second, **redundancy
+  does not help here either.** Duplicate filtering at either scope addresses *independent*
+  failure; saturation is a *common-mode* failure, so two pools fed the same requests fall behind
+  identically and simultaneously while consuming 2× the resources.
+
+  Mitigate by design instead: bound the arrival rate at the injector, size `BUFFERED` receptors
+  against the worst-case burst, or prefer `NON_BUFFERED` where only the latest value matters.
 - **Shutdown.** `stop()` sets `SafeBoolean` terminate flags and `interrupt()`s each thread to
   break it out of `acquire()`/`sleep()`, then drains permits and clears queues. Threads are
   **daemon by default** (the JVM can exit) unless the env var

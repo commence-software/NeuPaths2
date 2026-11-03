@@ -9,7 +9,7 @@ CP="../../source/java/neupaths.jar:."
 export CP
 
 mkdir -p out pids /tmp/reflex/zoneA
-rm -f /tmp/reflex/*.sock out/*.out pids/*.pid
+rm -f out/*.out pids/*.pid
 rm -f /tmp/reflex/zoneA/burst
 echo "OPEN" > /tmp/reflex/zoneA/valve.pos
 

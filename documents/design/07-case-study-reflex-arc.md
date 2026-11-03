@@ -220,20 +220,27 @@ the same configs explicit and analyzable but would also put every zone-qualified
 XML, which is exactly the coupling this demo avoids (see
 [§2.4](02-domain-model.md#two-ways-to-specialize-an-activator)).
 
-### Synapses (single-host build, Unix sockets)
+### Synapses (TCP throughout)
 
 | Cell | Synapse name(s) |
 |------|----------------|
-| `ZA_Router` | `Local#Stream#Listener#Zone_A#/tmp/reflex/za.sock` |
-| zone cells | `Local#Stream#Peer#Zone_A#/tmp/reflex/za.sock` |
-| `OpsRouter` | `Local#Stream#Listener#Ops#/tmp/reflex/ops1.sock` **and** `…ops2.sock` |
-| `ZA_Bridge1` | peer `za.sock` (Zone_A) **+** peer `ops1.sock` (Ops) |
-| `ZA_Bridge2` | peer `za.sock` (Zone_A) **+** peer `ops2.sock` (Ops) |
+| `ZA_Router` | `Network#Stream#Listener#Zone_A#30010` |
+| zone cells | `Network#Stream#Peer#Zone_A#30010#127.0.0.1` |
+| `OpsRouter` | `Network#Stream#Listener#Ops#30001` **and** `…#30002` |
+| `ZA_Bridge1` | peer `Zone_A#30010` **+** peer `Ops#30001` |
+| `ZA_Bridge2` | peer `Zone_A#30010` **+** peer `Ops#30002` |
+| Zone B clone | identical, with the zone router on `30020` |
 
-Two-host variant: swap `Local#Stream` for `Network#Stream` with ports and run the bridges
-over genuinely different routes. Each cell (or small group) is its own `CellCluster` XML +
-JVM — launched by `neupaths.util.CellClusterExec` — so the chaos script kills real
-processes.
+The demo is `Network#Stream` end to end rather than Unix sockets, which costs nothing on one
+box and means **the single-host and two-host builds are the same configuration**. The only
+host-dependent value in the whole demo is the address the two bridges dial to reach Ops; every
+other peer is co-located with its listener and stays on `127.0.0.1`. Splitting the demo across
+two machines is therefore a one-value change, and the partition becomes a real network cut
+with every process still running — see
+[`demos/ReflexArc/TWO_HOST_RUNBOOK.md`](../../demos/ReflexArc/TWO_HOST_RUNBOOK.md).
+
+Each cell (or small group) is its own `CellCluster` XML + JVM — launched by
+`neupaths.util.CellClusterExec` — so the chaos script kills real processes.
 
 ## 7.6 The partition — the money shot
 

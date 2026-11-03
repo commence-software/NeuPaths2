@@ -1,7 +1,7 @@
 <router_cell>
   <name>OpsRouter</name>
   <synapses>
-    <synapse>Local#Stream#Listener#Ops#/tmp/reflex/ops1.sock</synapse>
-    <synapse>Local#Stream#Listener#Ops#/tmp/reflex/ops2.sock</synapse>
+    <synapse>Network#Stream#Listener#Ops#30001</synapse>
+    <synapse>Network#Stream#Listener#Ops#30002</synapse>
   </synapses>
 </router_cell>

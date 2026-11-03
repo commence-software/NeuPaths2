@@ -363,6 +363,34 @@ classDiagram
 - **Receptor mode** `BUFFERED` queues arriving stimuli; `NON_BUFFERED` keeps only the
   latest — the choice governs back-pressure vs. freshness at each input.
 
+### Duplicate filtering at two scopes — the redundancy primitive
+
+The framework discards redundant arrivals at **two** levels, and the pair is what makes
+redundancy composable rather than something each application re-invents:
+
+| Scope | Where | Keyed on | Makes safe |
+|-------|-------|----------|-----------|
+| **Stimulus** | `Nuc_Nucleus` `stimuliHistory`, always on | stimulus instance id | Redundant **paths** — the same stimulus reaching a cell by two routes is delivered once |
+| **Transaction** | `Activator.isDuplicate()`, opt-in per subscription | `(transaction, originator, stimulus, type)` | Redundant **providers** — two services answering the same request, first response wins |
+
+Both are **time-windowed** rather than unbounded: the nucleus ages out its stimulus journal, and
+the activator ages out transaction history after `transactionHistoryWindowMs` (default 30 s).
+Neither grows without limit, and neither needs the application to track what it has already
+seen.
+
+Transaction filtering is opt-in because it is not always wanted — enable it with
+`TransactionFilter.ENABLED` on a logic, loopback or map subscription (`<filter_transactions>` in
+a cell definition; it does not apply to bridge subscriptions). The consequence is worth stating
+plainly:
+
+> Because a duplicate costs nothing, **you can afford to do the work twice.** Run two bridges so
+> a dead path is invisible; run two service providers, or two load-balanced pools, so a dead
+> worker is invisible. Redundancy becomes a deployment decision rather than a code change.
+
+`examples/Transaction_Filter` demonstrates the transaction-scope case end to end, and
+[§6.8](06-case-study-load-balancing.md#68-surviving-the-loss-of-a-worker) applies it to
+load-balanced pools.
+
 ## 2.6 The Stimulus model
 
 `Stimulus` is the atomic, serializable unit of data. Each instance carries type identity,

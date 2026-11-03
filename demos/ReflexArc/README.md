@@ -36,6 +36,19 @@ tail -f out/Ops_events.out  # ops-side narration (trends, dedup'd telemetry)
 java -cp ../../source/java/neupaths.jar:. ConsoleMain    # operator console (open|close|quit)
 ```
 
+The mesh is TCP throughout (`Network#Stream`), so these ports must be free:
+
+| Port | Listener |
+|------|----------|
+| 30001 / 30002 | `OpsRouter` — the two redundant bridge paths |
+| 30010 | `ZA_Router` — the Zone A backbone |
+| 30020 | `ZB_Router` — only when `./chaos.sh zoneb` has cloned Zone B |
+
+Using TCP rather than Unix sockets costs nothing on one machine and makes the single-host and
+two-host builds the *same* configuration: the only host-dependent value is the address the
+bridges dial to reach Ops. To run Zone A and Ops on separate machines and partition them with a
+real network cut, see [`TWO_HOST_RUNBOOK.md`](TWO_HOST_RUNBOOK.md).
+
 ## The runbook (`./chaos.sh <cmd>`)
 
 | # | Command | Watch for | Claim proven |

@@ -171,6 +171,14 @@ transmits — which is exactly how a `LoadBalancedCell` rejoins its controller's
 
   Mitigate by design instead: bound the arrival rate at the injector, size `BUFFERED` receptors
   against the worst-case burst, or prefer `NON_BUFFERED` where only the latest value matters.
+- **Abandoned transaction bundles are bounded, but by activity rather than by clock.** An
+  activator's receptor bundle for a transaction that never completes is reclaimed by the
+  transaction reaper (`transactionReapIntervalMs`, default 60 s — see
+  [§2.5](02-domain-model.md#reclaiming-abandoned-transactions)). There is no reaper thread: the
+  sweep is triggered by the arrival of a *new* transaction, so a cell that falls idle holding
+  abandoned bundles keeps them until traffic resumes. Memory does not grow while idle, but it is
+  not released either. The interval doubles as the maximum lifespan of *any* bundle, so set it
+  above the longest transaction the cell can legitimately take.
 - **Shutdown.** `stop()` sets `SafeBoolean` terminate flags and `interrupt()`s each thread to
   break it out of `acquire()`/`sleep()`, then drains permits and clears queues. Threads are
   **daemon by default** (the JVM can exit) unless the env var

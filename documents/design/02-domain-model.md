@@ -391,6 +391,54 @@ plainly:
 [§6.8](06-case-study-load-balancing.md#68-surviving-the-loss-of-a-worker) applies it to
 load-balanced pools.
 
+### Reclaiming abandoned transactions
+
+An activator holds one **receptor bundle** per in-flight transaction, created lazily when the
+first stimulus tagged with that transaction arrives. A bundle is normally discarded the moment
+it has served its purpose — when it completes and the activator fires, or when a
+`Stim_TerminateTransaction` arrives for it.
+
+Some bundles never reach either. A producer dies mid-transaction; a participant joins late and
+catches only part of the set; or a stimulus the bundle still needs is discarded as a duplicate
+(the duplicate check runs *after* the bundle is created, so a filtered stimulus can leave an
+empty bundle behind). Nothing in the dataflow model can distinguish "this will never complete"
+from "this has not completed yet" — so without a sweep, those bundles would accumulate for the
+life of the process.
+
+`setTransactionReapInterval(ms)` bounds their lifespan. The sweep runs when a stimulus arrives
+for a transaction the activator has no bundle for — immediately before creating the new one —
+and removes every bundle older than the interval, logging each as an `INFORMATION` event naming
+the transaction id.
+
+| | |
+|---|---|
+| **Default** | 60 000 ms; values below the 100 ms floor are raised to it |
+| **Configure** | `setTransactionReapInterval()`, or `<transaction_reap_interval_ms>` on an `<activator>` |
+| **Scope** | Per activator — each holds its own bundles |
+| **Never reaped** | The global (untagged) bundle, which is permanent by design |
+
+Two consequences worth planning for:
+
+- **Reclamation is amortized, not scheduled.** There is no reaper thread; the sweep is driven by
+  the arrival of a new transaction. A cell that goes idle holding abandoned bundles keeps them
+  until the next transaction arrives. Nothing grows while idle, and the cost is one pass over
+  open transactions per *new* transaction rather than per stimulus — but "bounded" here means
+  bounded by activity, not by wall-clock.
+- **The interval is a correctness setting, not just a memory one.** It is the maximum lifespan of
+  *any* bundle, so a legitimate transaction that outlives it is reaped mid-flight and its
+  partial work silently dropped. Set it comfortably above the longest transaction the cell can
+  legitimately take, and keep it above `transactionHistoryWindowMs` so a response arriving near
+  the end of the dedup window still has a bundle to land in.
+
+That gives the activator three independent time windows, each self-managing a different kind of
+state:
+
+| Window | Default | Bounds |
+|--------|---------|--------|
+| `stimuliHistory` (nucleus) | — | How long a delivered stimulus is remembered for path-level dedup |
+| `transactionHistoryWindowMs` | 30 s | How long a transaction is remembered for response-level dedup |
+| `transactionReapIntervalMs` | 60 s | How long an incomplete receptor bundle may live |
+
 ## 2.6 The Stimulus model
 
 `Stimulus` is the atomic, serializable unit of data. Each instance carries type identity,

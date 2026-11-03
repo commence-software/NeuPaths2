@@ -580,6 +580,7 @@ optional `<receptors>`, `<transmitters>` and `<subscriptions>` blocks:
 | `<default/>` | Instantiate the activator through its **no-argument** constructor; the specs are declared in code rather than XML (see [§2.4](02-domain-model.md#two-ways-to-specialize-an-activator)). Without it, the factory looks for the full pass-through constructor. |
 | `<pulse_interval_ms>` | Cell-level. Non-zero starts the cell's `PulseThread`, which is what drives a `PulsedActivator`. Honoured only by logic, load-balanced and custom cells. |
 | `<transaction_history_window_ms>` | How long a transaction id stays remembered for duplicate-response filtering, defaulting to 30 000 ms. Accepted on an `<extractor_cell>` (applied to the cell) and on an `<activator>` of a load-balanced or custom cell (applied to that activator). |
+| `<transaction_reap_interval_ms>` | Maximum lifespan of an activator's incomplete receptor bundle, defaulting to 60 000 ms with a 100 ms floor. Applied per `<activator>` by the logic, load-balanced and custom cell parsers. Must exceed the longest legitimate transaction — see [§2.5](02-domain-model.md#reclaiming-abandoned-transactions). |
 | `<filter_transactions>` | `enabled`/`disabled` on a logic, loopback or map subscription — discards redundant responses for a transaction already answered. Not applicable to bridge subscriptions. |
 | `<trace>` | `enabled`/`disabled` on a transmitter; turns on per-stimulus tracing for that output. |
 

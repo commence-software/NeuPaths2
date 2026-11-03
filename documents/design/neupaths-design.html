@@ -642,6 +642,45 @@
         than a code change.</p>
     </div>
 
+    <h3>Reclaiming abandoned transactions</h3>
+    <p>An activator holds one <b>receptor bundle</b> per in-flight transaction, created lazily when
+      the first stimulus tagged with that transaction arrives. A bundle is normally discarded the
+      moment it has served its purpose — when it completes and the activator fires, or when a
+      <code>Stim_TerminateTransaction</code> arrives for it.</p>
+    <p>Some never reach either. A producer dies mid-transaction; a participant joins late and
+      catches only part of the set; or a stimulus the bundle still needs is discarded as a
+      duplicate — the duplicate check runs <em>after</em> the bundle is created, so a filtered
+      stimulus can leave an empty bundle behind. Nothing in the dataflow model distinguishes "this
+      will never complete" from "this has not completed yet", so without a sweep those bundles
+      would accumulate for the life of the process.</p>
+    <p><code>setTransactionReapInterval(ms)</code> bounds their lifespan. The sweep runs when a
+      stimulus arrives for a transaction the activator has no bundle for — immediately before
+      creating the new one — and removes every bundle older than the interval, logging each as an
+      <code>INFORMATION</code> event naming the transaction id. Default 60 000 ms, floor 100 ms,
+      configurable per activator via <code>&lt;transaction_reap_interval_ms&gt;</code>. The global
+      (untagged) bundle is permanent and never reaped.</p>
+    <div class="tbl-scroll"><table>
+      <thead><tr><th>Window</th><th>Default</th><th>Bounds</th></tr></thead>
+      <tbody>
+        <tr><td><code>stimuliHistory</code> (nucleus)</td><td>—</td><td>How long a delivered stimulus is remembered for path-level dedup</td></tr>
+        <tr><td><code>transactionHistoryWindowMs</code></td><td>30 s</td><td>How long a transaction is remembered for response-level dedup</td></tr>
+        <tr><td><code>transactionReapIntervalMs</code></td><td>60 s</td><td>How long an incomplete receptor bundle may live</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout">
+      <div class="eyebrow">Two consequences worth planning for</div>
+      <p><b>Reclamation is amortized, not scheduled.</b> There is no reaper thread — the sweep is
+        driven by the arrival of a new transaction, so a cell that falls idle holding abandoned
+        bundles keeps them until traffic resumes. Nothing grows while idle, and the cost is one
+        pass per <em>new transaction</em> rather than per stimulus.</p>
+      <p><b>The interval is a correctness setting, not just a memory one.</b> It is the maximum
+        lifespan of <em>any</em> bundle, so a legitimate transaction that outlives it is reaped
+        mid-flight and its partial work silently dropped. Keep it comfortably above the longest
+        transaction the cell can legitimately take, and above
+        <code>transactionHistoryWindowMs</code> so a response arriving near the end of the dedup
+        window still has a bundle to land in.</p>
+    </div>
+
     <h3>Stimulus — the atomic data unit</h3>
     <p><code>Stimulus</code> is abstract and <code>Serializable</code>. Each instance carries type
       identity (<code>typeID</code>, a fixed <code>UUID</code>), a unique <code>instanceID</code>, an
@@ -1036,6 +1075,10 @@
       <div class="card"><h4>Shutdown &amp; daemon threads</h4><p><code>stop()</code> sets terminate flags and
         <code>interrupt()</code>s each thread out of <code>acquire()</code>. Threads are <b>daemon by
         default</b> unless <code>NEUPATHS_FORCE_GRACEFUL_TERMINATION</code> is set.</p></div>
+      <div class="card"><h4>Bundles bounded by activity</h4><p>Abandoned transaction bundles are
+        reclaimed by the reaper (60 s default), but the sweep is triggered by a <em>new</em>
+        transaction rather than a timer — an idle cell keeps them until traffic resumes. Memory
+        does not grow while idle, but it is not released either.</p></div>
     </div>
 
     <h3>Pause semantics</h3>

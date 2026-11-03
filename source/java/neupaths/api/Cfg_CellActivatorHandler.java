@@ -27,6 +27,7 @@ final class Cfg_CellActivatorHandler extends Cfg_ConfigHandler
     transmitters = new LinkedList<>();
     subscriptions = new LinkedList<>();
     transactionHistoryWindow = 30_000L;
+    transactionReapInterval = 60_000L;
   }
 
   void processNode (String definitionFile, Node node)
@@ -64,6 +65,10 @@ final class Cfg_CellActivatorHandler extends Cfg_ConfigHandler
     {
       transactionHistoryWindow = Long.parseLong(Cfg_Utils.getNodeText(node));
     }
+    else if (nodeName.equals("TRANSACTION_REAP_INTERVAL_MS"))
+    {
+      transactionReapInterval = Long.parseLong(Cfg_Utils.getNodeText(node));
+    }
     else
     {
       throw new NeuPathsException("Unexpected Cell/Activators/Activator configuration tag '" +
@@ -100,4 +105,5 @@ final class Cfg_CellActivatorHandler extends Cfg_ConfigHandler
   LinkedList<Cfg_CellTransmitterHandler> transmitters;
   LinkedList<Cfg_CellSubscriptionHandler> subscriptions;
   long transactionHistoryWindow;
+  long transactionReapInterval;
 }

@@ -4,7 +4,9 @@
 package neupaths.api;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
+import java.util.LinkedList;
 
 /**
  * A receptor collection.  Technically a collection of transactions, where
@@ -130,6 +132,32 @@ final class Rx_Collection
     }
     
     return transaction;
+  }
+  
+  synchronized
+  LinkedList<UUID>
+  reapTransactions (long transactionReapInterval)
+  {
+    long currentTime = System.currentTimeMillis();
+    LinkedList<UUID> toBeReaped = new LinkedList<>();
+
+    // Identify transactions to be reaped (ignore global transaction)
+    for (Map.Entry<UUID, Rx_TransactionInfo> t : transactions.entrySet())
+    {
+      if ((t.getKey() != null) &&
+          (currentTime - t.getValue().timestamp > transactionReapInterval))
+      {
+        toBeReaped.add(t.getKey());
+      }
+    }
+
+    // Reap old transactions
+    for (UUID transactionID : toBeReaped)
+    {
+      transactions.remove(transactionID);
+    }
+
+    return toBeReaped;
   }
   
   synchronized

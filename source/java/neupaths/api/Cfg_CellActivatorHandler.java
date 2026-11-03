@@ -27,7 +27,7 @@ final class Cfg_CellActivatorHandler extends Cfg_ConfigHandler
     transmitters = new LinkedList<>();
     subscriptions = new LinkedList<>();
     transactionHistoryWindow = 30_000L;
-    transactionReapInterval = 60_000L;
+    transactionMaxLifespan = 60_000L;
   }
 
   void processNode (String definitionFile, Node node)
@@ -65,9 +65,9 @@ final class Cfg_CellActivatorHandler extends Cfg_ConfigHandler
     {
       transactionHistoryWindow = Long.parseLong(Cfg_Utils.getNodeText(node));
     }
-    else if (nodeName.equals("TRANSACTION_REAP_INTERVAL_MS"))
+    else if (nodeName.equals("TRANSACTION_MAX_LIFESPAN_MS"))
     {
-      transactionReapInterval = Long.parseLong(Cfg_Utils.getNodeText(node));
+      transactionMaxLifespan = Long.parseLong(Cfg_Utils.getNodeText(node));
     }
     else
     {
@@ -105,5 +105,5 @@ final class Cfg_CellActivatorHandler extends Cfg_ConfigHandler
   LinkedList<Cfg_CellTransmitterHandler> transmitters;
   LinkedList<Cfg_CellSubscriptionHandler> subscriptions;
   long transactionHistoryWindow;
-  long transactionReapInterval;
+  long transactionMaxLifespan;
 }

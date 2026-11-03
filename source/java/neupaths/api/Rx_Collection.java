@@ -136,7 +136,7 @@ final class Rx_Collection
   
   synchronized
   LinkedList<UUID>
-  reapTransactions (long transactionReapInterval)
+  reapTransactions (long transactionMaxLifespan)
   {
     long currentTime = System.currentTimeMillis();
     LinkedList<UUID> toBeReaped = new LinkedList<>();
@@ -145,7 +145,7 @@ final class Rx_Collection
     for (Map.Entry<UUID, Rx_TransactionInfo> t : transactions.entrySet())
     {
       if ((t.getKey() != null) &&
-          (currentTime - t.getValue().timestamp > transactionReapInterval))
+          (currentTime - t.getValue().timestamp > transactionMaxLifespan))
       {
         toBeReaped.add(t.getKey());
       }

@@ -405,15 +405,15 @@ empty bundle behind). Nothing in the dataflow model can distinguish "this will n
 from "this has not completed yet" — so without a sweep, those bundles would accumulate for the
 life of the process.
 
-`setTransactionReapInterval(ms)` bounds their lifespan. The sweep runs when a stimulus arrives
-for a transaction the activator has no bundle for — immediately before creating the new one —
-and removes every bundle older than the interval, logging each as an `INFORMATION` event naming
-the transaction id.
+`setTransactionMaxLifespan(ms)` caps how long one may live. The sweep runs when a stimulus
+arrives for a transaction the activator has no bundle for — immediately before creating the new
+one — and removes every bundle that has exceeded the limit, logging each as an `INFORMATION`
+event naming the transaction id.
 
 | | |
 |---|---|
 | **Default** | 60 000 ms; values below the 100 ms floor are raised to it |
-| **Configure** | `setTransactionReapInterval()`, or `<transaction_reap_interval_ms>` on an `<activator>` |
+| **Configure** | `setTransactionMaxLifespan()`, or `<transaction_max_lifespan_ms>` on an `<activator>` |
 | **Scope** | Per activator — each holds its own bundles |
 | **Never reaped** | The global (untagged) bundle, which is permanent by design |
 
@@ -437,7 +437,7 @@ state:
 |--------|---------|--------|
 | `stimuliHistory` (nucleus) | — | How long a delivered stimulus is remembered for path-level dedup |
 | `transactionHistoryWindowMs` | 30 s | How long a transaction is remembered for response-level dedup |
-| `transactionReapIntervalMs` | 60 s | How long an incomplete receptor bundle may live |
+| `transactionMaxLifespanMs` | 60 s | How long an incomplete receptor bundle may live |
 
 ## 2.6 The Stimulus model
 

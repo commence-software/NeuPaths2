@@ -238,7 +238,7 @@ import org.xml.sax.SAXParseException;
  * {@literal                 ...}
  * {@literal             </subscriptions>}
  * {@literal             <transaction_history_window_ms>n</transaction_history_window_ms>}
- * {@literal             <transaction_reap_interval_ms>n</transaction_reap_interval_ms>}
+ * {@literal             <transaction_max_lifespan_ms>n</transaction_max_lifespan_ms>}
  * {@literal         </activator>}
  * {@literal         ...}
  * {@literal     </activators>}
@@ -420,7 +420,7 @@ import org.xml.sax.SAXParseException;
  * {@literal                 ...}
  * {@literal             </subscriptions>}
  * {@literal             <transaction_history_window_ms>n</transaction_history_window_ms>}
- * {@literal             <transaction_reap_interval_ms>n</transaction_reap_interval_ms>}
+ * {@literal             <transaction_max_lifespan_ms>n</transaction_max_lifespan_ms>}
  * {@literal         </activator>}
  * {@literal         ...}
  * {@literal     </activators>}
@@ -547,7 +547,7 @@ import org.xml.sax.SAXParseException;
  * {@literal                 ...}
  * {@literal             </subscriptions>}
  * {@literal             <transaction_history_window_ms>n</transaction_history_window_ms>}
- * {@literal             <transaction_reap_interval_ms>n</transaction_reap_interval_ms>}
+ * {@literal             <transaction_max_lifespan_ms>n</transaction_max_lifespan_ms>}
  * {@literal         </activator>}
  * {@literal         ...}
  * {@literal     </activators>}
@@ -1080,9 +1080,9 @@ import org.xml.sax.SAXParseException;
  * <td></td>
  * </tr>
  * <tr align=left valign=top>
- * <td>transaction_reap_interval_ms</td>
- * <td>Frequency at which transactions are reaped (millisecs)</td>
- * <td>activator/transaction_reap_interval_ms</td>
+ * <td>transaction_max_lifespan_ms</td>
+ * <td>Maximum lifespan of an incomplete transaction (millisecs)</td>
+ * <td>activator/transaction_max_lifespan_ms</td>
  * <td>Numeric (long)</td>
  * <td>Yes</td>
  * <td>60000</td>

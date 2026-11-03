@@ -224,7 +224,7 @@ public abstract class Activator
     cell = null;
 
     transactionHistoryWindowMs = new SafeLong(30_000L);  /* Default 30 seconds */
-    transactionReapIntervalMs = new SafeLong(60_000L);  /* Default 1 minute */
+    transactionMaxLifespanMs = new SafeLong(60_000L);  /* Default 1 minute */
   }
   
   //===========================================================================
@@ -626,7 +626,7 @@ public abstract class Activator
   //---------------------------------------------------------------------------
   
   /**
-   * Sets the transaction reap interval.
+   * Sets the transaction max lifespan.
    * <p>
    * The default is 60,000 milliseconds (1 minute.)  The minimum is 100
    * milliseconds.  Values less than the minimum will be automatically
@@ -637,14 +637,14 @@ public abstract class Activator
    */
   protected final
   void
-  setTransactionReapInterval (long millisecs)
+  setTransactionMaxLifespan (long millisecs)
   {
     long ms = millisecs;
 
     if (ms < 100L)
       ms = 100L;
 
-    transactionReapIntervalMs.setValue(ms);
+    transactionMaxLifespanMs.setValue(ms);
   }
 
   //---------------------------------------------------------------------------
@@ -862,7 +862,7 @@ public abstract class Activator
         if (transaction == null)
         {
           LinkedList<UUID> reapedTransactions =
-            receptors.reapTransactions(transactionReapIntervalMs.getValue());
+            receptors.reapTransactions(transactionMaxLifespanMs.getValue());
 
           for (UUID id : reapedTransactions)
           {
@@ -1181,5 +1181,5 @@ public abstract class Activator
   private Cell cell;
 
   private SafeLong transactionHistoryWindowMs;
-  private SafeLong transactionReapIntervalMs;
+  private SafeLong transactionMaxLifespanMs;
 }

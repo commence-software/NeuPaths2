@@ -227,7 +227,7 @@ final class Cfg_LogicCellParser extends Cfg_CellDefinitionParser
         } // if useDefaultConstructor
         
         activators[a].setTransactionHistoryWindow(activator.transactionHistoryWindow);
-        activators[a].setTransactionReapInterval(activator.transactionReapInterval);
+        activators[a].setTransactionMaxLifespan(activator.transactionMaxLifespan);
       }
       catch (ClassNotFoundException cnfe)
       {

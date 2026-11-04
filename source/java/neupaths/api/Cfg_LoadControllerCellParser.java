@@ -33,6 +33,11 @@ final class Cfg_LoadControllerCellParser extends Cfg_CellDefinitionParser
   {
     Cfg_LoadControllerCellHandler lch = (Cfg_LoadControllerCellHandler) handler;
 
+    if (handler.name == null)
+    {
+      throw new NeuPathsException("Cells require a name");
+    }
+    
     if (lch.cellNamePrefix == null)
     {
       throw new NeuPathsException("Load-controller cells require a cell name prefix");

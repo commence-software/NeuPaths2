@@ -32,6 +32,11 @@ final class Cfg_ExtractorCellParser extends Cfg_CellDefinitionParser
   {
     Cfg_ExtractorCellHandler extractor = (Cfg_ExtractorCellHandler) handler;
 
+    if (handler.name == null)
+    {
+      throw new NeuPathsException("Cells require a name");
+    }
+    
     if (extractor.subscription == null)
     {
       throw new NeuPathsException("Extractor cells require a subscription");

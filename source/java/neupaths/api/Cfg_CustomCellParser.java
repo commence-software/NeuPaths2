@@ -35,6 +35,11 @@ final class Cfg_CustomCellParser extends Cfg_CellDefinitionParser
   {
     Cfg_CustomCellHandler ch = (Cfg_CustomCellHandler) handler;
 
+    if (handler.name == null)
+    {
+      throw new NeuPathsException("Cells require a name");
+    }
+    
     if (ch.className == null)
     {
       throw new NeuPathsException("Custom cells require a class name");

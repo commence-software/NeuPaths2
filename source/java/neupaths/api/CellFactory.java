@@ -1275,31 +1275,6 @@ public class CellFactory
   public static
   <T extends Cell> T createCell (String cellDefinitionFile)
   {
-    return (T)(internalCreateCell(null, cellDefinitionFile));
-  }
-
-  /**
-   * Instantiates a NeuPaths cluster cell as specified in the
-   * {@code cellDefinitionFile}.
-   *
-   * @param clusterHandler     Cell cluster configuration handler.
-   * @param cellDefinitionFile Pathname of the cell definition file.
-   *
-   * @return NeuPaths cell object.
-   */
-  @SuppressWarnings("unchecked")
-  static
-  <T extends Cell> T createCell (Cfg_CellClusterHandler clusterHandler,
-                                 String                 cellDefinitionFile)
-  {
-    return (T)(internalCreateCell(clusterHandler,
-                                  cellDefinitionFile));
-  }
-
-  private static
-  Cell internalCreateCell (Cfg_CellClusterHandler clusterHandler,
-                           String                 cellDefinitionFile)
-  {
     Cell newCell = null;
 
     try
@@ -1387,7 +1362,7 @@ public class CellFactory
                                   cellDefinitionFile, ioe);
     }
 
-    return newCell;
+    return (T) newCell;
   }
 
   private static class XMLErrorHandler implements ErrorHandler

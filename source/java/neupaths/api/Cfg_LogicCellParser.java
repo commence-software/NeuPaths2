@@ -33,6 +33,11 @@ final class Cfg_LogicCellParser extends Cfg_CellDefinitionParser
 
   protected void validate ()
   {
+    if (handler.name == null)
+    {
+      throw new NeuPathsException("Cells require a name");
+    }
+    
     if (handler.activators.size() == 0)
     {
       throw new NeuPathsException("Logic cells require at least one activator");

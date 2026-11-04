@@ -30,6 +30,11 @@ final class Cfg_EventCellParser extends Cfg_CellDefinitionParser
 
   protected void validate ()
   {
+    if (handler.name == null)
+    {
+      throw new NeuPathsException("Cells require a name");
+    }
+    
     if (handler.synapseNames.size() != 1)
     {
       throw new NeuPathsException("Event cells require a single synapse");

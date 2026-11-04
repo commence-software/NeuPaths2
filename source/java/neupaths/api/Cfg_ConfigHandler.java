@@ -20,7 +20,7 @@ abstract class Cfg_ConfigHandler
   
   void processNode (String definitionFile, Node node) {}
   
-  void processElement (String             definitionFile,
+  void processElement (String            definitionFile,
                        Cfg_ConfigHandler parentHandler) {}
 
   CellType cellType;

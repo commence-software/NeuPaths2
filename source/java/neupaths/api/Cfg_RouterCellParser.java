@@ -30,7 +30,11 @@ final class Cfg_RouterCellParser extends Cfg_CellDefinitionParser
 
   protected void validate ()
   {
-    // nothing to validate
+    if (handler.name == null)
+    {
+      throw new NeuPathsException("Cells require a name");
+    }
+    
   }
   
   protected Cell instantiate ()

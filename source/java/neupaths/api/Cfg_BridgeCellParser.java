@@ -31,6 +31,11 @@ final class Cfg_BridgeCellParser extends Cfg_CellDefinitionParser
   protected void validate ()
   {
     Cfg_BridgeCellHandler bridge = (Cfg_BridgeCellHandler) handler;
+
+    if (handler.name == null)
+    {
+      throw new NeuPathsException("Cells require a name");
+    }
     
     if (bridge.subscriptions.size() == 0)
     {

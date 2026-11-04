@@ -33,6 +33,11 @@ final class Cfg_InjectorCellParser extends Cfg_CellDefinitionParser
   {
     Cfg_InjectorCellHandler ih = (Cfg_InjectorCellHandler) handler;
 
+    if (handler.name == null)
+    {
+      throw new NeuPathsException("Cells require a name");
+    }
+    
     if (ih.transmitter == null)
     {
       throw new NeuPathsException("Injector cells require a transmitter");

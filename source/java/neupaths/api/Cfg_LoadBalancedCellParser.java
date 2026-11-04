@@ -35,6 +35,11 @@ final class Cfg_LoadBalancedCellParser extends Cfg_CellDefinitionParser
   {
     Cfg_LoadBalancedCellHandler lbh = (Cfg_LoadBalancedCellHandler) handler;
 
+    if (handler.name == null)
+    {
+      throw new NeuPathsException("Cells require a name");
+    }
+    
     if (lbh.controllerName == null)
     {
       throw new NeuPathsException("Load-balanced cells require a controller name");

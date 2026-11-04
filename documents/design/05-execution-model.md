@@ -138,10 +138,47 @@ and the thread still parks in `acquire()` between stimuli rather than polling.
 `resume()` clears the flag and evaluation continues with whatever arrives next. Use pause to
 quiesce a cell, not to hold work for later.
 
+**Pause is an activator-level state, not a transport-level one.** `pause()` sets an
+`activatorsPaused` flag and nothing else; the nucleus keeps running, so synapses stay
+connected, subscriptions keep refreshing and peers see no disconnect. `getState()` *derives*
+the answer — it reads the nucleus state and reports `PAUSED` only when the nucleus is
+`ONLINE` or `DEGRADED` and the flag is set. Two consequences fall out of that ordering:
+
+- `pause()` and `resume()` are no-ops on a cell that is `OFFLINE`, since there is nothing to
+  suspend; and
+- an `OFFLINE` or `DEGRADED` nucleus state always wins in `getState()`'s report, so a paused
+  cell that then loses its peers reports the transport problem rather than hiding it behind
+  `PAUSED`.
+
+**Both methods are overridable** (`getState()` is not). A subclass that must re-announce
+itself to the mesh on the way back overrides `resume()`, calls `super.resume()` and then
+transmits — which is exactly how a `LoadBalancedCell` rejoins its controller's worker pool
+(see [§6](06-case-study-load-balancing.md)).
+
 ## 5.7 Sharp edges
 
 - **No backpressure.** All queues are unbounded `LinkedList`s. A slow activator grows its own
   queue without throttling upstream — watch this under sustained overload.
+
+  Two clarifications, because this edge is easy to mistake for one the framework already
+  handles. First, **the load-balancing credit mechanism is not backpressure.** Work stimuli are
+  broadcast to every worker and fill their receptors on arrival; the credit gates *evaluation*,
+  not *admission* (see [§6.4](06-case-study-load-balancing.md), phase 2 — every worker "sits
+  holding the work"). The producer is never slowed by a credit shortage. Second, **redundancy
+  does not help here either.** Duplicate filtering at either scope addresses *independent*
+  failure; saturation is a *common-mode* failure, so two pools fed the same requests fall behind
+  identically and simultaneously while consuming 2× the resources.
+
+  Mitigate by design instead: bound the arrival rate at the injector, size `BUFFERED` receptors
+  against the worst-case burst, or prefer `NON_BUFFERED` where only the latest value matters.
+- **Abandoned transaction bundles are bounded, but by activity rather than by clock.** An
+  activator's receptor bundle for a transaction that never completes is reclaimed by the
+  transaction reaper (`transactionMaxLifespanMs`, default 60 s — see
+  [§2.5](02-domain-model.md#reclaiming-abandoned-transactions)). There is no reaper thread: the
+  sweep is triggered by the arrival of a *new* transaction, so a cell that falls idle holding
+  abandoned bundles keeps them until traffic resumes. Memory does not grow while idle, but it is
+  not released either. The limit applies to *every* bundle, healthy ones included, so set it
+  above the longest transaction the cell can legitimately take.
 - **Shutdown.** `stop()` sets `SafeBoolean` terminate flags and `interrupt()`s each thread to
   break it out of `acquire()`/`sleep()`, then drains permits and clears queues. Threads are
   **daemon by default** (the JVM can exit) unless the env var

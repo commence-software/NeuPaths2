@@ -21,8 +21,15 @@ import org.xml.sax.SAXParseException;
  * Creates cells according to cell definition files.
  * <p>
  * A cell definition file contains an XML schema for one of the NeuPaths cell
- * types: {@link BridgeCell}, {@link EventCell}, {@link ExtractorCell},
- * {@link InjectorCell}, {@link LogicCell} or {@link RouterCell}.  The
+ * types: <a href="#BridgeCells">BridgeCell</a>,
+ * <a href="#EventCells">EventCell</a>,
+ * <a href="#ExtractorCells">ExtractorCell</a>,
+ * <a href="#InjectorCells">InjectorCell</a>,
+ * <a href="#LoadBalancedCells">LoadBalancedCell</a>,
+ * <a href="#LoadControllerCells">LoadControllerCell</a>,
+ * <a href="#LogicCells">LogicCell</a>,
+ * <a href="#RouterCells">RouterCell</a> or
+ * <a href="#CustomCells">Custom</a> cell.  The
  * {@link #createCell} method instantiates a NeuPaths cell according to the
  * definition, returning a reference to the specific NeuPaths cell type.
  * For example, a cell definition file that specifies a Logic cell would be
@@ -38,7 +45,7 @@ import org.xml.sax.SAXParseException;
  * <ul>
  * {@code Cell myCell = CellFactory.createCell(myCellDefinition);}
  * </ul>
- * <h2>Bridge Cells</h2>
+ * <h2><a id="BridgeCells">Bridge Cells</a></h2>
  * <p>
  * A {@link BridgeCell} is specified as follows:
  * </p>
@@ -72,16 +79,11 @@ import org.xml.sax.SAXParseException;
  * </ul>
  * </p>
  * <p>
- * <b>Notes</b>:
- * <ol>
- * <li>Subscriptions are optional.  When no subscriptions are provided, the
- * cell operates as a {@link RouterCell}.</li>
- * <li>Only Bridge subscriptions are accepted (see {@link BridgeSubscriptionSpec}).
+ * <b>Note</b>: Only Bridge subscriptions are accepted (see {@link BridgeSubscriptionSpec}).
  * In this case, the {@literal <subscription>} element is an alias for
- * {@literal <bridge_subscription>}.</li>
- * </ol>
+ * {@literal <bridge_subscription>}.
  * </p>
- * <h2>Event Cells</h2>
+ * <h2><a id="EventCells">Event Cells</a></h2>
  * <p>
  * An {@link EventCell} is specified as follows:
  * </p>
@@ -100,7 +102,7 @@ import org.xml.sax.SAXParseException;
  * {@literal </event_cell>}</pre>
  * </ul>
  * </p>
- * <h2>Extractor Cells</h2>
+ * <h2><a id="ExtractorCells">Extractor Cells</a></h2>
  * <p>
  * An {@link ExtractorCell} is specified as follows:
  * </p>
@@ -127,6 +129,7 @@ import org.xml.sax.SAXParseException;
  * {@literal     <subscription_refresh_interval_ms>n</subscription_refresh_interval_ms>}
  * {@literal     <duplicate_detection_interval_ms>n</duplicate_detection_interval_ms>}
  * {@literal     <subscription_trace_interval_ms>n</subscription_trace_interval_ms>}
+ * {@literal     <transaction_history_window_ms>n</transaction_history_window_ms>}
  * {@literal     <crypto_key_file>pathname</crypto_key_file>}
  * {@literal </extractor_cell>}</pre>
  * </ul>
@@ -136,7 +139,7 @@ import org.xml.sax.SAXParseException;
  * In this case, the {@literal <subscription>} element is an alias for
  * {@literal <extractor_subscription>}.
  * </p>
- * <h2>Injector Cells</h2>
+ * <h2><a id="InjectorCells">Injector Cells</a></h2>
  * <p>
  * An {@link InjectorCell} is specified as follows:
  * </p>
@@ -165,7 +168,7 @@ import org.xml.sax.SAXParseException;
  * {@literal </injector_cell>}</pre>
  * </ul>
  * </p>
- * <h2>Load-Balanced Cells</h2>
+ * <h2><a id="LoadBalancedCells">Load-Balanced Cells</a></h2>
  * <p>
  * A {@link LoadBalancedCell} is specified as follows:
  * </p>
@@ -188,7 +191,54 @@ import org.xml.sax.SAXParseException;
  * {@literal     <activators>}
  * {@literal         <activator>}
  * {@literal             <class></class>}
+ * {@literal             <default/>}
+ * {@literal             <name></name>}
+ * {@literal             <receptors>}
+ * {@literal                 <receptor>}
+ * {@literal                     <name></name>}
+ * {@literal                     <mode>buffered|non_buffered</mode>}
+ * {@literal                     <stimulus_class></stimulus_class>}
+ * {@literal                 </receptor>}
+ * {@literal                 ...}
+ * {@literal             </receptors>}
+ * {@literal             <transmitters>}
+ * {@literal                 <transmitter>}
+ * {@literal                     <name></name>}
+ * {@literal                     <stimulus_class></stimulus_class>}
+ * {@literal                     <trace>enabled|disabled</trace>}
+ * {@literal                 </transmitter>}
+ * {@literal                 ...}
+ * {@literal             </transmitters>}
+ * {@literal             <subscriptions>}
+ * {@literal                 <subscription>}
+ * {@literal                     <cell_name></cell_name>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <receptor_name></receptor_name>}
+ * {@literal                     <domain></domain>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </subscription>}
+ * {@literal                 <logic_subscription>}
+ * {@literal                     <cell_name></cell_name>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <receptor_name></receptor_name>}
+ * {@literal                     <domain></domain>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </logic_subscription>}
+ * {@literal                 <loopback_subscription>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <receptor_name></receptor_name>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </loopback_subscription>}
+ * {@literal                 <map_subscription>}
+ * {@literal                     <cell_name></cell_name>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <domain></domain>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </map_subscription>}
+ * {@literal                 ...}
+ * {@literal             </subscriptions>}
  * {@literal             <transaction_history_window_ms>n</transaction_history_window_ms>}
+ * {@literal             <transaction_max_lifespan_ms>n</transaction_max_lifespan_ms>}
  * {@literal         </activator>}
  * {@literal         ...}
  * {@literal     </activators>}
@@ -204,13 +254,28 @@ import org.xml.sax.SAXParseException;
  * {@literal     <subscription_trace_interval_ms>n</subscription_trace_interval_ms>}
  * {@literal     <pulse_interval_ms>n</pulse_interval_ms>}
  * {@literal     <crypto_key_file>pathname</crypto_key_file>}
- * {@literal <load_balanced_cell>}</pre>
+ * {@literal </load_balanced_cell>}</pre>
  * </ul>
  * </p>
  * <p>
- * <b>Note</b>: Cell properties are optional.
+ * <b>Notes</b>:
+ * <ol>
+ * <li>
+ * A {@link LoadBalancedActivator} must be provided.  Additional activators
+ * may be used.
+ * </li>
+ * <li>Cell properties are optional.</li>
+ * <li>Activator transmitters are optional.</li>
+ * <li>Subscription filter_transactions are optional.  They default to disabled.</li>
+ * <li>
+ * Only Logic-based subscriptions are accepted (see {@link LogicSubscriptionSpec}).
+ * In this case, the {@literal <subscription>} element is an alias for
+ * {@literal <logic_subscription>}.  Loopback ({@literal <loopback_subscription>}) and
+ * Map ({@literal <map_subscription>}) subscriptions are also accepted.
+ * </li>
+ * </ol>
  * </p>
- * <h2>Load-Controller Cells</h2>
+ * <h2><a id="LoadControllerCells">Load-Controller Cells</a></h2>
  * <p>
  * A {@link LoadControllerCell} is specified as follows:
  * </p>
@@ -224,7 +289,7 @@ import org.xml.sax.SAXParseException;
  * {@literal         ...}
  * {@literal     </synapses>}
  * {@literal     <receptors>}
- * {@literal         <receptor>}\
+ * {@literal         <receptor>}
  * {@literal             <name></name>}
  * {@literal             <mode>buffered|non_buffered</mode>}
  * {@literal             <stimulus_class></stimulus_class>}
@@ -237,21 +302,25 @@ import org.xml.sax.SAXParseException;
  * {@literal             <transmitter_name></transmitter_name>}
  * {@literal             <receptor_name></receptor_name>}
  * {@literal             <domain></domain>}
+ * {@literal             <filter_transactions>enabled|disabled</filter_transactions>}
  * {@literal         </subscription>}
  * {@literal         <logic_subscription>}
  * {@literal             <cell_name></cell_name>}
  * {@literal             <transmitter_name></transmitter_name>}
  * {@literal             <receptor_name></receptor_name>}
  * {@literal             <domain></domain>}
+ * {@literal             <filter_transactions>enabled|disabled</filter_transactions>}
  * {@literal         </logic_subscription>}
  * {@literal         <loopback_subscription>}
  * {@literal             <transmitter_name></transmitter_name>}
  * {@literal             <receptor_name></receptor_name>}
+ * {@literal             <filter_transactions>enabled|disabled</filter_transactions>}
  * {@literal         </loopback_subscription>}
  * {@literal         <map_subscription>}
  * {@literal             <cell_name></cell_name>}
  * {@literal             <transmitter_name></transmitter_name>}
  * {@literal             <domain></domain>}
+ * {@literal             <filter_transactions>enabled|disabled</filter_transactions>}
  * {@literal         </map_subscription>}
  * {@literal         ...}
  * {@literal     </subscriptions>}
@@ -266,16 +335,22 @@ import org.xml.sax.SAXParseException;
  * {@literal     <duplicate_detection_interval_ms>n</duplicate_detection_interval_ms>}
  * {@literal     <subscription_trace_interval_ms>n</subscription_trace_interval_ms>}
  * {@literal     <crypto_key_file>pathname</crypto_key_file>}
- * {@literal <load_controller_cell>}</pre>
+ * {@literal </load_controller_cell>}</pre>
  * </ul>
  * </p>
  * <p>
- * <b>Note</b>: Only Logic-based subscriptions are accepted (see {@link LogicSubscriptionSpec}).
+ * <b>Notes</b>:
+ * <ol>
+ * <li>Subscription filter_transactions are optional.  They default to disabled.</li>
+ * <li>
+ * Only Logic-based subscriptions are accepted (see {@link LogicSubscriptionSpec}).
  * In this case, the {@literal <subscription>} element is an alias for
  * {@literal <logic_subscription>}.  Loopback ({@literal <loopback_subscription>}) and
  * Map ({@literal <map_subscription>}) subscriptions are also accepted.
+ * </li>
+ * </ol>
  * </p>
- * <h2>Logic Cells</h2>
+ * <h2><a id="LogicCells">Logic Cells</a></h2>
  * <p>
  * A {@link LogicCell} is specified as follows:
  * </p>
@@ -298,7 +373,54 @@ import org.xml.sax.SAXParseException;
  * {@literal     <activators>}
  * {@literal         <activator>}
  * {@literal             <class></class>}
+ * {@literal             <default/>}
+ * {@literal             <name></name>}
+ * {@literal             <receptors>}
+ * {@literal                 <receptor>}
+ * {@literal                     <name></name>}
+ * {@literal                     <mode>buffered|non_buffered</mode>}
+ * {@literal                     <stimulus_class></stimulus_class>}
+ * {@literal                 </receptor>}
+ * {@literal                 ...}
+ * {@literal             </receptors>}
+ * {@literal             <transmitters>}
+ * {@literal                 <transmitter>}
+ * {@literal                     <name></name>}
+ * {@literal                     <stimulus_class></stimulus_class>}
+ * {@literal                     <trace>enabled|disabled</trace>}
+ * {@literal                 </transmitter>}
+ * {@literal                 ...}
+ * {@literal             </transmitters>}
+ * {@literal             <subscriptions>}
+ * {@literal                 <subscription>}
+ * {@literal                     <cell_name></cell_name>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <receptor_name></receptor_name>}
+ * {@literal                     <domain></domain>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </subscription>}
+ * {@literal                 <logic_subscription>}
+ * {@literal                     <cell_name></cell_name>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <receptor_name></receptor_name>}
+ * {@literal                     <domain></domain>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </logic_subscription>}
+ * {@literal                 <loopback_subscription>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <receptor_name></receptor_name>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </loopback_subscription>}
+ * {@literal                 <map_subscription>}
+ * {@literal                     <cell_name></cell_name>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <domain></domain>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </map_subscription>}
+ * {@literal                 ...}
+ * {@literal             </subscriptions>}
  * {@literal             <transaction_history_window_ms>n</transaction_history_window_ms>}
+ * {@literal             <transaction_max_lifespan_ms>n</transaction_max_lifespan_ms>}
  * {@literal         </activator>}
  * {@literal         ...}
  * {@literal     </activators>}
@@ -316,9 +438,20 @@ import org.xml.sax.SAXParseException;
  * </ul>
  * </p>
  * <p>
- * <b>Note</b>: Cell properties are optional.
+ * <b>Notes</b>:
+ * <ol>
+ * <li>Cell properties are optional.</li>
+ * <li>Activator transmitters are optional.</li>
+ * <li>Subscription filter_transactions are optional.  They default to disabled.</li>
+ * <li>
+ * Only Logic-based subscriptions are accepted (see {@link LogicSubscriptionSpec}).
+ * In this case, the {@literal <subscription>} element is an alias for
+ * {@literal <logic_subscription>}.  Loopback ({@literal <loopback_subscription>}) and
+ * Map ({@literal <map_subscription>}) subscriptions are also accepted.
+ * </li>
+ * </ol>
  * </p>
- * <h2>Router Cells</h2>
+ * <h2><a id="RouterCells">Router Cells</a></h2>
  * <p>
  * A {@link RouterCell} is specified as follows:
  * </p>
@@ -342,7 +475,7 @@ import org.xml.sax.SAXParseException;
  * {@literal </router_cell>}</pre>
  * </ul>
  * </p>
- * <h2>Specialized Cells</h2>
+ * <h2><a id="CustomCells">Custom Cells</a></h2>
  * <p>
  * A cell derived from {@link LogicCell} or {@link LoadBalancedCell} is
  * specified as follows:
@@ -350,7 +483,7 @@ import org.xml.sax.SAXParseException;
  * <p>
  * <ul>
  * <pre>
- * {@literal <specialized_cell>}
+ * {@literal <custom_cell>}
  * {@literal     <class></class>}
  * {@literal     <name></name>}
  * {@literal     <properties>}
@@ -367,7 +500,54 @@ import org.xml.sax.SAXParseException;
  * {@literal     <activators>}
  * {@literal         <activator>}
  * {@literal             <class></class>}
+ * {@literal             <default/>}
+ * {@literal             <name></name>}
+ * {@literal             <receptors>}
+ * {@literal                 <receptor>}
+ * {@literal                     <name></name>}
+ * {@literal                     <mode>buffered|non_buffered</mode>}
+ * {@literal                     <stimulus_class></stimulus_class>}
+ * {@literal                 </receptor>}
+ * {@literal                 ...}
+ * {@literal             </receptors>}
+ * {@literal             <transmitters>}
+ * {@literal                 <transmitter>}
+ * {@literal                     <name></name>}
+ * {@literal                     <stimulus_class></stimulus_class>}
+ * {@literal                     <trace>enabled|disabled</trace>}
+ * {@literal                 </transmitter>}
+ * {@literal                 ...}
+ * {@literal             </transmitters>}
+ * {@literal             <subscriptions>}
+ * {@literal                 <subscription>}
+ * {@literal                     <cell_name></cell_name>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <receptor_name></receptor_name>}
+ * {@literal                     <domain></domain>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </subscription>}
+ * {@literal                 <logic_subscription>}
+ * {@literal                     <cell_name></cell_name>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <receptor_name></receptor_name>}
+ * {@literal                     <domain></domain>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </logic_subscription>}
+ * {@literal                 <loopback_subscription>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <receptor_name></receptor_name>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </loopback_subscription>}
+ * {@literal                 <map_subscription>}
+ * {@literal                     <cell_name></cell_name>}
+ * {@literal                     <transmitter_name></transmitter_name>}
+ * {@literal                     <domain></domain>}
+ * {@literal                     <filter_transactions>enabled|disabled</filter_transactions>}
+ * {@literal                 </map_subscription>}
+ * {@literal                 ...}
+ * {@literal             </subscriptions>}
  * {@literal             <transaction_history_window_ms>n</transaction_history_window_ms>}
+ * {@literal             <transaction_max_lifespan_ms>n</transaction_max_lifespan_ms>}
  * {@literal         </activator>}
  * {@literal         ...}
  * {@literal     </activators>}
@@ -381,34 +561,614 @@ import org.xml.sax.SAXParseException;
  * {@literal     <subscription_trace_interval_ms>n</subscription_trace_interval_ms>}
  * {@literal     <pulse_interval_ms>n</pulse_interval_ms>}
  * {@literal     <crypto_key_file>pathname</crypto_key_file>}
- * {@literal </specialized_cell>}</pre>
+ * {@literal </custom_cell>}</pre>
  * </ul>
  * </p>
  * <p>
  * <b>Notes</b>:
- * <ul>
+ * <ol>
  * <li>Cell properties are optional.</li>
+ * <li>Activator transmitters are optional.</li>
+ * <li>Subscription filter_transactions are optional.  They default to disabled.</li>
+ * <li>
+ * Only Logic-based subscriptions are accepted (see {@link LogicSubscriptionSpec}).
+ * In this case, the {@literal <subscription>} element is an alias for
+ * {@literal <logic_subscription>}.  Loopback ({@literal <loopback_subscription>}) and
+ * Map ({@literal <map_subscription>}) subscriptions are also accepted.
+ * </li>
+ * <li>The custom cell class and constructor must be {@code public}.</li>
  * <li>The custom cell class must have a constructor like the following:
  * <p>
  * <pre> public class MyCustomCell extends LogicCell
  * {
  *   public MyCustomCell (String      name,
+ *                        PropertySet properties,
  *                        String[]    synapseNames,
  *                        Activator[] activators,
  *                        byte[]      cryptoKey)
  *   {
+ *     super(name, properties, synapseName, activators, cryptoKey);
  *     ...
  *   }
  * }
  * </pre>
  * </p>
  * </li>
- * <li>The custom cell class and constructor must be {@code public}.</li>
- * </ul>
+ * </ol>
  * </p>
- * <h2>Cell Definition Element Types</h2>
  * <p>
  * <table border=1>
+ * <tr>
+ * <td colspan=7><h2>Cell-level Element Types</h2></td>
+ * </tr>
+ * <tr align=center valign=bottom>
+ * <td><b>Element Name</b></td>
+ * <td><b>Description</b></td>
+ * <td><b>Element Path</b></td>
+ * <td><b>Element Type</b></td>
+ * <td><b>Opt?</b></td>
+ * <td><b>Default</b></td>
+ * <td><b>Example</b></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>activators</td>
+ * <td>List of cell activators</td>
+ * <td>
+ * load_balanced_cell/activators<br>
+ * logic_cell/activators<br>
+ * custom_cell/activators
+ * </td>
+ * <td></td>
+ * <td>No</td>
+ * <td></td>
+ * <td></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>cell_domain</td>
+ * <td>Domain name of the load-balanced cells</td>
+ * <td>load_controller_cell/cell_domain</td>
+ * <td>String</td>
+ * <td>No</td>
+ * <td></td>
+ * <td>LBDomain</td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>cell_name_prefix</td>
+ * <td>Prefix of load-balanced cell names</td>
+ * <td>load_controller_cell/cell_name_prefix</td>
+ * <td>String</td>
+ * <td>No</td>
+ * <td></td>
+ * <td>LBCell_</td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>class</td>
+ * <td>Fully-qualified name of custom cells's class type</td>
+ * <td>custom_cell/class</td>
+ * <td>String</td>
+ * <td>No</td>
+ * <td></td>
+ * <td>myPackage.MyCustomCell</td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>controller_domain</td>
+ * <td>Domain name of the load-controller cell</td>
+ * <td>load_balanced_cell/controller_domain</td>
+ * <td>String</td>
+ * <td>No</td>
+ * <td></td>
+ * <td>LBDomain</td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>controller_name</td>
+ * <td>Name of the load-controller cell</td>
+ * <td>load_balanced_cell/controller_name</td>
+ * <td>String</td>
+ * <td>No</td>
+ * <td></td>
+ * <td>LBController</td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>crypto_key_file</td>
+ * <td>Pathname of file containing crypto secret key</td>
+ * <td>
+ * bridge_cell/crypto_key_file<br>
+ * event_cell/crypto_key_file<br>
+ * extractor_cell/crypto_key_file<br>
+ * injector_cell/crypto_key_file<br>
+ * load_balanced_cell/crypto_key_file<br>
+ * load_controller_cell/crypto_key_file<br>
+ * logic_cell/crypto_key_file<br>
+ * router_cell/crypto_key_file<br>
+ * custom_cell/crypto_key_file
+ * </td>
+ * <td>String</td>
+ * <td>Yes</td>
+ * <td>null</td>
+ * <td>cfg/stim_key.dat</td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>debug_logging_enabled</td>
+ * <td>Indicates if logging of {@link EventType#DEBUG} events is enabled</td>
+ * <td>
+ * bridge_cell/debug_logging_enabled<br>
+ * extractor_cell/debug_logging_enabled<br>
+ * injector_cell/debug_logging_enabled<br>
+ * load_balanced_cell/debug_logging_enabled<br>
+ * load_controller_cell/debug_logging_enabled<br>
+ * logic_cell/debug_logging_enabled<br>
+ * router_cell/debug_logging_enabled<br>
+ * custom_cell/debug_logging_enabled
+ * </td>
+ * <td>Boolean: "true" or "false"</td>
+ * <td>Yes</td>
+ * <td>false</td>
+ * <td></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>duplicate_detection_interval_ms</td>
+ * <td>Length of duplicate detection window (millisecs)</td>
+ * <td>
+ * bridge_cell/duplicate_detection_interval_ms<br>
+ * event_cell/duplicate_detection_interval_ms<br>
+ * extractor_cell/duplicate_detection_interval_ms<br>
+ * injector_cell/duplicate_detection_interval_ms<br>
+ * load_balanced_cell/duplicate_detection_interval_ms<br>
+ * load_controller_cell/duplicate_detection_interval_ms<br>
+ * logic_cell/duplicate_detection_interval_ms<br>
+ * router_cell/duplicate_detection_interval_ms<br>
+ * custom_cell/duplicate_detection_interval_ms
+ * </td>
+ * <td>Numeric (long)</td>
+ * <td>Yes</td>
+ * <td>1000</td>
+ * <td></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>logging_enabled</td>
+ * <td>Indicates if cell logging is enabled</td>
+ * <td>
+ * bridge_cell/logging_enabled<br>
+ * extractor_cell/logging_enabled<br>
+ * injector_cell/logging_enabled<br>
+ * load_balanced_cell/logging_enabled<br>
+ * load_controller_cell/logging_enabled<br>
+ * logic_cell/logging_enabled<br>
+ * router_cell/logging_enabled<br>
+ * custom_cell/logging_enabled
+ * </td>
+ * <td>Boolean: "true" or "false"</td>
+ * <td>Yes</td>
+ * <td>true</td>
+ * <td></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>name</td>
+ * <td>Cell name</td>
+ * <td>
+ * bridge_cell/name<br>
+ * event_cell/name<br>
+ * extractor_cell/name<br>
+ * injector_cell/name<br>
+ * load_balanced_cell/name<br>
+ * load_controller_cell/name<br>
+ * logic_cell/name<br>
+ * router_cell/name<br>
+ * custom_cell/name
+ * </td>
+ * <td>String</td>
+ * <td>No</td>
+ * <td></td>
+ * <td>My_Cell</td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>output_file</td>
+ * <td>Pathname of event data output file</td>
+ * <td>event_cell/output_file</td>
+ * <td>String</td>
+ * <td>No</td>
+ * <td></td>
+ * <td>/tmp/domain1_events.txt</td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>propagate_global_subscriptions</td>
+ * <td>Indicates if cell should forward global subscriptions</td>
+ * <td>
+ * bridge_cell/propagate_global_subscriptions<br>
+ * event_cell/propagate_global_subscriptions<br>
+ * extractor_cell/propagate_global_subscriptions<br>
+ * injector_cell/propagate_global_subscriptions<br>
+ * load_balanced_cell/propagate_global_subscriptions<br>
+ * load_controller_cell/propagate_global_subscriptions<br>
+ * logic_cell/propagate_global_subscriptions<br>
+ * router_cell/propagate_global_subscriptions<br>
+ * custom_cell/propagate_global_subscriptions
+ * </td>
+ * <td>Boolean: "true" or "false"</td>
+ * <td>Yes</td>
+ * <td>true</td>
+ * <td></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>properties</td>
+ * <td>List of cell properties</td>
+ * <td>
+ * load_balanced_cell/properties<br>
+ * logic_cell/properties<br>
+ * custom_cell/properties
+ * </td>
+ * <td></td>
+ * <td>Yes</td>
+ * <td></td>
+ * <td></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>pulse_interval_ms</td>
+ * <td>Interval between pulses (millisecs).</td>
+ * <td>
+ * load_balanced_cell/pulse_interval_ms<br>
+ * logic_cell/pulse_interval_ms<br>
+ * custom_cell/pulse_interval_ms
+ * </td>
+ * <td>Numeric (long)</td>
+ * <td>Yes</td>
+ * <td>0</td>
+ * <td></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>runtime_logging_enabled</td>
+ * <td>Indicates if logging of {@link EventType#RUNTIME} events is enabled</td>
+ * <td>
+ * bridge_cell/runtime_logging_enabled<br>
+ * extractor_cell/runtime_logging_enabled<br>
+ * injector_cell/runtime_logging_enabled<br>
+ * load_balanced_cell/runtime_logging_enabled<br>
+ * load_controller_cell/runtime_logging_enabled<br>
+ * logic_cell/runtime_logging_enabled<br>
+ * router_cell/runtime_logging_enabled<br>
+ * custom_cell/runtime_logging_enabled
+ * </td>
+ * <td>Boolean: "true" or "false"</td>
+ * <td>Yes</td>
+ * <td>false</td>
+ * <td></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>subscription</td>
+ * <td>Extractor cell subscription</td>
+ * <td>extractor_cell/subscription</td>
+ * <td></td>
+ * <td>No</td>
+ * <td></td>
+ * <td></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>subscriptions</td>
+ * <td>List of cell subscriptions</td>
+ * <td>
+ * bridge_cell/subscriptions<br>
+ * load_controller_cell/subscriptions
+ * </td>
+ * <td></td>
+ * <td>No</td>
+ * <td></td>
+ * <td></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>subscription_refresh_interval_ms</td>
+ * <td>Interval at which cell's subscriptions are refreshed (millisecs)</td>
+ * <td>
+ * bridge_cell/subscription_refresh_interval_ms<br>
+ * event_cell/subscription_refresh_interval_ms<br>
+ * extractor_cell/subscription_refresh_interval_ms<br>
+ * load_balanced_cell/subscription_refresh_interval_ms<br>
+ * load_controller_cell/subscription_refresh_interval_ms<br>
+ * logic_cell/subscription_refresh_interval_ms<br>
+ * custom_cell/subscription_refresh_interval_ms
+ * </td>
+ * <td>Numeric (long)</td>
+ * <td>Yes</td>
+ * <td>1500</td>
+ * <td></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>subscription_trace_interval_ms</td>
+ * <td>Interval at which cell's current subscriptions are reported via {@link EventType#TRACE} events (millisecs)</td>
+ * <td>
+ * bridge_cell/subscription_trace_interval_ms<br>
+ * event_cell/subscription_trace_interval_ms<br>
+ * extractor_cell/subscription_trace_interval_ms<br>
+ * injector_cell/subscription_trace_interval_ms<br>
+ * load_balanced_cell/subscription_trace_interval_ms<br>
+ * load_controller_cell/subscription_trace_interval_ms<br>
+ * logic_cell/subscription_trace_interval_ms<br>
+ * router_cell/subscription_trace_interval_ms<br>
+ * custom_cell/subscription_trace_interval_ms
+ * </td>
+ * <td>Numeric (long)</td>
+ * <td>Yes</td>
+ * <td>0</td>
+ * <td></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>synapse</td>
+ * <td>Event cell synapse</td>
+ * <td>event_cell/synapse</td>
+ * <td></td>
+ * <td>No</td>
+ * <td></td>
+ * <td></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>synapses</td>
+ * <td>List of cell synapses</td>
+ * <td>
+ * bridge_cell/synapses<br>
+ * extractor_cell/synapses</br>
+ * injector_cell/synapses<br>
+ * load_balanced_cell/synapses<br>
+ * load_controller_cell/synapses<br>
+ * logic_cell/synapses<br>
+ * router_cell/synapses<br>
+ * custom_cell/synapses
+ * </td>
+ * <td></td>
+ * <td>No</td>
+ * <td></td>
+ * <td></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>trace_logging_enabled</td>
+ * <td>Indicates if logging of {@link EventType#TRACE} events is enabled</td>
+ * <td>
+ * bridge_cell/trace_logging_enabled<br>
+ * extractor_cell/trace_logging_enabled<br>
+ * injector_cell/trace_logging_enabled<br>
+ * load_balanced_cell/trace_logging_enabled<br>
+ * load_controller_cell/trace_logging_enabled<br>
+ * logic_cell/trace_logging_enabled<br>
+ * router_cell/trace_logging_enabled<br>
+ * custom_cell/trace_logging_enabled
+ * </td>
+ * <td>Boolean: "true" or "false"</td>
+ * <td>Yes</td>
+ * <td>false</td>
+ * <td></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>transaction_history_window_ms</td>
+ * <td>Length of transaction history window used to detect duplicate transacton responses (millisecs)</td>
+ * <td>extractor_cell/transaction_history_window_ms</td>
+ * <td>Numeric (long)</td>
+ * <td>Yes</td>
+ * <td>30000</td>
+ * <td></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>transmitter</td>
+ * <td>Injector cell transmitter</td>
+ * <td>injector_cell/transmitter</td>
+ * <td></td>
+ * <td>No</td>
+ * <td></td>
+ * <td></td>
+ * </tr>
+ * <tr>
+ * <td colspan=7><h2>Property-level Element Types</h2></td>
+ * </tr>
+ * <tr align=center valign=bottom>
+ * <td><b>Element Name</b></td>
+ * <td><b>Description</b></td>
+ * <td><b>Element Path</b></td>
+ * <td><b>Element Type</b></td>
+ * <td><b>Opt?</b></td>
+ * <td><b>Default</b></td>
+ * <td><b>Example</b></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>name</td>
+ * <td>Name of property</td>
+ * <td>property/name</td>
+ * <td>String</td>
+ * <td>No</td>
+ * <td></td>
+ * <td>Property1</td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>value</td>
+ * <td>Value of property</td>
+ * <td>property/value</td>
+ * <td>String</td>
+ * <td>No</td>
+ * <td></td>
+ * <td>property_value</td>
+ * </tr>
+ * <tr>
+ * <td colspan=7><h2>Synapse-level Element Types</h2></td>
+ * </tr>
+ * <tr align=center valign=bottom>
+ * <td><b>Element Name</b></td>
+ * <td><b>Description</b></td>
+ * <td><b>Element Path</b></td>
+ * <td><b>Element Type</b></td>
+ * <td><b>Opt?</b></td>
+ * <td><b>Default</b></td>
+ * <td><b>Example</b></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>synapse</td>
+ * <td>Synapse name specification</td>
+ * <td>synapse</td>
+ * <td>String.  See {@link Cell} for details.</td>
+ * <td>No</td>
+ * <td></td>
+ * <td>Network#Stream#Peer#Domain1#30000</td>
+ * </tr>
+ * <tr>
+ * <td colspan=7><h2>Activator-level Element Types</h2></td>
+ * </tr>
+ * <tr align=center valign=bottom>
+ * <td><b>Element Name</b></td>
+ * <td><b>Description</b></td>
+ * <td><b>Element Path</b></td>
+ * <td><b>Element Type</b></td>
+ * <td><b>Opt?</b></td>
+ * <td><b>Default</b></td>
+ * <td><b>Example</b></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>class</td>
+ * <td>Fully-qualified name of activator's class type</td>
+ * <td>activator/class</td>
+ * <td>String</td>
+ * <td>No</td>
+ * <td></td>
+ * <td>myPackage.MyCustomActivator</td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>default</td>
+ * <td>Indicates activator's default constructor should be used</td>
+ * <td>activator/default</td>
+ * <td></td>
+ * <td>Yes</td>
+ * <td></td>
+ * <td></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>name</td>
+ * <td>Activator name</td>
+ * <td>activator/name</td>
+ * <td>String</td>
+ * <td>Yes</td>
+ * <td>Value of &lt;class&gt;</td>
+ * <td>My_Activator</td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>receptors</td>
+ * <td>List of activator receptors</td>
+ * <td>activator/receptors</td>
+ * <td></td>
+ * <td>Yes (when &lt;default/&gt; specified)</td>
+ * <td></td>
+ * <td></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>subscriptions</td>
+ * <td>List of activator subscriptions</td>
+ * <td>activator/subscriptions</td>
+ * <td></td>
+ * <td>Yes (when &lt;default/&gt; specified)</td>
+ * <td></td>
+ * <td></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>transmitters</td>
+ * <td>List of activator transmitters</td>
+ * <td>activator/transmitters</td>
+ * <td></td>
+ * <td>Yes</td>
+ * <td></td>
+ * <td></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>transaction_history_window_ms</td>
+ * <td>Length of transaction history window used to detect duplicate transacton responses (millisecs)</td>
+ * <td>activator/transaction_history_window_ms</td>
+ * <td>Numeric (long)</td>
+ * <td>Yes</td>
+ * <td>30000</td>
+ * <td></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>transaction_max_lifespan_ms</td>
+ * <td>Maximum lifespan of an incomplete transaction (millisecs)</td>
+ * <td>activator/transaction_max_lifespan_ms</td>
+ * <td>Numeric (long)</td>
+ * <td>Yes</td>
+ * <td>60000</td>
+ * <td></td>
+ * </tr>
+ * <tr>
+ * <td colspan=7><h2>Receptor-level Element Types</h2></td>
+ * </tr>
+ * <tr align=center valign=bottom>
+ * <td><b>Element Name</b></td>
+ * <td><b>Description</b></td>
+ * <td><b>Element Path</b></td>
+ * <td><b>Element Type</b></td>
+ * <td><b>Opt?</b></td>
+ * <td><b>Default</b></td>
+ * <td><b>Example</b></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>mode</td>
+ * <td>Receptor mode</td>
+ * <td>receptor/mode</td>
+ * <td>ReceptorMode: "buffered" or "non_buffered"</td>
+ * <td>Yes</td>
+ * <td>non_buffered</td>
+ * <td></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>name</td>
+ * <td>Receptor name</td>
+ * <td>receptor/name</td>
+ * <td>String</td>
+ * <td>No</td>
+ * <td></td>
+ * <td>A_Receptor</td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>stimulus_class</td>
+ * <td>Fully-qualified name of receptors's stimulus type</td>
+ * <td>receptor/stimulus_class</td>
+ * <td>String</td>
+ * <td>No</td>
+ * <td></td>
+ * <td>neupaths.api.IntegerStimulus</td>
+ * </tr>
+ * <tr>
+ * <td colspan=7><h2>Transmitter-level Element Types</h2></td>
+ * </tr>
+ * <tr align=center valign=bottom>
+ * <td><b>Element N/ame</b></td>
+ * <td><b>Description</b></td>
+ * <td><b>Element Path</b></td>
+ * <td><b>Element Type</b></td>
+ * <td><b>Opt?</b></td>
+ * <td><b>Default</b></td>
+ * <td><b>Example</b></td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>name</td>
+ * <td>Transmitter name</td>
+ * <td>transmitter/name</td>
+ * <td>String</td>
+ * <td>No</td>
+ * <td></td>
+ * <td>A_Transmitter</td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>stimulus_class</td>
+ * <td>Fully-qualified name of transmitter's stimulus type</td>
+ * <td>transmitter/stimulus_class</td>
+ * <td>String</td>
+ * <td>No</td>
+ * <td></td>
+ * <td>neupaths.api.IntegerStimulus</td>
+ * </tr>
+ * <tr align=left valign=top>
+ * <td>trace</td>
+ * <td>Indicates if stimulus path trace should be reported via {@link EventType#TRACE} events</td>
+ * <td>transmitter/trace</td>
+ * <td>StimulusTrace: "enabled" or "disabled"</td>
+ * <td>Yes</td>
+ * <td>enabled</td>
+ * <td></td>
+ * </tr>
+ * <tr>
+ * <td colspan=7><h2>Subscription-level Element Types</h2></td>
+ * </tr>
  * <tr align=center valign=bottom>
  * <td><b>Element Name</b></td>
  * <td><b>Description</b></td>
@@ -422,9 +1182,11 @@ import org.xml.sax.SAXParseException;
  * <td>cell_name</td>
  * <td>Subscription producer cell name</td>
  * <td>
- * /bridge_cell/subscriptions/subscription/cell_name<br>
- * /extractor_cell/subscription/cell_name<br>
- * /load_controller_cell/subscriptions/subscription/cell_name
+ * subscription/cell_name<br>
+ * bridge_subscription/cell_name<br>
+ * extractor_subscription/cell_name<br>
+ * logic_subscription/cell_name<br>
+ * map_subscription/cell_name
  * </td>
  * <td>String</td>
  * <td>No</td>
@@ -432,84 +1194,14 @@ import org.xml.sax.SAXParseException;
  * <td>My_Cell</td>
  * </tr>
  * <tr align=left valign=top>
- * <td>class</td>
- * <td>Fully-qualified name of specialized cells's class type.</td>
- * <td>/specialized_cell/class</td>
- * <td>String</td>
- * <td>No</td>
- * <td></td>
- * <td>myPackage.MyCustomCell</td>
- * </tr>
- * <tr align=left valign=top>
- * <td>class</td>
- * <td>Fully-qualified name of activator's class type.</td>
- * <td>/(logic|load_balanced|specialized)_cell/activators/activator/class</td>
- * <td>String</td>
- * <td>No</td>
- * <td></td>
- * <td>myPackage.MyCustomActivator</td>
- * </tr>
- * <tr align=left valign=top>
- * <td>cell_domain</td>
- * <td>Domain name of the load-balanced cells</td>
- * <td>/load_controller_cell/cell_domain</td>
- * <td>String</td>
- * <td>No</td>
- * <td></td>
- * <td>LBDomain</td>
- * </tr>
- * <tr align=left valign=top>
- * <td>cell_name_prefix</td>
- * <td>Prefix of load-balanced cell names</td>
- * <td>/load_controller_cell/cell_name_prefix</td>
- * <td>String</td>
- * <td>No</td>
- * <td></td>
- * <td>LBCell_</td>
- * </tr>
- * <tr align=left valign=top>
- * <td>controller_domain</td>
- * <td>Domain name of the load-controller cell</td>
- * <td>/load_balanced_cell/controller_domain</td>
- * <td>String</td>
- * <td>No</td>
- * <td></td>
- * <td>LBDomain</td>
- * </tr>
- * <tr align=left valign=top>
- * <td>controller_name</td>
- * <td>Name of the load-controller cell</td>
- * <td>/load_balanced_cell/controller_name</td>
- * <td>String</td>
- * <td>No</td>
- * <td></td>
- * <td>LBController</td>
- * </tr>
- * <tr align=left valign=top>
- * <td>crypto_key_file</td>
- * <td>Pathname of file containing crypto secret key.</td>
- * <td>/*_cell/crypto_key_file</td>
- * <td>String</td>
- * <td>Yes</td>
- * <td>null</td>
- * <td>cfg/stim_key.dat</td>
- * </tr>
- * <tr align=left valign=top>
- * <td>debug_logging_enabled</td>
- * <td>Indicates if logging of {@link EventType#DEBUG} events is enabled.</td>
- * <td>/(bridge|extractor|injector|logic|load_balanced|load_controller|route|specialized)_cell/debug_logging_enabled</td>
- * <td>Boolean: "true" or "false"</td>
- * <td>Yes</td>
- * <td>false</td>
- * <td></td>
- * </tr>
- * <tr align=left valign=top>
  * <td>domain</td>
  * <td>Subscription domain</td>
  * <td>
- * /bridge_cell/subscriptions/subscription/domain<br>
- * /extractor_cell/subscription/domain<br>
- * /load_controller_cell/subscriptions/subscription/domain
+ * subscription/domain<br>
+ * bridge_subscription/domain<br>
+ * extractor_subscription/domain<br>
+ * logic_subscription/domain<br>
+ * map_subscription/domain
  * </td>
  * <td>String</td>
  * <td>No</td>
@@ -517,221 +1209,48 @@ import org.xml.sax.SAXParseException;
  * <td>Domain1</td>
  * </tr>
  * <tr align=left valign=top>
- * <td>duplicate_detection_interval_ms</td>
- * <td>Length of duplicate detection window (millisecs).</td>
- * <td>/*_cell/duplicate_detection_interval_ms</td>
- * <td>Numeric (long)</td>
- * <td>Yes</td>
- * <td>1000</td>
- * <td></td>
- * </tr>
- * <tr align=left valign=top>
  * <td>filter_transactions</td>
- * <td>Indicates if duplicate transaction responses should be filtered.</td>
- * <td>/extractor_cell/subscription/filter_transactions</td>
+ * <td>Indicates if duplicate transaction responses should be filtered</td>
+ * <td>
+ * subscription/filter_transactions (Extractor, Logic)<br>
+ * extractor_subscription/filter_transactions<br>
+ * logic_subscription/filter_transactions<br>
+ * loopback_subscription/filter_transactions<br>
+ * map_subscription/filter_transactions
+ * </td>
  * <td>TransactionFilter: "enabled" or "disabled"</td>
  * <td>Yes</td>
  * <td>disabled</td>
  * <td></td>
  * </tr>
  * <tr align=left valign=top>
- * <td>logging_enabled</td>
- * <td>Indicates if cell logging is enabled.</td>
- * <td>(bridge|extractor|injector|logic|load_balanced|load_controller|route|specialized)_cell/logging_enabled</td>
- * <td>Boolean: "true" or "false"</td>
- * <td>Yes</td>
- * <td>true</td>
- * <td></td>
- * </tr>
- * <tr align=left valign=top>
- * <td>mode</td>
- * <td>Receptor mode</td>
- * <td>/load_controller_cell/receptors/receptor/mode</td>
- * <td>ReceptorMode: "buffered" or "non_buffered"</td>
- * <td>Yes</td>
- * <td>non_buffered</td>
- * <td></td>
- * </tr>
- * <tr align=left valign=top>
- * <td>name</td>
- * <td>Cell name</td>
- * <td>/*_cell/name</td>
- * <td>String</td>
- * <td>No</td>
- * <td></td>
- * <td>My_Cell</td>
- * </tr>
- * <tr align=left valign=top>
- * <td>name</td>
- * <td>Name of property</td>
- * <td>/(logic|load_balanced|specialized)_cell/properties/property/name</td>
- * <td>String</td>
- * <td>No</td>
- * <td></td>
- * <td>Property1</td>
- * </tr>
- * <tr align=left valign=top>
- * <td>name</td>
- * <td>Receptor name</td>
- * <td>/load_controller_cell/receptors/receptor/name</td>
- * <td>String</td>
- * <td>No</td>
- * <td></td>
- * <td>A_Receptor</td>
- * </tr>
- * <tr align=left valign=top>
- * <td>name</td>
- * <td>Transmitter name</td>
- * <td>/injector_cell/transmitter/name</td>
- * <td>String</td>
- * <td>No</td>
- * <td></td>
- * <td>A_Transmitter</td>
- * </tr>
- * <tr align=left valign=top>
- * <td>output_file</td>
- * <td>Pathname of event data output file.</td>
- * <td>/event_cell/output_file</td>
- * <td>String</td>
- * <td>No</td>
- * <td></td>
- * <td>/tmp/domain1_events.txt</td>
- * </tr>
- * <tr align=left valign=top>
- * <td>propagate_global_subscriptions</td>
- * <td>Indicates if cell should forward global subscriptions.</td>
- * <td>/*_cell/propagate_global_subscriptions</td>
- * <td>Boolean: "true" or "false"</td>
- * <td>Yes</td>
- * <td>true</td>
- * <td></td>
- * </tr>
- * <tr align=left valign=top>
- * <td>pulse_interval_ms</td>
- * <td>Interval between pulses (millisecs).</td>
- * <td>/(logic|load_balanced|specialized)_cell/pulse_interval_ms</td>
- * <td>Numeric (long)</td>
- * <td>Yes</td>
- * <td>0</td>
- * <td></td>
- * </tr>
- * <tr align=left valign=top>
  * <td>receptor_name</td>
  * <td>Subscription consumer receptor name</td>
  * <td>
- * /load_controller_cell/subscriptions/subscription/receptor_name<br>
- * /load_controller_cell/subscriptions/logic_subscription/receptor_name<br>
- * /load_controller_cell/subscriptions/loopback_subscription/receptor_name
+ * subscription/receptor_name (Logic)<br>
+ * logic_subscription/receptor_name<br>
+ * loopback_subscription/receptor_name
  * </td>
  * <td>String</td>
  * <td>No</td>
  * <td></td>
  * <td>A_Receptor</td>
- * </tr>
- * <tr align=left valign=top>
- * <td>runtime_logging_enabled</td>
- * <td>Indicates if logging of {@link EventType#RUNTIME} events is enabled.</td>
- * <td>/(bridge|extractor|injector|logic|load_balanced|load_controller|route|specialized)_cell/runtime_logging_enabled</td>
- * <td>Boolean: "true" or "false"</td>
- * <td>Yes</td>
- * <td>false</td>
- * <td></td>
- * </tr>
- * <tr align=left valign=top>
- * <td>stimulus_class</td>
- * <td>Fully-qualified name of receptors's stimulus type.</td>
- * <td>/load_controller_cell/receptors/receptor/stimulus_class</td>
- * <td>String</td>
- * <td>No</td>
- * <td></td>
- * <td>neupaths.api.IntegerStimulus</td>
- * </tr>
- * <tr align=left valign=top>
- * <td>stimulus_class</td>
- * <td>Fully-qualified name of transmitter's stimulus type.</td>
- * <td>/injector_cell/transmitter/stimulus_class</td>
- * <td>String</td>
- * <td>No</td>
- * <td></td>
- * <td>neupaths.api.IntegerStimulus</td>
- * </tr>
- * <tr align=left valign=top>
- * <td>subscription_refresh_interval_ms</td>
- * <td>Interval at which cell's subscriptions are refreshed (millisecs).</td>
- * <td>/(bridge|event|extractor|logic|load_balanced|load_controller|specialized)_cell/subscription_refresh_interval_ms</td>
- * <td>Numeric (long)</td>
- * <td>Yes</td>
- * <td>1500</td>
- * <td></td>
- * </tr>
- * <tr align=left valign=top>
- * <td>subscription_trace_interval_ms</td>
- * <td>Interval at which cell's current subscriptions are reported via {@link EventType#TRACE} events (millisecs).</td>
- * <td>/*_cell/subscription_trace_interval_ms</td>
- * <td>Numeric (long)</td>
- * <td>Yes</td>
- * <td>0</td>
- * <td></td>
- * </tr>
- * <tr align=left valign=top>
- * <td>synapse</td>
- * <td>Synapse name specification</td>
- * <td>
- * /(bridge|extractor|injector|logic|load_balanced|load_controller|route|specialized)_cell/synapses/synapse<br>
- * /event_cell/synapse
- * </td>
- * <td>String.  See {@link Cell} for details.</td>
- * <td>No</td>
- * <td></td>
- * <td>Network#Stream#Peer#Domain1#30000</td>
- * </tr>
- * <tr align=left valign=top>
- * <td>trace</td>
- * <td>Indicates if stimulus path trace should be reported via {@link EventType#TRACE} events.</td>
- * <td>/injector_cell/transmitter/trace</td>
- * <td>StimulusTrace: "enabled" or "disabled"</td>
- * <td>Yes</td>
- * <td>enabled</td>
- * <td></td>
- * </tr>
- * <tr align=left valign=top>
- * <td>trace_logging_enabled</td>
- * <td>Indicates if logging of {@link EventType#TRACE} events is enabled.</td>
- * <td>/(bridge|extractor|injector|logic|load_balanced|load_controller|route|specialized)_cell/trace_logging_enabled</td>
- * <td>Boolean: "true" or "false"</td>
- * <td>Yes</td>
- * <td>false</td>
- * <td></td>
- * </tr>
- * <tr align=left valign=top>
- * <td>transaction_history_window_ms</td>
- * <td>Length of transaction history window used to detect duplicate transacton responses (millisecs).</td>
- * <td>/(logic|load_balanced|specialized)_cell/activators/activator/transaction_history_window_ms</td>
- * <td>Numeric (long)</td>
- * <td>Yes</td>
- * <td>30000</td>
- * <td></td>
  * </tr>
  * <tr align=left valign=top>
  * <td>transmitter_name</td>
  * <td>Subscription producer transmitter name</td>
  * <td>
- * /(bridge|load_controller)_cell/subscriptions/subscription/transmitter_name<br>
- * /extractor_cell/subscription/transmitter_name
+ * subscription/transmitter_name<br>
+ * bridge_subscription/transmitter_name<br>
+ * extractor_subscription/transmitter_name<br>
+ * logic_subscription/transmitter_name<br>
+ * loopback_subscription/transmitter_name<br>
+ * map_subscription/transmitter_name
  * </td>
  * <td>String</td>
  * <td>No</td>
  * <td></td>
  * <td>A_Transmitter</td>
- * </tr>
- * <tr align=left valign=top>
- * <td>value</td>
- * <td>Value of property</td>
- * <td>/(logic|load_balanced|specialized)_cell/properties/property/value</td>
- * <td>String</td>
- * <td>No</td>
- * <td></td>
- * <td>property_value</td>
  * </tr>
  * </table>
  * </p>
@@ -782,29 +1301,6 @@ public class CellFactory
                            String                 cellDefinitionFile)
   {
     Cell newCell = null;
-    Syn_Name clusterSynapse = null;
-
-    if (clusterHandler != null)
-    {
-      LinkedList<String> clusterOptions = new LinkedList<>();
-      clusterOptions.addLast(System.getProperty("java.io.tmpdir") + File.separator + "cluster_" +
-                             Math.abs(clusterHandler.clusterName.hashCode()) +
-                             ".syn");
-  
-      try
-      {
-        clusterSynapse =
-            new Syn_Name(Syn_Scope.LOCAL,
-                         Syn_Type.STREAM,
-                         Syn_Mode.PEER,
-                         "Cluster:Ctrl",
-                         clusterOptions);
-      }
-      catch (Excp_SynapseFatal sfe)
-      {
-        throw new NeuPathsException("Could not create synapse name: " + sfe);
-      }
-    }
 
     try
     {
@@ -820,200 +1316,52 @@ public class CellFactory
       
       if (nodes.getLength() == 1)
       {
-        Node node = nodes.item(0);
-        String nodeName = node.getNodeName().toUpperCase();
+        Node root = nodes.item(0);
 
-        if (node.getNodeType() == Node.ELEMENT_NODE)
+        if (root.getNodeType() == Node.ELEMENT_NODE)
         {
-          if (nodeName.equals("BRIDGE_CELL"))
+          String nodeName = root.getNodeName().toUpperCase();
+          Cfg_CellDefinitionParser parser = null;
+
+          switch (nodeName)
           {
-            Cfg_BridgeCellHandler handler = new Cfg_BridgeCellHandler();
-            Cfg_Utils.processElement(cellDefinitionFile, null, handler, node);
-
-            if (clusterSynapse != null)
-              handler.synapseNames.add(clusterSynapse.toString());
-
-            newCell = new BridgeCell(handler.name,
-                                     handler.synapseNames.toArray(String[]::new),
-                                     handler.subscriptions.toArray(BridgeSubscriptionSpec[]::new),
-                                     Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
-
-            applyCellOptions(clusterHandler, handler, newCell);
+            case "BRIDGE_CELL":
+              parser = new Cfg_BridgeCellParser(cellDefinitionFile);
+              break;
+            case "EVENT_CELL":
+              parser = new Cfg_EventCellParser(cellDefinitionFile);
+              break;
+            case "EXTRACTOR_CELL":
+              parser = new Cfg_ExtractorCellParser(cellDefinitionFile);
+              break;
+            case "INJECTOR_CELL":
+              parser = new Cfg_InjectorCellParser(cellDefinitionFile);
+              break;
+            case "LOAD_BALANCED_CELL":
+              parser = new Cfg_LoadBalancedCellParser(cellDefinitionFile);
+              break;
+            case "LOAD_CONTROLLER_CELL":
+              parser = new Cfg_LoadControllerCellParser(cellDefinitionFile);
+              break;
+            case "LOGIC_CELL":
+              parser = new Cfg_LogicCellParser(cellDefinitionFile);
+              break;
+            case "ROUTER_CELL":
+              parser = new Cfg_RouterCellParser(cellDefinitionFile);
+              break;
+            case "CUSTOM_CELL":
+              parser = new Cfg_CustomCellParser(cellDefinitionFile);
+              break;
+            default:
+              throw new NeuPathsException("Cell definition file " +
+                                          cellDefinitionFile +
+                                          " contains invalid top-level element:" +
+                                          nodeName);
           }
-          else if (nodeName.equals("EVENT_CELL"))
-          {
-            Cfg_EventCellHandler handler = new Cfg_EventCellHandler();
-            Cfg_Utils.processElement(cellDefinitionFile, null, handler, node);
 
-            newCell = new EventCell(handler.name,
-                                    handler.synapseName,
-                                    handler.outputFileName,
-                                    Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
-
-            applyCellOptions(clusterHandler, handler, newCell);
-          }
-          else if (nodeName.equals("EXTRACTOR_CELL"))
-          {
-            Cfg_ExtractorCellHandler handler = new Cfg_ExtractorCellHandler();
-            Cfg_Utils.processElement(cellDefinitionFile, null, handler, node);
-
-            if (clusterSynapse != null)
-              handler.synapseNames.add(clusterSynapse.toString());
-
-            newCell = new ExtractorCell(handler.name,
-                                        handler.synapseNames.toArray(String[]::new),
-                                        handler.subscription,
-                                        Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
-
-            applyCellOptions(clusterHandler, handler, newCell);
-          }
-          else if (nodeName.equals("INJECTOR_CELL"))
-          {
-            Cfg_InjectorCellHandler handler = new Cfg_InjectorCellHandler();
-            Cfg_Utils.processElement(cellDefinitionFile, null, handler, node);
-
-            if (clusterSynapse != null)
-              handler.synapseNames.add(clusterSynapse.toString());
-
-            newCell = new InjectorCell(handler.name,
-                                       handler.synapseNames.toArray(String[]::new),
-                                       handler.transmitter,
-                                       Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
-
-            applyCellOptions(clusterHandler, handler, newCell);
-          }
-          else if (nodeName.equals("LOAD_BALANCED_CELL"))
-          {
-            Cfg_LoadBalancedCellHandler handler = new Cfg_LoadBalancedCellHandler();
-            Cfg_Utils.processElement(cellDefinitionFile, null, handler, node);
-
-            if (clusterSynapse != null)
-              handler.synapseNames.add(clusterSynapse.toString());
-
-            newCell = new LoadBalancedCell(
-                              handler.name,
-                              handler.synapseNames.toArray(String[]::new),
-                              handler.activators.toArray(Activator[]::new),
-                              handler.controllerName,
-                              handler.controllerDomain,
-                              Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
-
-            newCell.setProperties(handler.properties);
-            
-            applyCellOptions(clusterHandler, handler, newCell);
-          }
-          else if (nodeName.equals("LOAD_CONTROLLER_CELL"))
-          {
-            Cfg_LoadControllerCellHandler handler = new Cfg_LoadControllerCellHandler();
-            Cfg_Utils.processElement(cellDefinitionFile, null, handler, node);
-
-            if (clusterSynapse != null)
-              handler.synapseNames.add(clusterSynapse.toString());
-
-            newCell = new LoadControllerCell(
-                              handler.name,
-                              handler.synapseNames.toArray(String[]::new),
-                              handler.receptors.toArray(ReceptorSpec[]::new),
-                              handler.subscriptions.toArray(LogicSubscriptionSpec[]::new),
-                              handler.cellNamePrefix,
-                              handler.cellDomain,
-                              Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
-
-            applyCellOptions(clusterHandler, handler, newCell);
-          }
-          else if (nodeName.equals("LOGIC_CELL"))
-          {
-            Cfg_LogicCellHandler handler = new Cfg_LogicCellHandler();
-            Cfg_Utils.processElement(cellDefinitionFile, null, handler, node);
-
-            if (clusterSynapse != null)
-              handler.synapseNames.add(clusterSynapse.toString());
-
-            newCell = new LogicCell(handler.name,
-                                    handler.synapseNames.toArray(String[]::new),
-                                    handler.activators.toArray(Activator[]::new),
-                                    Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
-
-            newCell.setProperties(handler.properties);
-            
-            applyCellOptions(clusterHandler, handler, newCell);
-          }
-          else if (nodeName.equals("ROUTER_CELL"))
-          {
-            Cfg_RouterCellHandler handler = new Cfg_RouterCellHandler();
-            Cfg_Utils.processElement(cellDefinitionFile, null, handler, node);
-
-            if (clusterSynapse != null)
-              handler.synapseNames.add(clusterSynapse.toString());
-
-            newCell = new RouterCell(handler.name,
-                                     handler.synapseNames.toArray(String[]::new),
-                                     Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
-
-            applyCellOptions(clusterHandler, handler, newCell);
-          }
-          else if (nodeName.equals("SPECIALIZED_CELL"))
-          {
-            Cfg_SpecializedCellHandler handler = new Cfg_SpecializedCellHandler();
-            Cfg_Utils.processElement(cellDefinitionFile, null, handler, node);
-
-            if (handler.className == null)
-            {
-              throw new NeuPathsException("Specialized class name must be provided in file " + cellDefinitionFile);
-            }
-            
-            if (clusterSynapse != null)
-              handler.synapseNames.add(clusterSynapse.toString());
-
-            try
-            {
-              // Load the specialized class
-              Class<?> specialClass = Class.forName(handler.className);
-  
-              // Instantiate the specialized class
-              newCell =
-                (Cell) specialClass.getDeclaredConstructor
-                    (String.class,
-                     String[].class,
-                     Activator[].class,
-                     byte[].class).
-                newInstance(handler.name,
-                            handler.synapseNames.toArray(String[]::new),
-                            handler.activators.toArray(Activator[]::new),
-                            Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
-            }
-            catch (ClassNotFoundException cnfe)
-            {
-              throw new NeuPathsException("Could not instantiate cell in file " + cellDefinitionFile, cnfe);
-            }
-            catch (NoSuchMethodException nsme)
-            {
-              throw new NeuPathsException("Could not instantiate cell in file " + cellDefinitionFile, nsme);
-            }
-            catch (InstantiationException ie)
-            {
-              throw new NeuPathsException("Could not instantiate cell in file " + cellDefinitionFile, ie);
-            }
-            catch (IllegalAccessException iae)
-            {
-              throw new NeuPathsException("Could not instantiate cell in file " + cellDefinitionFile, iae);
-            }
-            catch (java.lang.reflect.InvocationTargetException ite)
-            {
-              throw new NeuPathsException("Could not instantiate cell in file " + cellDefinitionFile, ite);
-            }
-
-            newCell.setProperties(handler.properties);
-            
-            applyCellOptions(clusterHandler, handler, newCell);
-          }
-          else
-          {
-            throw new NeuPathsException("Cell definition file " +
-                                        cellDefinitionFile +
-                                        " contains invalid top-level element:" +
-                                        nodeName);
-          }
+          parser.parseNode(root);
+          parser.validate();
+          newCell = parser.instantiate();
         }
       }
       else
@@ -1042,100 +1390,6 @@ public class CellFactory
     return newCell;
   }
 
-  private static
-  void applyCellOptions (Cfg_CellClusterHandler clusterHandler,
-                         Cfg_CellHandler        cellHandler,
-                         Cell                   cell)
-  {
-    if ((clusterHandler == null || !clusterHandler.loggingSpecified) &&
-        cell.getType() != CellType.EVENT)
-    {
-      if (cellHandler.loggingEnabled)
-      {
-        cell.enableLogging();
-      }
-      else
-      {
-        cell.disableLogging();
-      }
-    }
-
-    if ((clusterHandler == null || !clusterHandler.traceLoggingSpecified) &&
-        cell.getType() != CellType.EVENT)
-    {
-      if (cellHandler.traceLoggingEnabled)
-      {
-        cell.enableTraceLogging();
-      }
-      else
-      {
-        cell.disableTraceLogging();
-      }
-    }
-  
-    if ((clusterHandler == null || !clusterHandler.debugLoggingSpecified) &&
-        cell.getType() != CellType.EVENT)
-    {
-      if (cellHandler.debugLoggingEnabled)
-      {
-        cell.enableDebugLogging();
-      }
-      else
-      {
-        cell.disableDebugLogging();
-      }
-    }
-
-    if ((clusterHandler == null || !clusterHandler.runtimeLoggingSpecified) &&
-        cell.getType() != CellType.EVENT)
-    {
-      if (cellHandler.runtimeLoggingEnabled)
-      {
-        cell.enableRuntimeLogging();
-      }
-      else
-      {
-        cell.disableRuntimeLogging();
-      }
-    }
-
-    if (clusterHandler == null || !clusterHandler.propagateGlobalSpecified)
-    {
-      if (cellHandler.propagateGlobalSubscriptions)
-      {
-        cell.enableGlobalSubscriptionPropagation();
-      }
-      else
-      {
-        cell.disableGlobalSubscriptionPropagation();
-      }
-    }
-
-    if ((clusterHandler == null || !clusterHandler.subscriptionRefreshSpecified) &&
-        cell.getType() != CellType.INJECTOR &&
-        cell.getType() != CellType.ROUTER)
-    {
-      cell.setSubscriptionRefreshInterval(cellHandler.subscriptionRefreshInterval);
-    }
-
-    if (clusterHandler == null || !clusterHandler.duplicateDetectionSpecified)
-    {
-      cell.setDuplicateDetectionInterval(cellHandler.duplicateDetectionInterval);
-    }
-
-    if (clusterHandler == null || !clusterHandler.subscriptionTraceSpecified)
-    {
-      cell.setSubscriptionTraceInterval(cellHandler.subscriptionTraceInterval);
-    }
-
-    if ((clusterHandler == null || !clusterHandler.pulseSpecified) &&
-        (cell.getType() == CellType.LOGIC ||
-         cell.getType() == CellType.LOAD_BALANCED))
-    {
-      cell.setPulseInterval(cellHandler.pulseInterval);
-    }
-  }
-  
   private static class XMLErrorHandler implements ErrorHandler
   {
     public void error (SAXParseException exception) throws SAXException

@@ -1,0 +1,35 @@
+<load_balanced_cell>
+  <name>LBC_5</name>
+  <synapses>
+    <synapse>Local#Stream#Peer#Test#/tmp/router.syn</synapse>
+  </synapses>
+  <activators>
+    <activator>
+      <class>LBActivator</class>
+      <name>LBActivator5</name>
+      <receptors>
+        <receptor>
+          <name>Request</name>
+          <mode>non_buffered</mode>
+          <stimulus_class>neupaths.stim.SignalStimulus</stimulus_class>
+        </receptor>
+      </receptors>
+      <transmitters>
+        <transmitter>
+          <name>Response</name>
+          <stimulus_class>neupaths.stim.StringStimulus</stimulus_class>
+        </transmitter>
+      </transmitters>
+      <subscriptions>
+        <map_subscription>
+          <cell_name>TestInjector</cell_name>
+          <transmitter_name>Request</transmitter_name>
+          <domain>Test</domain>
+          <filter_transactions>enabled</filter_transactions>
+        </map_subscription>
+      </subscriptions>
+    </activator>
+  </activators>
+  <controller_name>LBController</controller_name>
+  <controller_domain>Test</controller_domain>
+</load_balanced_cell>

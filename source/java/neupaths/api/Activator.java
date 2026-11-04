@@ -24,10 +24,14 @@ import java.util.LinkedList;
  * evaluation.
  * </p>
  * <p>
- * Activator specializations can be declared using a single expression.
+ * The Activator class can be specialized in numerous ways, but one of the
+ * following methods is required when using cell definition files (see
+ * {@link CellFactory}.) <b>Note:</b> The derived class and its constructor
+ * must both be {@code public}.
+ * <ul>
+ * <li>
+ * Single-expression specialization within a default constructor.
  * For example:
- * </p>
- * <p>
  * <ul>
  * <pre> public class WorldHelloActivator extends Activator
  * {
@@ -50,6 +54,7 @@ import java.util.LinkedList;
  *                                       "Hail",
  *                                       "Request",
  *                                       TransactionFilter.DISABLED)});
+ *     ...
  *   }
  *
  *   protected void evaluate ()
@@ -60,12 +65,70 @@ import java.util.LinkedList;
  * 
  * Activator worldHelloActivator = new WorldHelloActivator();</pre>
  * </ul>
+ * </li>
+ * <li>
+ * Pass-through specialization with full argument list.  For example:
+ * <ul>
+ * <pre> public class MyCustomActivator extends Activator
+ * {
+ *   public MyCustomActivator
+ *     (String                  name,
+ *      ReceptorSpec[]          receptors,
+ *      TransmitterSpec[]       transmitters,
+ *      LogicSubscriptionSpec[] subscriptions)
+ *   {
+ *     super(name, receptors, transmittres, subscriptions);
+ *     ...
+ *   }
+ *
+ *   protected void evaluate ()
+ *   {
+ *     ...
+ *   }
+ * }</pre>
+ * </ul>
+ * </li>
+ * </ul>
  * </p>
  * <p>
- * <b>Note:</b> Activators declared in Cell Definition files (see
- * {@link CellFactory}) must use the single expression method and provide a
- * zero-argument constructor.  The activator class and constructor must be
- * {@code public}.
+ * <h2>Pros and Cons of each method:</h2>
+ * <p>
+ * Single-expression specialization:
+ * <ul>
+ *   <li>
+ *   Pros:
+ *     <ul>
+ *       <li type=circle>Cell definition files are much cleaner.</li>
+ *       <li type=circle>Facilitates more complex Activator specializations.</li>
+ *     </ul>
+ *   </li>
+ *   <li>
+ *   Cons:
+ *     <ul>
+ *       <li type=circle>Must examine code to understand/debug stimuli transmission.</li>
+ *     </ul>
+ *   </li>
+ * </ul>
+ * </p>
+ * <p>
+ * Pass-through specialization:
+ * <ul>
+ *   <li>
+ *   Pros:
+ *     <ul>
+ *       <li type=circle>Facilitates static analysis of stimuli transmission without code analysis.</li>
+ *       <li type=circle>Offline tools/utilities can be used to analyze and document
+ *           the cellular system.</li>
+ *     </ul>
+ *   </li>
+ *   <li>
+ *   Cons:
+ *     <ul>
+ *       <li type=circle>Cell definition files are more complex.</li>
+ *       <li type=circle>Limits Activator specializations.</li>
+ *     </ul>
+ *   </li>
+ * </ul>
  * </p>
  * 
  * @see ReceptorSpec
@@ -161,6 +224,7 @@ public abstract class Activator
     cell = null;
 
     transactionHistoryWindowMs = new SafeLong(30_000L);  /* Default 30 seconds */
+    transactionMaxLifespanMs = new SafeLong(60_000L);  /* Default 1 minute */
   }
   
   //===========================================================================
@@ -562,6 +626,30 @@ public abstract class Activator
   //---------------------------------------------------------------------------
   
   /**
+   * Sets the transaction max lifespan.
+   * <p>
+   * The default is 60,000 milliseconds (1 minute.)  The minimum is 100
+   * milliseconds.  Values less than the minimum will be automatically
+   * changed to the minimum value.
+   * </p>
+   * 
+   * @param millisecs The maximum lifespan of a transaction.
+   */
+  protected final
+  void
+  setTransactionMaxLifespan (long millisecs)
+  {
+    long ms = millisecs;
+
+    if (ms < 100L)
+      ms = 100L;
+
+    transactionMaxLifespanMs.setValue(ms);
+  }
+
+  //---------------------------------------------------------------------------
+  
+  /**
    * Logs an event with details.
    * 
    * @param type    The event type.
@@ -773,6 +861,15 @@ public abstract class Activator
 
         if (transaction == null)
         {
+          LinkedList<UUID> reapedTransactions =
+            receptors.reapTransactions(transactionMaxLifespanMs.getValue());
+
+          for (UUID id : reapedTransactions)
+          {
+            logEvent(EventType.INFORMATION,
+                     "Transaction " + id + " reaped");
+          }
+        
           transaction =
               receptors.addTransaction(transactionID,
                                        receptorSpecs,
@@ -1084,4 +1181,5 @@ public abstract class Activator
   private Cell cell;
 
   private SafeLong transactionHistoryWindowMs;
+  private SafeLong transactionMaxLifespanMs;
 }

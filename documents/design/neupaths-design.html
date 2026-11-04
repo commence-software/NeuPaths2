@@ -183,7 +183,7 @@
 
 <header class="top"><div class="wrap">
   <div class="kicker-row">
-    <span class="tag"><b>NeuPaths</b> · v2.0.2</span>
+    <span class="tag"><b>NeuPaths</b> · v2.1.0</span>
     <span class="tag">Pure Java SE · JDK 17+</span>
     <span class="tag">183 source files · 3 packages</span>
     <span class="tag">Software Design Documentation</span>
@@ -278,7 +278,7 @@
       <thead><tr><th>Concept</th><th>Type in code</th><th>Meaning</th></tr></thead>
       <tbody>
         <tr><td><b>Stimulus</b></td><td><code>Stimulus</code></td><td>An atomic, typed, serializable unit of data that flows through the system.</td></tr>
-        <tr><td><b>Cell</b></td><td><code>Cell</code></td><td>An autonomous processing node — a neuron. Eight primitive types.</td></tr>
+        <tr><td><b>Cell</b></td><td><code>Cell</code></td><td>An autonomous processing node — a neuron. Eight primitive types, plus <code>CUSTOM</code> for your own subclasses.</td></tr>
         <tr><td><b>Synapse</b></td><td><code>Syn_Synapse</code></td><td>A transport-abstracting connection: TCP, UDP, multicast or Unix socket.</td></tr>
         <tr><td><b>Nucleus</b></td><td><code>Nuc_Nucleus</code></td><td>The per-cell routing engine — this is what replaces the broker.</td></tr>
         <tr><td><b>Activator</b></td><td><code>Activator</code></td><td>User logic. Fires only when <em>all</em> its receptors hold a stimulus.</td></tr>
@@ -344,7 +344,7 @@
           <g>
             <rect class="node" x="60" y="66" width="660" height="42" rx="8"/>
             <text class="tb" x="80" y="86">Cell</text>
-            <text class="s" x="80" y="100">Cell · CellCluster · CellFactory · 8 cell types · Activator</text>
+            <text class="s" x="80" y="100">Cell · CellCluster · CellFactory · 8 primitive cell types · Activator</text>
           </g>
           <g>
             <rect class="node" x="60" y="116" width="660" height="42" rx="8"/>
@@ -450,7 +450,7 @@
       <tbody>
         <tr><td>Concurrency</td><td>Cell &amp; Nucleus threads</td><td>One activator thread each; semaphore-blocked queues; <code>ReentrantLock</code>, <code>SafeBoolean</code>, <code>SafeLong</code>.</td></tr>
         <tr><td>Security</td><td><code>Cryp_*</code></td><td>Per-stimulus AES-CBC or Blowfish into a <code>SealedObject</code>; cipher chosen by the key's first byte.</td></tr>
-        <tr><td>Resilience</td><td>mesh + Nucleus + <code>Actv_CycleDetection</code></td><td>No single point of failure; duplicates filtered by a time-windowed history journal.</td></tr>
+        <tr><td>Resilience</td><td>mesh + duplicate filtering at two scopes + <code>Actv_CycleDetection</code></td><td>No single point of failure. Time-windowed filtering discards redundant arrivals per <em>stimulus</em> (making redundant paths safe) and per <em>transaction</em> (making redundant providers safe).</td></tr>
         <tr><td>Observability</td><td><code>EventType</code> / <code>EventCell</code></td><td>15 event levels (RUNTIME → ERROR, AUDIT1–9); <code>EventLogger</code> spools them; stimulus tracing.</td></tr>
         <tr><td>Flow control</td><td>Controller + workers</td><td><code>LoadControllerCell</code> hands work signals to a pool of interchangeable <code>LoadBalancedCell</code>s.</td></tr>
         <tr><td>Transactions</td><td><code>Stim_*Transaction</code></td><td>Correlate a set of stimuli through a multi-step computation via a <code>transactionID</code>.</td></tr>
@@ -476,7 +476,7 @@
 
     <figure>
       <div class="fig-scroll">
-        <svg viewBox="0 0 840 250" role="img" aria-label="Cell base class with eight subtypes">
+        <svg viewBox="0 0 840 310" role="img" aria-label="Cell base class with eight subtypes, and a user-derived custom cell below LogicCell and LoadBalancedCell">
           <rect class="node" x="360" y="16" width="120" height="46" rx="9"/>
           <text class="tb" x="420" y="38" text-anchor="middle">Cell</text>
           <text class="s" x="420" y="53" text-anchor="middle">base · CellType</text>
@@ -503,11 +503,21 @@
             <rect class="node" x="452" y="188" width="140" height="46" rx="9"/><text class="t" x="522" y="210" text-anchor="middle">LoadControllerCell</text><text class="s" x="522" y="225" text-anchor="middle">pool coordinator</text><line class="rel" x1="522" y1="176" x2="522" y2="188"/>
             <path class="rel" d="M420,86 L420,176 L270,176"/>
           </g>
+          <!-- user-derived custom cell -->
+          <g>
+            <rect class="node dash" x="340" y="258" width="180" height="44" rx="9"/>
+            <text class="t" x="430" y="280" text-anchor="middle">your subclass</text>
+            <text class="s" x="430" y="295" text-anchor="middle">CellType.CUSTOM</text>
+            <line class="rel" x1="380" y1="234" x2="380" y2="258"/>
+            <path class="rel" d="M588,144 L588,162 L626,162 L626,276 L520,276" fill="none"/>
+          </g>
         </svg>
       </div>
       <figcaption><b>Fig 2.1 · The eight primitive cell types.</b> Accent boxes are the cells ordinary
         code touches most: <code>Injector</code>/<code>Extractor</code> bridge in and out, <code>Logic</code>
-        does the work.</figcaption>
+        does the work. There is no <code>CustomCell</code> class — a cell you derive yourself from
+        <code>LogicCell</code> or <code>LoadBalancedCell</code> simply reports
+        <code>CellType.CUSTOM</code>, the ninth enum value.</figcaption>
     </figure>
 
     <div class="tbl-scroll"><table>
@@ -521,6 +531,7 @@
         <tr><td><code>EventCell</code></td><td class="center no">—</td><td class="center no">—</td><td>Collects <code>EventStimulus</code> log events for a domain.</td></tr>
         <tr><td><code>LoadBalancedCell</code></td><td class="center yes">✓</td><td class="center yes">Logic</td><td>A worker that shares load with peers running the same activator.</td></tr>
         <tr><td><code>LoadControllerCell</code></td><td class="center yes">✓</td><td class="center yes">Logic</td><td>Coordinator that picks which worker handles the next stimuli set.</td></tr>
+        <tr><td><em>your subclass</em></td><td class="center yes">✓</td><td class="center yes">Logic</td><td>Derived from <code>LogicCell</code> or <code>LoadBalancedCell</code>; declared as <code>&lt;custom_cell&gt;</code> and reports <code>CellType.CUSTOM</code>.</td></tr>
       </tbody>
     </table></div>
 
@@ -563,6 +574,23 @@
         <code>LoadBalancedActivator</code>.</p>
     </div>
 
+    <h3>Two ways to specialize an Activator</h3>
+    <p>The base constructor is <code>protected</code>, taking a name plus the
+      <code>ReceptorSpec[]</code>, <code>TransmitterSpec[]</code> and
+      <code>LogicSubscriptionSpec[]</code> arrays. A subclass reaches it one of two ways and
+      <code>CellFactory</code> instantiates whichever shape it finds — but <b>both the derived class
+      and its constructor must be <code>public</code></b>.</p>
+    <div class="tbl-scroll"><table>
+      <thead><tr><th></th><th>Single-expression</th><th>Pass-through</th></tr></thead>
+      <tbody>
+        <tr><td><b>Subclass constructor</b></td><td>No arguments; passes every spec to <code>super()</code> inline</td><td>Takes the full argument list and forwards it to <code>super()</code></td></tr>
+        <tr><td><b>Cell definition file</b></td><td>Names the class and marks it <code>&lt;default/&gt;</code>; the specs live in code</td><td>Spells out receptors, transmitters and subscriptions as XML</td></tr>
+        <tr><td><b>Pro</b></td><td>Much cleaner definition files; permits more complex specializations</td><td>Stimulus flow is visible to static analysis, so offline tools can document the mesh</td></tr>
+        <tr><td><b>Con</b></td><td>You must read the code to trace stimulus transmission</td><td>More verbose definition files; limits how far you can specialize</td></tr>
+      </tbody>
+    </table></div>
+    <p>Declaring <code>&lt;default/&gt;</code> is what selects the no-argument form.</p>
+
     <h3>Subscriptions — the wiring contract</h3>
     <p>A subscription is the contract <code>(producing cell C, transmitter T) ⇒ receptor R</code>, tagged
       with a domain. <code>C</code> and <code>T</code> may be regular expressions, so one receptor can
@@ -590,11 +618,75 @@
         all extend <code>SubscriptionSpec</code>.</figcaption>
     </figure>
 
+    <h3>Duplicate filtering at two scopes — the redundancy primitive</h3>
+    <p>The framework discards redundant arrivals at <b>two</b> levels, and the pair is what makes
+      redundancy composable rather than something every application re-invents:</p>
+    <div class="tbl-scroll"><table>
+      <thead><tr><th>Scope</th><th>Where</th><th>Keyed on</th><th>Makes safe</th></tr></thead>
+      <tbody>
+        <tr><td><b>Stimulus</b></td><td><code>Nuc_Nucleus</code> <code>stimuliHistory</code>, always on</td><td>stimulus instance id</td><td>Redundant <b>paths</b> — the same stimulus arriving by two routes is delivered once</td></tr>
+        <tr><td><b>Transaction</b></td><td><code>Activator.isDuplicate()</code>, opt-in per subscription</td><td>(transaction, originator, stimulus, type)</td><td>Redundant <b>providers</b> — two services answering one request, first response wins</td></tr>
+      </tbody>
+    </table></div>
+    <p>Both are <b>time-windowed</b> rather than unbounded — the nucleus ages out its stimulus
+      journal, and the activator ages out transaction history after
+      <code>transactionHistoryWindowMs</code> (default 30 s). Neither grows without limit, and
+      neither asks the application to track what it has already seen. Transaction filtering is
+      opt-in via <code>TransactionFilter.ENABLED</code> on a logic, loopback or map subscription
+      (<code>&lt;filter_transactions&gt;</code> in a cell definition).</p>
+    <div class="callout">
+      <div class="eyebrow">Why it matters</div>
+      <p>Because a duplicate costs nothing, <b>you can afford to do the work twice.</b> Run two
+        bridges so a dead path is invisible; run two service providers — or two load-balanced
+        pools — so a dead worker is invisible. Redundancy becomes a deployment decision rather
+        than a code change.</p>
+    </div>
+
+    <h3>Reclaiming abandoned transactions</h3>
+    <p>An activator holds one <b>receptor bundle</b> per in-flight transaction, created lazily when
+      the first stimulus tagged with that transaction arrives. A bundle is normally discarded the
+      moment it has served its purpose — when it completes and the activator fires, or when a
+      <code>Stim_TerminateTransaction</code> arrives for it.</p>
+    <p>Some never reach either. A producer dies mid-transaction; a participant joins late and
+      catches only part of the set; or a stimulus the bundle still needs is discarded as a
+      duplicate — the duplicate check runs <em>after</em> the bundle is created, so a filtered
+      stimulus can leave an empty bundle behind. Nothing in the dataflow model distinguishes "this
+      will never complete" from "this has not completed yet", so without a sweep those bundles
+      would accumulate for the life of the process.</p>
+    <p><code>setTransactionMaxLifespan(ms)</code> caps how long one may live. The sweep runs when a
+      stimulus arrives for a transaction the activator has no bundle for — immediately before
+      creating the new one — and removes every bundle that has exceeded the limit, logging each as
+      an <code>INFORMATION</code> event naming the transaction id. Default 60 000 ms, floor 100 ms,
+      configurable per activator via <code>&lt;transaction_max_lifespan_ms&gt;</code>. The global
+      (untagged) bundle is permanent and never reaped.</p>
+    <div class="tbl-scroll"><table>
+      <thead><tr><th>Window</th><th>Default</th><th>Bounds</th></tr></thead>
+      <tbody>
+        <tr><td><code>stimuliHistory</code> (nucleus)</td><td>—</td><td>How long a delivered stimulus is remembered for path-level dedup</td></tr>
+        <tr><td><code>transactionHistoryWindowMs</code></td><td>30 s</td><td>How long a transaction is remembered for response-level dedup</td></tr>
+        <tr><td><code>transactionMaxLifespanMs</code></td><td>60 s</td><td>How long an incomplete receptor bundle may live</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout">
+      <div class="eyebrow">Two consequences worth planning for</div>
+      <p><b>Reclamation is amortized, not scheduled.</b> There is no reaper thread — the sweep is
+        driven by the arrival of a new transaction, so a cell that falls idle holding abandoned
+        bundles keeps them until traffic resumes. Nothing grows while idle, and the cost is one
+        pass per <em>new transaction</em> rather than per stimulus.</p>
+      <p><b>The interval is a correctness setting, not just a memory one.</b> It is the maximum
+        lifespan of <em>any</em> bundle, so a legitimate transaction that outlives it is reaped
+        mid-flight and its partial work silently dropped. Keep it comfortably above the longest
+        transaction the cell can legitimately take, and above
+        <code>transactionHistoryWindowMs</code> so a response arriving near the end of the dedup
+        window still has a bundle to land in.</p>
+    </div>
+
     <h3>Stimulus — the atomic data unit</h3>
     <p><code>Stimulus</code> is abstract and <code>Serializable</code>. Each instance carries type
       identity (<code>typeID</code>, a fixed <code>UUID</code>), a unique <code>instanceID</code>, an
       optional <code>transactionID</code>, and producer/consumer metadata the framework fills in as it
-      travels. The <code>neupaths.stim</code> package ships eleven ready-made primitives:</p>
+      travels. The <code>neupaths.stim</code> package ships eleven ready-made primitives, plus one
+      open-ended dictionary type:</p>
     <div class="grid g3">
       <div class="card"><h4>Primitive stimuli</h4>
         <p class="mem" style="margin-top:8px">BooleanStimulus<br>ByteStimulus · CharacterStimulus<br>ShortStimulus · IntegerStimulus<br>LongStimulus · FloatStimulus<br>DoubleStimulus · StringStimulus<br>DateStimulus · SignalStimulus</p></div>
@@ -606,6 +698,19 @@
         <p>Generate new stimulus classes with <code>GenerateStimulusType</code>, which stamps a fresh
           <code>TYPE_ID</code> for you.</p>
         <p><code>EventStimulus</code> carries an <code>EventType</code> for logging.</p></div>
+    </div>
+
+    <div class="callout">
+      <div class="eyebrow">DictionaryStimulus — the one open-ended member</div>
+      <p>Where the primitives each wrap a single Java value, <code>DictionaryStimulus</code> carries a
+        <code>HashMap&lt;String, Object&gt;</code> and exposes <code>get(name)</code>,
+        <code>put(name, value)</code> and <code>entries()</code>. Its <code>get()</code> is generically
+        typed and casts on the caller's behalf, so element types are <b>not</b> checked at compile
+        time — the payload is schema-less by design, for messages whose shape is only known at
+        runtime. You trade static type safety for that flexibility, and every value placed in it must
+        itself be serializable. Subclassing it keeps the same <code>TYPE_ID</code> but takes a new type
+        name, so a dictionary payload can carry a domain-specific alias without minting a new type
+        identity.</p>
     </div>
   </section>
 
@@ -693,9 +798,12 @@
           <code>Msg_Subscription</code> and <code>Msg_Leave</code> are the control plane for the
           broker-less mesh.</p></div>
       <div class="card"><h4>Cfg_* · configuration</h4>
-        <p>Clusters and cells are declared in <b>XML</b> and parsed by a recursive DOM handler tree
-          (<code>Cfg_ConfigHandler</code> → per-cell handlers). Callback interfaces aggregate children
-          upward; reflection instantiates activators and reads each stimulus <code>TYPE_ID</code>.</p></div>
+        <p>Clusters and cells are declared in <b>XML</b> and read in two layers. A recursive DOM
+          <b>handler</b> tree (<code>Cfg_ConfigHandler</code> → per-cell handlers) transcribes what the
+          document said, callback interfaces aggregating children upward. A per-cell-type
+          <b>parser</b> (<code>Cfg_CellDefinitionParser</code> → one subclass per root element) then
+          validates that data and instantiates reflectively, reading each stimulus
+          <code>TYPE_ID</code>. <em>Template Method.</em></p></div>
       <div class="card"><h4>util · daemon control plane</h4>
         <p>The <code>CellClusterDaemon</code> is itself built from cells: <code>DaemonCmdActv</code> in a
           <code>LogicCell</code> processes <code>DaemonCmdStim</code> commands.
@@ -967,6 +1075,10 @@
       <div class="card"><h4>Shutdown &amp; daemon threads</h4><p><code>stop()</code> sets terminate flags and
         <code>interrupt()</code>s each thread out of <code>acquire()</code>. Threads are <b>daemon by
         default</b> unless <code>NEUPATHS_FORCE_GRACEFUL_TERMINATION</code> is set.</p></div>
+      <div class="card"><h4>Bundles bounded by activity</h4><p>Abandoned transaction bundles are
+        reclaimed by the reaper (60 s default), but the sweep is triggered by a <em>new</em>
+        transaction rather than a timer — an idle cell keeps them until traffic resumes. Memory
+        does not grow while idle, but it is not released either.</p></div>
     </div>
 
     <h3>Pause semantics</h3>
@@ -982,6 +1094,19 @@
         <code>resume()</code> clears the flag and evaluation continues with whatever arrives next. Use
         pause to quiesce a cell, not to hold work for later.</p>
     </div>
+    <p><b>Pause is an activator-level state, not a transport-level one.</b> <code>pause()</code> sets
+      an <code>activatorsPaused</code> flag and nothing else; the nucleus keeps running, so synapses
+      stay connected, subscriptions keep refreshing and peers see no disconnect.
+      <code>getState()</code> <em>derives</em> the answer — it reads the nucleus state and reports
+      <code>PAUSED</code> only when the nucleus is <code>ONLINE</code> or <code>DEGRADED</code> and the
+      flag is set. Two consequences fall out of that ordering: <code>pause()</code> and
+      <code>resume()</code> are no-ops on an <code>OFFLINE</code> cell, since there is nothing to
+      suspend; and a transport problem always wins in <code>getState()</code>'s report, so a paused
+      cell that then loses its peers surfaces that rather than hiding it behind <code>PAUSED</code>.</p>
+    <p>Both methods are <b>overridable</b> (<code>getState()</code> is not). A subclass that must
+      re-announce itself to the mesh on the way back overrides <code>resume()</code>, calls
+      <code>super.resume()</code> and then transmits — which is exactly how a
+      <code>LoadBalancedCell</code> rejoins its controller's worker pool.</p>
   </section>
 
   <!-- ============ 06 CASE STUDY ============ -->
@@ -1198,21 +1323,27 @@
   <span class="k">if</span> (getCell().getInstanceID().equals(signal.cellInstanceID))
   {
     evaluate();                                    <span class="c">// ← your logic, only if addressed to me</span>
-    postStimulus(<span class="k">new</span> Stim_LoadBalanceRequest(getCell().getInstanceID()),
-                 LB.REQUEST, <span class="k">null</span>);                <span class="c">// ← return a fresh credit</span>
+
+    <span class="k">if</span> (getCell().getState() == CellState.ONLINE ||    <span class="c">// ← a paused worker</span>
+        getCell().getState() == CellState.DEGRADED)   <span class="c">//   withholds its credit</span>
+    {
+      postStimulus(<span class="k">new</span> Stim_LoadBalanceRequest(getCell().getInstanceID()),
+                   LB.REQUEST, <span class="k">null</span>);              <span class="c">// ← return a fresh credit</span>
+    }
   }
 }</pre>
 
     <h3>The worker's credit lifecycle</h3>
     <figure>
       <div class="fig-scroll">
-        <svg viewBox="0 0 800 200" role="img" aria-label="Worker state machine: registering, available, holding, selected or discarded">
+        <svg viewBox="0 0 800 250" role="img" aria-label="Worker state machine: registering, available, holding, selected or discarded, and drained while paused">
           <circle cx="30" cy="100" r="8" fill="var(--ink)"/>
           <rect class="node" x="66" y="80" width="118" height="40" rx="20"/><text class="t" x="125" y="104" text-anchor="middle">Registering</text>
           <rect class="node acc" x="236" y="80" width="118" height="40" rx="20"/><text class="t" x="295" y="104" text-anchor="middle">Available</text>
           <rect class="node" x="406" y="80" width="118" height="40" rx="20"/><text class="t" x="465" y="104" text-anchor="middle">Holding</text>
           <rect class="node acc" x="600" y="34" width="118" height="38" rx="19"/><text class="t" x="659" y="58" text-anchor="middle">Selected</text>
           <rect class="node" x="600" y="130" width="118" height="38" rx="19"/><text class="t" x="659" y="154" text-anchor="middle">Discarded</text>
+          <rect class="node dash" x="236" y="198" width="118" height="38" rx="19"/><text class="t" x="295" y="222" text-anchor="middle">Drained</text>
 
           <path class="rel" d="M38,100 L66,100" marker-end="url(#arr)"/>
           <path class="rel" d="M125,80 C110,52 140,52 125,78" marker-end="url(#arr)"/>
@@ -1227,12 +1358,52 @@
           <text class="s" x="566" y="136" text-anchor="middle" fill="var(--ink-3)">signal ≠ me</text>
           <path class="flow" d="M659,72 C700,100 380,168 300,124" marker-end="url(#arrbf)"/>
           <text class="s" x="470" y="186" text-anchor="middle">evaluate() → post fresh credit → Available</text>
+          <path class="rel" d="M285,120 L285,198" marker-end="url(#arr)"/>
+          <text class="s" x="248" y="146" text-anchor="end" fill="var(--ink-3)">pause()</text>
+          <path class="flow" d="M255,198 L255,120" marker-end="url(#arrbf)"/>
+          <text class="s" x="248" y="178" text-anchor="end">resume() → +1 credit</text>
         </svg>
       </div>
       <figcaption><b>Fig 6.4 · Credit lifecycle.</b> <code>Available</code> means "a credit of mine is
         queued at the controller." <code>Holding</code> is the gate-blocked state that makes the
-        design work — the worker already has the data and waits only for permission.</figcaption>
+        design work — the worker already has the data and waits only for permission.
+        <code>Drained</code> is a paused worker: it posts no new credits, so matchmaking routes work
+        to its peers until <code>resume()</code> re-seeds one.</figcaption>
     </figure>
+
+    <h3>Pausing a worker — draining by credit starvation</h3>
+    <p>A worker is removed from the pool by <b>pausing it</b>, and the mechanism is the credit flow
+      itself rather than any deregistration message. Three places check that the cell is
+      <code>ONLINE</code> or <code>DEGRADED</code> before a credit goes out:</p>
+    <div class="tbl-scroll"><table>
+      <thead><tr><th>Site</th><th>Effect when the worker is paused</th></tr></thead>
+      <tbody>
+        <tr><td><code>Actv_LoadBalanceRegistration</code> retry thread</td><td>Stops posting bootstrap credits — a worker paused before it ever registered simply stays out of the pool.</td></tr>
+        <tr><td><code>LoadBalancedActivator.activate()</code></td><td>Withholds the post-job credit after <code>evaluate()</code> returns, so completing a job no longer re-arms the worker.</td></tr>
+        <tr><td><code>LoadBalancedCell.resume()</code> <em>(override)</em></td><td>On the way back, calls <code>super.resume()</code> and transmits one <code>Stim_LoadBalanceRequest</code> — the credit that puts the worker back in contention.</td></tr>
+      </tbody>
+    </table></div>
+    <p>In practice an operator reaches this through the daemon control plane rather than in code —
+      <code>IssueCommandToDaemon pause cell &lt;daemon&gt; &lt;cluster&gt; &lt;cellName&gt;</code>, where
+      <code>cellName</code> is a regular expression, so a whole slice of a pool can be drained in one
+      command.</p>
+    <p>The result is a drain rather than a cut-off: the controller is never told that a worker paused,
+      it simply stops seeing credits from it and matchmaking naturally routes work to the peers still
+      offering. Because <code>pause()</code> leaves the nucleus online, the worker keeps its synapses
+      and subscriptions throughout, so there is no re-join handshake on the way back.</p>
+    <p>That override is load-bearing, not decoration. Credits are the <em>only</em> thing that makes a
+      worker selectable, so a worker resumed without re-seeding one would hold zero outstanding
+      credits and — its registration thread long since terminated by the original acknowledgement —
+      would never be selected again. Re-seeding exactly one credit restores the steady-state invariant
+      of one outstanding credit per idle worker.</p>
+    <div class="callout">
+      <div class="eyebrow">Sharp edge · a queued credit outlives the pause</div>
+      <p>Pausing stops <em>new</em> credits; it does not revoke those the controller has already
+        queued. A worker paused with a credit still in the controller's queue can therefore be
+        selected once more, and because a paused activator thread consumes its stimuli without
+        evaluating them, that work item is dropped. Quiesce a worker before relying on it being idle,
+        and layer an acknowledgement on top if work must not be lost.</p>
+    </div>
 
     <h3>Techniques worth stealing</h3>
     <div class="tbl-scroll"><table>
@@ -1243,6 +1414,7 @@
         <tr><td><b>Buffered vs non-buffered as policy</b></td><td><code>BUFFERED</code> queues (credits accumulate); <code>NON_BUFFERED</code> keeps only the latest.</td><td>Encoding backlog vs. freshness declaratively.</td></tr>
         <tr><td><b>Observer mirroring</b></td><td>Give the controller the <em>same</em> receptors/subscriptions as the workers.</td><td>Supervision, metering, routing decisions.</td></tr>
         <tr><td><b>Broadcast + address filter</b></td><td>Send one signal to all; each recipient compares an id and self-selects.</td><td>Targeted dispatch without point-to-point addressing.</td></tr>
+        <tr><td><b>Drain by credit starvation</b></td><td>Withhold a participant's credits instead of deregistering it; the scheduler routes elsewhere on its own.</td><td>Taking a pool member out of rotation without a membership protocol.</td></tr>
         <tr><td><b>Credit / token flow</b></td><td>A worker's <code>REQUEST</code> is a standing offer consumed by one work item.</td><td>Flow control and natural backpressure across a pool.</td></tr>
         <tr><td><b>Self-terminating bootstrap</b></td><td>Retry on a timer until acknowledged, then stop the thread.</td><td>Joining a mesh whose peers may not be up yet.</td></tr>
         <tr><td><b>Tag-shedding rendezvous</b></td><td>Move an id from <em>tag</em> to <em>payload</em> and back.</td><td>Joining transaction-scoped data against unscoped state.</td></tr>
@@ -1263,8 +1435,30 @@
         second until acknowledged, so a worker that took several attempts may hold several queued
         credits and receive several early items in a row. It self-corrects in steady state.</p></div>
       <div class="card"><h4>No re-queue on failure</h4><p>The credit is consumed at match time and the
-        signal is fire-and-forget; nothing recovers the item if the addressee dies mid-job. Layer
-        your own acknowledgement — e.g. a response transaction the producer waits on.</p></div>
+        signal is fire-and-forget; within a pool, nothing recovers the item if the addressee dies
+        mid-job. The answer is redundant execution rather than retry — see below.</p></div>
+    </div>
+
+    <h3>Surviving the loss of a worker</h3>
+    <p>A pool protects you from a <em>slow</em> worker: credits stop arriving and matchmaking routes
+      elsewhere. It does not protect you from one that dies holding work. For that, run the pool
+      twice — two independent pools, each with its own controller, both answering under the
+      <b>original transaction</b>. The requester takes whichever response lands first and discards
+      the rest by <b>transaction filtering</b>, exactly as a cell discards a duplicate stimulus that
+      reached it by a second path.</p>
+    <p>The per-pool loss still happens; it simply stops being observable. Worth stating precisely,
+      because the precise version is the stronger claim: NeuPaths does not offer at-least-once
+      <em>delivery</em> — it offers the primitives to build <b>at-least-one-of-N execution</b>, which
+      recovers at the speed of the surviving path instead of waiting out a retry timeout. The
+      redundancy is only as good as its independence, so the pools want separate hosts, separate
+      network paths and separate power.</p>
+    <div class="callout">
+      <div class="eyebrow">Caveat · this does not help with overload</div>
+      <p>Duplicate filtering at either scope addresses <em>independent</em> failure. Saturation is a
+        <em>common-mode</em> failure: two pools fed the same requests fall behind identically and
+        simultaneously, at 2× the resource cost for 1× the throughput. Note also that the credit
+        mechanism is dispatch control, not admission control — work stimuli are broadcast and fill
+        every worker's receptors on arrival, so the producer is never slowed by a credit shortage.</p>
     </div>
     <div class="callout">
       <div class="eyebrow">Scheduling policy, for free</div>
@@ -1471,7 +1665,7 @@ WATCHDOG: sensor ZA_Flow RECOVERED</pre>
 </div></div>
 
 <footer><div class="wrap">
-  <span>NeuPaths v2.0.2 · Software Design Documentation</span>
+  <span>NeuPaths v2.1.0 · Software Design Documentation</span>
   <span>Reconstructed from source · 183 files · neupaths.api / .stim / .util</span>
   <span>© Commence Software LLC · PolyForm Shield 1.0.0</span>
 </div></footer>

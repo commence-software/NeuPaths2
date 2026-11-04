@@ -11,24 +11,24 @@ import org.w3c.dom.Node;
  *
  * @author Aaron Caraveo
  */
-final class Cfg_CellSubscriptionsHandler extends Cfg_ConfigHandler implements Cfg_SubscriptionHandlerInt
+final class Cfg_CellSubscriptionsHandler extends Cfg_ConfigHandler
+    implements Cfg_SubscriptionsHandlerInt
 {
-  Cfg_CellSubscriptionsHandler (String xPath, CellType cellType)
+  Cfg_CellSubscriptionsHandler (CellType cellType, String xPath)
   {
-    super(xPath);
-    
-    this.cellType = cellType;
+    super(cellType, xPath);
+
     subscriptions = new LinkedList<>();
   }
   
-  void processNode (String configFile, Node node)
+  void processNode (String definitionFile, Node node)
   {
     String nodeName = node.getNodeName().toUpperCase();
 
+    SubscriptionType subType = SubscriptionType.LOGIC;
+    
     if (nodeName.equals("SUBSCRIPTION"))
     {
-      SubscriptionType subType = SubscriptionType.LOGIC;
-      
       switch (cellType)
       {
         case BRIDGE:
@@ -37,90 +37,57 @@ final class Cfg_CellSubscriptionsHandler extends Cfg_ConfigHandler implements Cf
         case EXTRACTOR:
           subType = SubscriptionType.EXTRACTOR;
           break;
+        case LOAD_BALANCED:
         case LOAD_CONTROLLER:
+        case LOGIC:
+        case CUSTOM:
           subType = SubscriptionType.LOGIC;
           break;
-        default:
-          throw new NeuPathsException("Invalid cell type " + cellType + " for subscription in file " + configFile);
       }
       
-      Cfg_CellSubscriptionHandler handler = new Cfg_CellSubscriptionHandler(xPath + "/Subscription", subType);
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_CellSubscriptionHandler handler = new Cfg_CellSubscriptionHandler(cellType, xPath + "/Subscription", subType);
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else if (nodeName.equals("BRIDGE_SUBSCRIPTION"))
     {
-      Cfg_CellSubscriptionHandler handler = new Cfg_CellSubscriptionHandler(xPath + "/Bridge_Subscription", SubscriptionType.BRIDGE);
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_CellSubscriptionHandler handler = new Cfg_CellSubscriptionHandler(cellType, xPath + "/Bridge_Subscription", SubscriptionType.BRIDGE);
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else if (nodeName.equals("EXTRACTOR_SUBSCRIPTION"))
     {
-      Cfg_CellSubscriptionHandler handler = new Cfg_CellSubscriptionHandler(xPath + "/Extractor_Subscription", SubscriptionType.EXTRACTOR);
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_CellSubscriptionHandler handler = new Cfg_CellSubscriptionHandler(cellType, xPath + "/Extractor_Subscription", SubscriptionType.EXTRACTOR);
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else if (nodeName.equals("LOGIC_SUBSCRIPTION"))
     {
-      Cfg_CellSubscriptionHandler handler = new Cfg_CellSubscriptionHandler(xPath + "/Logic_Subscription", SubscriptionType.LOGIC);
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_CellSubscriptionHandler handler = new Cfg_CellSubscriptionHandler(cellType, xPath + "/Logic_Subscription", SubscriptionType.LOGIC);
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else if (nodeName.equals("LOOPBACK_SUBSCRIPTION"))
     {
-      Cfg_CellSubscriptionHandler handler = new Cfg_CellSubscriptionHandler(xPath + "/Loopback_Subscription", SubscriptionType.LOOPBACK);
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_CellSubscriptionHandler handler = new Cfg_CellSubscriptionHandler(cellType, xPath + "/Loopback_Subscription", SubscriptionType.LOOPBACK);
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else if (nodeName.equals("MAP_SUBSCRIPTION"))
     {
-      Cfg_CellSubscriptionHandler handler = new Cfg_CellSubscriptionHandler(xPath + "/Map_Subscription", SubscriptionType.MAP);
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_CellSubscriptionHandler handler = new Cfg_CellSubscriptionHandler(cellType, xPath + "/Map_Subscription", SubscriptionType.MAP);
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else
     {
       throw new NeuPathsException("Unexpected " + xPath + " configuration tag '" +
-                                  nodeName + "' in file " + configFile);
+                                  nodeName + "' in file " + definitionFile);
     }
   }
 
-  void processElement (String configFile, Cfg_ConfigHandler parentHandler)
+  void processElement (String             definitionFile,
+                       Cfg_ConfigHandler parentHandler)
   {
     Cfg_SubscriptionsHandlerInt handler = (Cfg_SubscriptionsHandlerInt) parentHandler;
     
-    for (Cfg_CellSubscriptionHandler context : subscriptions)
+    for (Cfg_CellSubscriptionHandler subscription : subscriptions)
     {
-      switch (context.subType)
-      {
-        case BRIDGE:
-          handler.addSubscription(
-              new BridgeSubscriptionSpec(context.cellName,
-                                         context.transmitterName,
-                                         context.domain));
-          break;
-        case EXTRACTOR:
-          handler.addSubscription(
-              new ExtractorSubscriptionSpec(context.cellName,
-                                            context.transmitterName,
-                                            context.domain,
-                                            context.filterTransactions));
-          break;
-        case LOGIC:
-          handler.addSubscription(
-              new LogicSubscriptionSpec(context.cellName,
-                                        context.transmitterName,
-                                        context.receptorName,
-                                        context.domain,
-                                        context.filterTransactions));
-          break;
-        case LOOPBACK:
-          handler.addSubscription(
-              new LogicLoopbackSubscriptionSpec(context.transmitterName,
-                                                context.receptorName));
-          break;
-        case MAP:
-          handler.addSubscription(
-              new LogicMapSubscriptionSpec(context.cellName,
-                                           context.transmitterName,
-                                           context.domain,
-                                           context.filterTransactions));
-          break;
-      }
+      handler.addSubscription(subscription);
     }
   }
 
@@ -129,6 +96,5 @@ final class Cfg_CellSubscriptionsHandler extends Cfg_ConfigHandler implements Cf
     subscriptions.add(subscription);
   }
   
-  CellType cellType;
   LinkedList<Cfg_CellSubscriptionHandler> subscriptions;
 }

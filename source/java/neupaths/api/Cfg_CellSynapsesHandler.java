@@ -7,20 +7,20 @@ import java.util.HashSet;
 import org.w3c.dom.Node;
 
 /**
- * Handler for parsing a {@link Cell}'s synapse configuration.
+ * Handler for parsing a {@link Cell} synapse configuration.
  *
  * @author Aaron Caraveo
  */
 final class Cfg_CellSynapsesHandler extends Cfg_ConfigHandler
 {
-  Cfg_CellSynapsesHandler (String xPath)
+  Cfg_CellSynapsesHandler (CellType cellType, String xPath)
   {
-    super(xPath);
+    super(cellType, xPath);
     
     synapseNames = new HashSet<>();
   }
   
-  void processNode (String configFile, Node node)
+  void processNode (String definitionFile, Node node)
   {
     String nodeName = node.getNodeName().toUpperCase();
     
@@ -31,15 +31,20 @@ final class Cfg_CellSynapsesHandler extends Cfg_ConfigHandler
     else
     {
       throw new NeuPathsException("Unexpected " + xPath + " configuration tag '" +
-                                  nodeName + "' in file " + configFile);
+                                  nodeName + "' in file " + definitionFile);
     }
   }
   
-  void processElement (String configFile, Cfg_ConfigHandler parentHandler)
+  void processElement (String             definitionFile,
+                       Cfg_ConfigHandler parentHandler)
   {
     Cfg_SynapsesHandlerInt handler = (Cfg_SynapsesHandlerInt) parentHandler;
-    handler.addSynapses(synapseNames);
+
+    for (String synapseName : synapseNames)
+    {
+      handler.addSynapse(synapseName);
+    }
   }
 
-  private HashSet<String> synapseNames;
+  HashSet<String> synapseNames;
 }

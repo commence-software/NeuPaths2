@@ -35,6 +35,9 @@
  * <li>{@link RouterCell} - Routes stimuli over intersted synapses.</li>
  * </ul>
  * <p>
+ * Additionally, {@code Custom} cell types can be defined as specializations
+ * of the {@link LogicCell} or {@link LoadBalancedCell} primitive cell
+ * types via the {@link CellFactory} and cell definition files.
  * </p>
  * <h2>Stimuli</h2>
  * <p>

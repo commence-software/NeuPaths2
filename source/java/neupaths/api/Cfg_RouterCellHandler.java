@@ -6,7 +6,7 @@ package neupaths.api;
 import org.w3c.dom.Node;
 
 /**
- * Handler for parsing a {@link RouterCell}'s configuration.
+ * Handler for parsing a {@link RouterCell} configuration.
  *
  * @author Aaron Caraveo
  */
@@ -17,7 +17,7 @@ final class Cfg_RouterCellHandler extends Cfg_CellHandler
     super(CellType.ROUTER, "/Router_Cell");
   }
 
-  void processNode (String configFile, Node node)
+  void processNode (String definitionFile, Node node)
   {
     String nodeName = node.getNodeName().toUpperCase();
 
@@ -27,8 +27,8 @@ final class Cfg_RouterCellHandler extends Cfg_CellHandler
     }
     else if (nodeName.equals("SYNAPSES"))
     {
-      Cfg_CellSynapsesHandler handler = new Cfg_CellSynapsesHandler(xPath + "/Synapses");
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_CellSynapsesHandler handler = new Cfg_CellSynapsesHandler(cellType, xPath + "/Synapses");
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else if (nodeName.equals("LOGGING_ENABLED"))
     {
@@ -66,7 +66,7 @@ final class Cfg_RouterCellHandler extends Cfg_CellHandler
     else
     {
       throw new NeuPathsException("Unexpected " + xPath + " configuration tag '" +
-                                  nodeName + "' in file " + configFile);
+                                  nodeName + "' in file " + definitionFile);
     }
   }
 }

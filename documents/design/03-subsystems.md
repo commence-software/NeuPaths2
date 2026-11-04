@@ -344,18 +344,109 @@ The join handshake sequence is drawn in [§4.4](04-behavior.md#44-peer-join-hand
 
 ## 3.5 Configuration subsystem (`Cfg_*`)
 
-Clusters and cells are declared in **XML** and parsed with a **DOM**, recursive-descent set
-of handlers. `CellFactory` drives it. Handler *interfaces* (`*HandlerInt`) are callback
-contracts by which a child handler pushes its parsed result up to its parent — a
-Chain-of-Responsibility / Composite arrangement mirroring the XML nesting.
+Clusters and cells are declared in **XML** and read in two distinct layers:
+
+| Layer | Types | Job |
+|-------|-------|-----|
+| **Handlers** | `Cfg_ConfigHandler` and subclasses | Walk the DOM and record what the document *said*, as inert intermediate data. No reflection, no object graph. |
+| **Parsers** | `Cfg_CellDefinitionParser` and subclasses | Validate that data, then reflectively build the live `Cell`, its activators, receptors and transmitters. |
+
+Keeping the two apart is what makes the subsystem tractable: a handler is a pure
+XML→fields transcription that can be read in isolation, and all the reflection, type
+resolution and cross-field validation for a given cell type lives in exactly one parser.
+
+### The parser layer
+
+`CellFactory.createCell()` parses the document, reads the root element's name, and
+dispatches to the parser registered for it. Each parser then runs the same three-step
+contract.
+
+```mermaid
+classDiagram
+    class Cfg_CellDefinitionParser {
+        <<abstract>>
+        #String cellDefinitionFile
+        #String rootNode
+        #Cfg_CellHandler handler
+        #parseNode(Node) void
+        #validate() void
+        #instantiate() Cell
+        #parse() void
+        #applyCellOptions(Cell) void
+    }
+    class Cfg_BridgeCellParser
+    class Cfg_EventCellParser
+    class Cfg_ExtractorCellParser
+    class Cfg_InjectorCellParser
+    class Cfg_LoadBalancedCellParser
+    class Cfg_LoadControllerCellParser
+    class Cfg_LogicCellParser
+    class Cfg_RouterCellParser
+    class Cfg_CustomCellParser
+
+    Cfg_CellDefinitionParser <|-- Cfg_BridgeCellParser
+    Cfg_CellDefinitionParser <|-- Cfg_EventCellParser
+    Cfg_CellDefinitionParser <|-- Cfg_ExtractorCellParser
+    Cfg_CellDefinitionParser <|-- Cfg_InjectorCellParser
+    Cfg_CellDefinitionParser <|-- Cfg_LoadBalancedCellParser
+    Cfg_CellDefinitionParser <|-- Cfg_LoadControllerCellParser
+    Cfg_CellDefinitionParser <|-- Cfg_LogicCellParser
+    Cfg_CellDefinitionParser <|-- Cfg_RouterCellParser
+    Cfg_CellDefinitionParser <|-- Cfg_CustomCellParser
+```
+
+| Root element | Parser | Cell built |
+|--------------|--------|-----------|
+| `<bridge_cell>` | `Cfg_BridgeCellParser` | `BridgeCell` |
+| `<event_cell>` | `Cfg_EventCellParser` | `EventCell` |
+| `<extractor_cell>` | `Cfg_ExtractorCellParser` | `ExtractorCell` |
+| `<injector_cell>` | `Cfg_InjectorCellParser` | `InjectorCell` |
+| `<load_balanced_cell>` | `Cfg_LoadBalancedCellParser` | `LoadBalancedCell` |
+| `<load_controller_cell>` | `Cfg_LoadControllerCellParser` | `LoadControllerCell` |
+| `<logic_cell>` | `Cfg_LogicCellParser` | `LogicCell` |
+| `<router_cell>` | `Cfg_RouterCellParser` | `RouterCell` |
+| `<custom_cell>` | `Cfg_CustomCellParser` | your `LogicCell`/`LoadBalancedCell` subclass |
+
+Element names are matched case-insensitively; an unrecognized root element is a
+`NeuPathsException`.
+
+**The three-step contract.** `CellFactory` calls these in order, and a failure at any step
+aborts creation:
+
+1. **`parseNode(root)`** — hands the DOM subtree to `Cfg_Utils.processElement()`, which
+   drives the handler tree (below) and leaves the result in the parser's `handler` field.
+2. **`validate()`** — cell-type-specific checks: required elements present, subscription
+   kinds legal for this cell type, receptor/transmitter names coherent. This is where a
+   malformed definition is rejected, *before* any class is loaded.
+3. **`instantiate()`** — resolves each `<class>` and `<stimulus_class>` by reflection
+   (`Class.forName`, then reading the type's static `TYPE_ID`), builds the `ReceptorSpec[]`
+   and `TransmitterSpec[]` arrays, constructs each `Activator`, assembles the `PropertySet`,
+   constructs the `Cell`, and finishes with `applyCellOptions()`.
+
+`applyCellOptions()` lives on the base class because the option set is common, but it is
+deliberately not uniform in effect:
+
+- logging, trace, debug and runtime logging, and global subscription propagation are applied
+  to every cell;
+- `setSubscriptionRefreshInterval()` is skipped for `INJECTOR` and `ROUTER` cells, which hold
+  no subscriptions to refresh;
+- `setPulseInterval()` is applied only to `LOGIC`, `LOAD_BALANCED` and `CUSTOM` cells — the
+  only types that can host a `PulsedActivator`.
+
+### The handler layer
+
+Handlers mirror the XML nesting. `Cfg_ConfigHandler` is the abstract base; `Cfg_CellHandler`
+adds the fields every cell definition shares (name, properties, synapse names, activators,
+logging flags, intervals, crypto key file).
 
 ```mermaid
 classDiagram
     class Cfg_ConfigHandler {
         <<abstract>>
+        #CellType cellType
         #String xPath
-        #processNode(Node) void
-        #processElement() void
+        #processNode(String, Node) void
+        #processElement(String, Object) void
     }
     class Cfg_Utils {
         <<utility>>
@@ -376,7 +467,7 @@ classDiagram
     class Cfg_LoadBalancedCellHandler
     class Cfg_LoadControllerCellHandler
     class Cfg_RouterCellHandler
-    class Cfg_SpecializedCellHandler
+    class Cfg_CustomCellHandler
 
     Cfg_ConfigHandler <|-- Cfg_CellClusterHandler
     Cfg_ConfigHandler <|-- Cfg_CellDefinitionsHandler
@@ -389,54 +480,116 @@ classDiagram
     Cfg_CellHandler <|-- Cfg_LoadBalancedCellHandler
     Cfg_CellHandler <|-- Cfg_LoadControllerCellHandler
     Cfg_CellHandler <|-- Cfg_RouterCellHandler
-    Cfg_CellHandler <|-- Cfg_SpecializedCellHandler
+    Cfg_CellHandler <|-- Cfg_CustomCellHandler
 ```
 
-`Cfg_CellClusterHandler` parses the `<Cell_Cluster>` root and delegates to
-`Cfg_CellDefinitionsHandler` for the list of cell-definition files. Each `Cfg_CellHandler`
-subclass parses one cell type, capturing its name, properties, synapses and logging config.
+`Cfg_CellClusterHandler` parses the `<cell_cluster>` root and delegates to
+`Cfg_CellDefinitionsHandler` for the list of cell-definition files; each file is then handed
+back to `CellFactory` and run through its own parser.
 
-**Handler callback interfaces** (child ⇒ parent aggregation):
+**Handler callback interfaces** (child ⇒ parent aggregation). Every one of these passes a
+*handler*, not a finished spec object — the deferral of construction to the parser layer is
+visible right in the signatures:
+
+| Interface | Callback | Implemented by |
+|-----------|----------|----------------|
+| `Cfg_PropertiesHandlerInt` | `addProperty(Cfg_CellPropertyHandler)` | `Cfg_CellHandler`, `Cfg_CellPropertiesHandler` |
+| `Cfg_SynapsesHandlerInt` | `addSynapse(String)` | `Cfg_CellHandler` |
+| `Cfg_ActivatorsHandlerInt` | `addActivator(Cfg_CellActivatorHandler)` | `Cfg_CellHandler`, `Cfg_CellActivatorsHandler` |
+| `Cfg_ReceptorsHandlerInt` | `addReceptor(Cfg_CellReceptorHandler)` | `Cfg_CellReceptorsHandler`, `Cfg_CellActivatorHandler`, `Cfg_LoadControllerCellHandler` |
+| `Cfg_TransmittersHandlerInt` | `addTransmitter(Cfg_CellTransmitterHandler)` | `Cfg_CellTransmittersHandler`, `Cfg_CellActivatorHandler`, `Cfg_InjectorCellHandler` |
+| `Cfg_SubscriptionsHandlerInt` | `addSubscription(Cfg_CellSubscriptionHandler)` | `Cfg_CellSubscriptionsHandler`, `Cfg_CellActivatorHandler`, `Cfg_BridgeCellHandler`, `Cfg_ExtractorCellHandler`, `Cfg_LoadControllerCellHandler` |
+
+Two groups fall out of that table. Everything a cell *always* has — properties, synapses,
+activators — is implemented by `Cfg_CellHandler` on behalf of every cell type:
 
 ```mermaid
 classDiagram
-    class Cfg_ActivatorsHandlerInt {
+    class Cfg_PropertiesHandlerInt {
         <<interface>>
-        +addActivator(Activator) void
-    }
-    class Cfg_ReceptorsHandlerInt {
-        <<interface>>
-        +addReceptor(ReceptorSpec) void
-    }
-    class Cfg_SubscriptionsHandlerInt {
-        <<interface>>
-        +addSubscription(SubscriptionSpec) void
-    }
-    class Cfg_TransmitterHandlerInt {
-        <<interface>>
-        +addTransmitter(TransmitterSpec) void
+        +addProperty(Cfg_CellPropertyHandler) void
     }
     class Cfg_SynapsesHandlerInt {
         <<interface>>
-        +addSynapses(Set) void
+        +addSynapse(String) void
+    }
+    class Cfg_ActivatorsHandlerInt {
+        <<interface>>
+        +addActivator(Cfg_CellActivatorHandler) void
+    }
+    class Cfg_CellHandler {
+        <<abstract>>
     }
 
-    Cfg_ActivatorsHandlerInt <|.. Cfg_LogicCellHandler
-    Cfg_ActivatorsHandlerInt <|.. Cfg_LoadBalancedCellHandler
-    Cfg_ActivatorsHandlerInt <|.. Cfg_SpecializedCellHandler
-    Cfg_SubscriptionsHandlerInt <|.. Cfg_BridgeCellHandler
-    Cfg_SubscriptionsHandlerInt <|.. Cfg_LoadControllerCellHandler
-    Cfg_ReceptorsHandlerInt <|.. Cfg_LoadControllerCellHandler
-    Cfg_TransmitterHandlerInt <|.. Cfg_InjectorCellHandler
+    Cfg_PropertiesHandlerInt <|.. Cfg_CellHandler
     Cfg_SynapsesHandlerInt <|.. Cfg_CellHandler
+    Cfg_ActivatorsHandlerInt <|.. Cfg_CellHandler
+    Cfg_PropertiesHandlerInt <|.. Cfg_CellPropertiesHandler
+    Cfg_ActivatorsHandlerInt <|.. Cfg_CellActivatorsHandler
 ```
 
-The nested element handlers (`Cfg_CellPropertiesHandler` → `Cfg_CellPropertyHandler`,
-`Cfg_CellSubscriptionsHandler` → `Cfg_CellSubscriptionHandler`,
-`Cfg_CellActivatorsHandler` → `Cfg_CellActivatorHandler`,
-`Cfg_CellReceptorsHandler` → `Cfg_CellReceptorHandler`,
-`Cfg_CellTransmitterHandler`) follow the same container→item pattern and use **reflection**
-(`Class.forName`) to instantiate `Activator`s and to read each stimulus type's `TYPE_ID`.
+Receptors, transmitters and subscriptions are *optional* and position-dependent, so their
+interfaces are implemented by the container handler, by `Cfg_CellActivatorHandler` (an
+activator may declare all three), and only by those cell handlers that can carry the element
+directly:
+
+```mermaid
+classDiagram
+    class Cfg_ReceptorsHandlerInt {
+        <<interface>>
+        +addReceptor(Cfg_CellReceptorHandler) void
+    }
+    class Cfg_TransmittersHandlerInt {
+        <<interface>>
+        +addTransmitter(Cfg_CellTransmitterHandler) void
+    }
+    class Cfg_SubscriptionsHandlerInt {
+        <<interface>>
+        +addSubscription(Cfg_CellSubscriptionHandler) void
+    }
+
+    Cfg_ReceptorsHandlerInt <|.. Cfg_CellReceptorsHandler
+    Cfg_ReceptorsHandlerInt <|.. Cfg_CellActivatorHandler
+    Cfg_ReceptorsHandlerInt <|.. Cfg_LoadControllerCellHandler
+    Cfg_TransmittersHandlerInt <|.. Cfg_CellTransmittersHandler
+    Cfg_TransmittersHandlerInt <|.. Cfg_CellActivatorHandler
+    Cfg_TransmittersHandlerInt <|.. Cfg_InjectorCellHandler
+    Cfg_SubscriptionsHandlerInt <|.. Cfg_CellSubscriptionsHandler
+    Cfg_SubscriptionsHandlerInt <|.. Cfg_CellActivatorHandler
+    Cfg_SubscriptionsHandlerInt <|.. Cfg_BridgeCellHandler
+    Cfg_SubscriptionsHandlerInt <|.. Cfg_ExtractorCellHandler
+    Cfg_SubscriptionsHandlerInt <|.. Cfg_LoadControllerCellHandler
+```
+
+**Traversal.** `Cfg_Utils.processElement()` is the single recursion point: for each child
+element it calls `handler.processNode()` to let the handler absorb that element, then
+`handler.processElement()` to let the handler push itself into its parent through one of the
+interfaces above. The container→item pairs (`Cfg_CellPropertiesHandler` →
+`Cfg_CellPropertyHandler`, `Cfg_CellActivatorsHandler` → `Cfg_CellActivatorHandler`,
+`Cfg_CellReceptorsHandler` → `Cfg_CellReceptorHandler`, `Cfg_CellTransmittersHandler` →
+`Cfg_CellTransmitterHandler`, `Cfg_CellSubscriptionsHandler` →
+`Cfg_CellSubscriptionHandler`) all follow this shape.
+
+### Notable elements
+
+An `<activator>` carries `<class>`, an optional `<name>` (defaulting to the class name), and
+optional `<receptors>`, `<transmitters>` and `<subscriptions>` blocks:
+
+| Element | Meaning |
+|---------|---------|
+| `<default/>` | Instantiate the activator through its **no-argument** constructor; the specs are declared in code rather than XML (see [§2.4](02-domain-model.md#two-ways-to-specialize-an-activator)). Without it, the factory looks for the full pass-through constructor. |
+| `<pulse_interval_ms>` | Cell-level. Non-zero starts the cell's `PulseThread`, which is what drives a `PulsedActivator`. Honoured only by logic, load-balanced and custom cells. |
+| `<transaction_history_window_ms>` | How long a transaction id stays remembered for duplicate-response filtering, defaulting to 30 000 ms. Accepted on an `<extractor_cell>` (applied to the cell) and on an `<activator>` of a load-balanced or custom cell (applied to that activator). |
+| `<transaction_max_lifespan_ms>` | Maximum lifespan of an activator's incomplete receptor bundle, defaulting to 60 000 ms with a 100 ms floor. Applied per `<activator>` by the logic, load-balanced and custom cell parsers. Must exceed the longest legitimate transaction — see [§2.5](02-domain-model.md#reclaiming-abandoned-transactions). |
+| `<filter_transactions>` | `enabled`/`disabled` on a logic, loopback or map subscription — discards redundant responses for a transaction already answered. Not applicable to bridge subscriptions. |
+| `<trace>` | `enabled`/`disabled` on a transmitter; turns on per-stimulus tracing for that output. |
+
+`Cfg_CellSubscriptionsHandler` resolves the subscription kind from the element name —
+`<bridge_subscription>`, `<extractor_subscription>`, `<logic_subscription>`,
+`<loopback_subscription>` and `<map_subscription>` name their type explicitly, while a plain
+`<subscription>` is interpreted according to the enclosing cell type (bridge for a bridge
+cell, extractor for an extractor cell, logic for logic, load-balanced, load-controller and
+custom cells).
 
 ## 3.6 Utilities & the daemon control plane (`neupaths.util`)
 

@@ -12,6 +12,29 @@
   <activators>
     <activator>
       <class>PropertyRequestActivator</class>
+      <name>PropertyRequestActivator</name>
+      <receptors>
+        <receptor>
+          <name>PropertyRequest</name>
+          <mode>buffered</mode>
+          <stimulus_class>PropertyRequest</stimulus_class>
+        </receptor>
+      </receptors>
+      <transmitters>
+        <transmitter>
+          <name>PropertyResponse</name>
+          <stimulus_class>PropertyResponse</stimulus_class>
+          <trace>enabled</trace>
+        </transmitter>
+      </transmitters>
+      <subscriptions>
+        <map_subscription>
+          <cell_name>.*</cell_name>
+          <transmitter_name>PropertyRequest</transmitter_name>
+          <domain>@</domain>
+          <filter_transactions>disabled</filter_transactions>
+        </map_subscription>
+      </subscriptions>
     </activator>
   </activators>
 </logic_cell>

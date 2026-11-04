@@ -206,16 +206,23 @@ sequenceDiagram
 sequenceDiagram
     actor Op as Operator / CellClusterExec
     participant CF as CellFactory
-    participant Cfg as Cfg_* DOM handlers
+    participant P as Cfg_*Parser
+    participant H as Cfg_* DOM handlers
     participant CC as CellCluster
     participant Cell as each Cell
     participant Nuc as each Nucleus
 
     Op->>CF: createCell(clusterDef.xml)
-    CF->>Cfg: parse XML (recursive handlers)
-    Cfg-->>CF: cell/activator/receptor/transmitter specs
-    CF->>Cell: construct (reflective) + attach Activators
+    CF->>CF: read root element, select parser
+    CF->>P: parseNode(root)
+    P->>H: walk DOM (recursive handlers)
+    H-->>P: transcribed definition data
+    CF->>P: validate()
+    Note over P: malformed definition rejected here,<br/>before any class is loaded
+    CF->>P: instantiate()
+    P->>Cell: construct (reflective) + attach Activators
     Cell->>Nuc: new Nuc_Nucleus(synapses, cryptoKey)
+    P->>Cell: applyCellOptions()
     CF-->>Op: CellCluster
     Op->>CC: start()
     loop for each Cell
@@ -239,6 +246,6 @@ sequenceDiagram
 | App ↔ mesh round-trip | `InjectorCell`, `ExtractorCell`, transactions | §4.5 |
 | Cycle detection | `Actv_CycleDetection`, `Stim_CycleDetect*` | §4.6 |
 | Load balancing | `LoadControllerCell`, `LoadBalancedCell`, `Stim_LoadBalance*` | §4.7 |
-| Cluster startup | `CellFactory`, `Cfg_*`, `CellCluster` | §4.8 |
+| Cluster startup | `CellFactory`, `Cfg_CellDefinitionParser`, `Cfg_*`, `CellCluster` | §4.8 |
 
 Continue to the [Execution Model →](05-execution-model.md)

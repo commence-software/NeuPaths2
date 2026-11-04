@@ -8,64 +8,44 @@ import java.util.UUID;
 import org.w3c.dom.Node;
 
 /**
- * Handler for {@link LoadControllCell} receptors.
+ * Handler for {@link Cell} receptors.
  *
  * @author Aaron Caraveo
  */
-final class Cfg_CellReceptorsHandler extends Cfg_ConfigHandler implements Cfg_ReceptorHandlerInt
+final class Cfg_CellReceptorsHandler extends Cfg_ConfigHandler
+    implements Cfg_ReceptorsHandlerInt
 {
-  Cfg_CellReceptorsHandler (String xPath)
+  Cfg_CellReceptorsHandler (CellType cellType, String xPath)
   {
-    super(xPath);
+    super(cellType, xPath);
 
     receptors = new LinkedList<>();
   }
   
-  void processNode (String configFile, Node node)
+  void processNode (String definitionFile, Node node)
   {
     String nodeName = node.getNodeName().toUpperCase();
 
     if (nodeName.equals("RECEPTOR"))
     {
-      Cfg_CellReceptorHandler handler = new Cfg_CellReceptorHandler(xPath + "/Receptor");
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_CellReceptorHandler handler = new Cfg_CellReceptorHandler(cellType, xPath + "/Receptor");
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else
     {
       throw new NeuPathsException("Unexpected " + xPath + " configuration tag '" +
-                                  nodeName + "' in file " + configFile);
+                                  nodeName + "' in file " + definitionFile);
     }
   }
 
-  void processElement (String configFile, Cfg_ConfigHandler parentHandler)
+  void processElement (String             definitionFile,
+                       Cfg_ConfigHandler parentHandler)
   {
     Cfg_ReceptorsHandlerInt handler = (Cfg_ReceptorsHandlerInt) parentHandler;
     
-    for (Cfg_CellReceptorHandler context : receptors)
+    for (Cfg_CellReceptorHandler receptor : receptors)
     {
-      try
-      {
-        // Load the stimulus class
-        Class<?> stimClass = Class.forName(context.stimulusClassName);
-        UUID stimTypeID = (UUID) stimClass.getField("TYPE_ID").get(null);
-      
-        handler.addReceptor(
-            new ReceptorSpec(context.name,
-                             context.mode,
-                             stimTypeID));
-      }
-      catch (ClassNotFoundException cnfe)
-      {
-        throw new NeuPathsException("Could not resolve TYPE_ID for receptor in file " + configFile, cnfe);
-      }
-      catch (IllegalAccessException iae)
-      {
-        throw new NeuPathsException("Could not resolve TYPE_ID for receptor in file " + configFile, iae);
-      }
-      catch (NoSuchFieldException nsfe)
-      {
-        throw new NeuPathsException("Could not resolve TYPE_ID for receptor in file " + configFile, nsfe);
-      }
+      handler.addReceptor(receptor);
     }
   }
 

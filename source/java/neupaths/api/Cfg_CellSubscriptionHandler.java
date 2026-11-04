@@ -6,18 +6,20 @@ package neupaths.api;
 import org.w3c.dom.Node;
 
 /**
- * Handler for parsing an {@link ExtractorCell}'s subscription.
+ * Handler for parsing a {@link Cell} subscription.
  *
  * @author Aaron Caraveo
  */
 final class Cfg_CellSubscriptionHandler extends Cfg_ConfigHandler
 {
-  Cfg_CellSubscriptionHandler (String xPath, SubscriptionType subType)
+  Cfg_CellSubscriptionHandler (CellType         cellType,
+                                String           xPath,
+                                SubscriptionType subType)
   {
-    super(xPath);
+    super(cellType, xPath);
     
     this.subType = subType;
-
+    
     cellName = "Unspecified";
     transmitterName = "Unspecified";
     receptorName = "Unspecified";
@@ -25,7 +27,7 @@ final class Cfg_CellSubscriptionHandler extends Cfg_ConfigHandler
     filterTransactions = TransactionFilter.DISABLED;
   }
 
-  void processNode (String configFile, Node node)
+  void processNode (String definitionFile, Node node)
   {
     String nodeName = node.getNodeName().toUpperCase();
     
@@ -49,8 +51,7 @@ final class Cfg_CellSubscriptionHandler extends Cfg_ConfigHandler
       domain = Cfg_Utils.getNodeText(node);
     }
     else if (nodeName.equals("FILTER_TRANSACTIONS") &&
-             subType != SubscriptionType.BRIDGE &&
-             subType != SubscriptionType.LOOPBACK)
+             subType != SubscriptionType.BRIDGE)
     {
       try
       {
@@ -59,19 +60,20 @@ final class Cfg_CellSubscriptionHandler extends Cfg_ConfigHandler
       catch (IllegalArgumentException iae)
       {
         throw new NeuPathsException("Illegal value for " + xPath + "/Filter_Transactions '" +
-                                    Cfg_Utils.getNodeText(node) + "' in file " + configFile);
+                                    Cfg_Utils.getNodeText(node) + "' in file " + definitionFile);
       }
     }
     else
     {
       throw new NeuPathsException("Unexpected " + xPath + " configuration tag '" +
-                                  nodeName + "' in file " + configFile);
+                                  nodeName + "' in file " + definitionFile);
     }
   }
 
-  void processElement (String configFile, Cfg_ConfigHandler parentHandler)
+  void processElement (String             definitionFile,
+                       Cfg_ConfigHandler parentHandler)
   {
-    Cfg_SubscriptionHandlerInt handler = (Cfg_SubscriptionHandlerInt) parentHandler;
+    Cfg_SubscriptionsHandlerInt handler = (Cfg_SubscriptionsHandlerInt) parentHandler;
     handler.addSubscription(this);
   }
 

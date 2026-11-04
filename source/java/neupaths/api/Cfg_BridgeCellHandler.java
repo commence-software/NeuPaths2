@@ -3,23 +3,25 @@
 // SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
 package neupaths.api;
 
+import java.util.LinkedList;
 import org.w3c.dom.Node;
 
 /**
- * Handler for parsing a {@link BridgeCell}'s configuration.
+ * Handler for parsing a {@link BridgeCell} configuration.
  * 
  * @author Aaron Caraveo
  */
-final class Cfg_BridgeCellHandler extends Cfg_CellHandler implements Cfg_SubscriptionsHandlerInt
+final class Cfg_BridgeCellHandler extends Cfg_CellHandler
+    implements Cfg_SubscriptionsHandlerInt
 {
   Cfg_BridgeCellHandler ()
   {
     super(CellType.BRIDGE, "/Bridge_Cell");
 
-    subscriptions = new SubscriptionSpecSet();
+    subscriptions = new LinkedList<>();
   }
 
-  void processNode (String configFile, Node node)
+  void processNode (String definitionFile, Node node)
   {
     String nodeName = node.getNodeName().toUpperCase();
 
@@ -29,13 +31,13 @@ final class Cfg_BridgeCellHandler extends Cfg_CellHandler implements Cfg_Subscri
     }
     else if (nodeName.equals("SYNAPSES"))
     {
-      Cfg_CellSynapsesHandler handler = new Cfg_CellSynapsesHandler(xPath + "/Synapses");
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_CellSynapsesHandler handler = new Cfg_CellSynapsesHandler(cellType, xPath + "/Synapses");
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else if (nodeName.equals("SUBSCRIPTIONS"))
     {
-      Cfg_CellSubscriptionsHandler handler = new Cfg_CellSubscriptionsHandler(xPath + "/Subscriptions", cellType);
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_CellSubscriptionsHandler handler = new Cfg_CellSubscriptionsHandler(cellType, xPath + "/Subscriptions");
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else if (nodeName.equals("LOGGING_ENABLED"))
     {
@@ -77,14 +79,14 @@ final class Cfg_BridgeCellHandler extends Cfg_CellHandler implements Cfg_Subscri
     else
     {
       throw new NeuPathsException("Unexpected " + xPath + " configuration tag '" +
-                                  nodeName + "' in file " + configFile);
+                                  nodeName + "' in file " + definitionFile);
     }
   }
 
-  public void addSubscription (SubscriptionSpec subscriptionSpec)
+  public void addSubscription (Cfg_CellSubscriptionHandler subscription)
   {
-    subscriptions.add(subscriptionSpec);
+    subscriptions.add(subscription);
   }
   
-  SubscriptionSpecSet subscriptions;
+  LinkedList<Cfg_CellSubscriptionHandler> subscriptions;
 }

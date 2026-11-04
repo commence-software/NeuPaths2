@@ -17,6 +17,7 @@
   <activators>
     <activator>
       <class>WorldHelloActivator</class>
+      <default/>
     </activator>
   </activators>
 </logic_cell>

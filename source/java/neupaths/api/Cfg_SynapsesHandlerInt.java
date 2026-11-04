@@ -3,8 +3,6 @@
 // SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
 package neupaths.api;
 
-import java.util.HashSet;
-
 /**
  * Interface for handling synapses.
  *
@@ -12,5 +10,5 @@ import java.util.HashSet;
  */
 interface Cfg_SynapsesHandlerInt
 {
-  void addSynapses (HashSet<String> synapseNames);
+  void addSynapse (String synapseName);
 }

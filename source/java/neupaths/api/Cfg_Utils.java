@@ -34,10 +34,10 @@ class Cfg_Utils
     return text;
   }
 
-  static void processElement (String configFile,
+  static void processElement (String             cellDefinitionFile,
                               Cfg_ConfigHandler parentHandler,
                               Cfg_ConfigHandler handler,
-                              Node node)
+                              Node               node)
   {
     NodeList childNodes = node.getChildNodes();
     
@@ -48,10 +48,10 @@ class Cfg_Utils
       if (childNode.getNodeType() != Node.ELEMENT_NODE)
         continue;
       
-      handler.processNode(configFile, childNode);
+      handler.processNode(cellDefinitionFile, childNode);
     }
     
-    handler.processElement(configFile, parentHandler);
+    handler.processElement(cellDefinitionFile, parentHandler);
   }
 
   static byte[] cryptoKeyBytes (String cryptoKeyFile)

@@ -1,4 +1,4 @@
-<specialized_cell>
+<custom_cell>
   <class>AlarmServiceCell</class>
   <name>AlarmService</name>
   <synapses>
@@ -7,9 +7,32 @@
   <activators>
     <activator>
       <class>ScheduleActivator</class>
+      <name>ScheduleActivator</name>
+      <receptors>
+        <receptor>
+          <name>AlarmRequest</name>
+          <mode>non_buffered</mode>
+          <stimulus_class>AlarmRequest</stimulus_class>
+        </receptor>
+      </receptors>
+      <subscriptions>
+        <map_subscription>
+          <cell_name>.*</cell_name>
+          <transmitter_name>AlarmRequest</transmitter_name>
+          <domain>@</domain>
+          <filter_transactions>enabled</filter_transactions>
+        </map_subscription>
+      </subscriptions>
     </activator>
     <activator>
       <class>AlarmActivator</class>
+      <name>AlarmActivator</name>
+      <transmitters>
+        <transmitter>
+          <name>AlarmExpiration</name>
+          <stimulus_class>AlarmExpiration</stimulus_class>
+        </transmitter>
+      </transmitters>
     </activator>
   </activators>
   <logging_enabled>true</logging_enabled>
@@ -17,4 +40,4 @@
   <debug_logging_enabled>true</debug_logging_enabled>
   <runtime_logging_enabled>true</runtime_logging_enabled>
   <pulse_interval_ms>100</pulse_interval_ms>
-</specialized_cell>
+</custom_cell>

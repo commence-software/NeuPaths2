@@ -6,26 +6,13 @@ import neupaths.stim.*;
 
 public class PropertyRequestActivator extends Activator
 {
-  public PropertyRequestActivator ()
+  public PropertyRequestActivator
+    (String                  name,
+     ReceptorSpec[]          receptors,
+     TransmitterSpec[]       transmitters,
+     LogicSubscriptionSpec[] subscriptions)
   {
-    super("PropertyRequestActivator",
-          new ReceptorSpec[] {
-              new ReceptorSpec("PropertyRequest",
-                               ReceptorMode.BUFFERED,
-                               PropertyRequest.TYPE_ID)
-          },
-          new TransmitterSpec[] {
-              new TransmitterSpec("PropertyResponse",
-                                  PropertyResponse.TYPE_ID,
-                                  StimulusTrace.ENABLED)
-          },
-          new LogicSubscriptionSpec[] {
-              new LogicSubscriptionSpec(".*",
-                                        "PropertyRequest",
-                                        "PropertyRequest",
-                                        "@",
-                                        TransactionFilter.DISABLED)
-          });
+    super(name, receptors, transmitters, subscriptions);
   }
 
   @Override

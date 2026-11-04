@@ -10,19 +10,13 @@ import java.util.List;
 
 public class ScheduleActivator extends Activator
 {
-  public ScheduleActivator ()
+  public ScheduleActivator
+    (String                  name,
+     ReceptorSpec[]          receptors,
+     TransmitterSpec[]       transmitters,
+     LogicSubscriptionSpec[] subscriptions)
   {
-    super("ScheduleActivator",
-          new ReceptorSpec[] {
-            new ReceptorSpec("AlarmRequest",
-                             ReceptorMode.NON_BUFFERED,
-                             AlarmRequest.TYPE_ID) },
-          new TransmitterSpec[0],
-          new LogicSubscriptionSpec[] {
-            new LogicMapSubscriptionSpec(".*",
-                                         "AlarmRequest",
-                                         "@",
-                                         TransactionFilter.ENABLED) });
+    super(name, receptors, transmitters, subscriptions);
   }
 
   public void evaluate ()

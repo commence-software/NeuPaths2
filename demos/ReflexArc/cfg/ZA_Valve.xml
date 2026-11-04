@@ -1,11 +1,17 @@
 <logic_cell>
   <name>ZA_Valve</name>
   <synapses>
-    <synapse>Local#Stream#Peer#Zone_A#/tmp/reflex/za.sock</synapse>
+    <synapse>Network#Stream#Peer#Zone_A#30010#127.0.0.1</synapse>
   </synapses>
   <activators>
-    <activator><class>ValveActuator</class></activator>
-    <activator><class>ValveHeartbeat</class></activator>
+    <activator>
+      <class>ValveActuator</class>
+      <default/>
+    </activator>
+    <activator>
+      <class>ValveHeartbeat</class>
+      <default/>
+    </activator>
   </activators>
   <pulse_interval_ms>1000</pulse_interval_ms>
 </logic_cell>

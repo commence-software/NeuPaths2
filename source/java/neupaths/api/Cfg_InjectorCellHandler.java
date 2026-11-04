@@ -10,7 +10,8 @@ import org.w3c.dom.Node;
  *
  * @author Aaron Caraveo
  */
-final class Cfg_InjectorCellHandler extends Cfg_CellHandler implements Cfg_TransmitterHandlerInt
+final class Cfg_InjectorCellHandler extends Cfg_CellHandler
+    implements Cfg_TransmittersHandlerInt
 {
   Cfg_InjectorCellHandler ()
   {
@@ -19,7 +20,7 @@ final class Cfg_InjectorCellHandler extends Cfg_CellHandler implements Cfg_Trans
     transmitter = null;
   }
 
-  void processNode (String configFile, Node node)
+  void processNode (String definitionFile, Node node)
   {
     String nodeName = node.getNodeName().toUpperCase();
 
@@ -29,13 +30,13 @@ final class Cfg_InjectorCellHandler extends Cfg_CellHandler implements Cfg_Trans
     }
     else if (nodeName.equals("SYNAPSES"))
     {
-      Cfg_CellSynapsesHandler handler = new Cfg_CellSynapsesHandler(xPath + "/Synapses");
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_CellSynapsesHandler handler = new Cfg_CellSynapsesHandler(cellType, xPath + "/Synapses");
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else if (nodeName.equals("TRANSMITTER"))
     {
-      Cfg_CellTransmitterHandler handler = new Cfg_CellTransmitterHandler(xPath + "/Transmitter");
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_CellTransmitterHandler handler = new Cfg_CellTransmitterHandler(cellType, xPath + "/Transmitter");
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else if (nodeName.equals("LOGGING_ENABLED"))
     {
@@ -73,14 +74,14 @@ final class Cfg_InjectorCellHandler extends Cfg_CellHandler implements Cfg_Trans
     else
     {
       throw new NeuPathsException("Unexpected " + xPath + " configuration tag '" +
-                                  nodeName + "' in file " + configFile);
+                                  nodeName + "' in file " + definitionFile);
     }
   }
   
-  public void addTransmitter (TransmitterSpec transmitterSpec)
+  public void addTransmitter (Cfg_CellTransmitterHandler transmitter)
   {
-    transmitter = transmitterSpec;
+    this.transmitter = transmitter;
   }
   
-  TransmitterSpec transmitter;
+  Cfg_CellTransmitterHandler transmitter;
 }

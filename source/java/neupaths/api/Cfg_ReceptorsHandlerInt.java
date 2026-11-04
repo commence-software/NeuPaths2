@@ -10,5 +10,5 @@ package neupaths.api;
  */
 interface Cfg_ReceptorsHandlerInt
 {
-  void addReceptor (ReceptorSpec receptorSpec);
+  void addReceptor (Cfg_CellReceptorHandler receptor);
 }

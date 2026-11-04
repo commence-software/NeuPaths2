@@ -7,22 +7,21 @@ import java.util.LinkedList;
 import org.w3c.dom.Node;
 
 /**
- * Handler for parsing a specialized {@link LogicCell} or {@link LoadBalancedCell}
+ * Handler for parsing a custom {@link LogicCell} or {@link LoadBalancedCell}
  * configuration.
  *
  * @author Aaron Caraveo
  */
-final class Cfg_SpecializedCellHandler extends Cfg_CellHandler implements Cfg_ActivatorsHandlerInt
+final class Cfg_CustomCellHandler extends Cfg_CellHandler
 {
-  Cfg_SpecializedCellHandler ()
+  Cfg_CustomCellHandler ()
   {
-    super(CellType.LOGIC, "/Specialized_Cell");
+    super(CellType.CUSTOM, "/Custom_Cell");
 
     className = null;
-    activators = new LinkedList<>();
   }
 
-  void processNode (String configFile, Node node)
+  void processNode (String definitionFile, Node node)
   {
     String nodeName = node.getNodeName().toUpperCase();
 
@@ -36,18 +35,18 @@ final class Cfg_SpecializedCellHandler extends Cfg_CellHandler implements Cfg_Ac
     }
     else if (nodeName.equals("PROPERTIES"))
     {
-      Cfg_CellPropertiesHandler handler = new Cfg_CellPropertiesHandler(xPath + "/Properties");
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_CellPropertiesHandler handler = new Cfg_CellPropertiesHandler(cellType, xPath + "/Properties");
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else if (nodeName.equals("SYNAPSES"))
     {
-      Cfg_CellSynapsesHandler handler = new Cfg_CellSynapsesHandler(xPath + "/Synapses");
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_CellSynapsesHandler handler = new Cfg_CellSynapsesHandler(cellType, xPath + "/Synapses");
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else if (nodeName.equals("ACTIVATORS"))
     {
-      Cfg_CellActivatorsHandler handler = new Cfg_CellActivatorsHandler(xPath + "/Activators");
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_CellActivatorsHandler handler = new Cfg_CellActivatorsHandler(cellType, xPath + "/Activators");
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else if (nodeName.equals("LOGGING_ENABLED"))
     {
@@ -93,15 +92,9 @@ final class Cfg_SpecializedCellHandler extends Cfg_CellHandler implements Cfg_Ac
     else
     {
       throw new NeuPathsException("Unexpected Logic_Cell configuration tag '" +
-                                  nodeName + "' in file " + configFile);
+                                  nodeName + "' in file " + definitionFile);
     }
   }
 
-  public void addActivator (Activator activator)
-  {
-    activators.addLast(activator);
-  }
-
   String className;
-  LinkedList<Activator> activators;
 }

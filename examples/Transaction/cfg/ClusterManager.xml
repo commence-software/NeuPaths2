@@ -7,9 +7,55 @@
   <activators>
     <activator>
       <class>ClusterRequestActivator</class>
+      <name>ClusterRequestActivator</name>
+      <receptors>
+        <receptor>
+          <name>ClusterRequest</name>
+          <mode>buffered</mode>
+          <stimulus_class>ClusterRequest</stimulus_class>
+        </receptor>
+      </receptors>
+      <transmitters>
+        <transmitter>
+          <name>PropertyRequest</name>
+          <stimulus_class>PropertyRequest</stimulus_class>
+          <trace>enabled</trace>
+        </transmitter>
+      </transmitters>
+      <subscriptions>
+        <map_subscription>
+          <cell_name>.*</cell_name>
+          <transmitter_name>ClusterRequest</transmitter_name>
+          <domain>@</domain>
+          <filter_transactions>disabled</filter_transactions>
+        </map_subscription>
+      </subscriptions>
     </activator>
     <activator>
       <class>ClusterResponseActivator</class>
+      <name>ClusterResponseActivator</name>
+      <receptors>
+        <receptor>
+          <name>PropertyResponse</name>
+          <mode>buffered</mode>
+          <stimulus_class>PropertyResponse</stimulus_class>
+        </receptor>
+      </receptors>
+      <transmitters>
+        <transmitter>
+          <name>ClusterResponse</name>
+          <stimulus_class>ClusterResponse</stimulus_class>
+          <trace>enabled</trace>
+        </transmitter>
+      </transmitters>
+      <subscriptions>
+        <map_subscription>
+          <cell_name>.*</cell_name>
+          <transmitter_name>PropertyResponse</transmitter_name>
+          <domain>@</domain>
+          <filter_transactions>disabled</filter_transactions>
+        </map_subscription>
+      </subscriptions>
     </activator>
   </activators>
 </logic_cell>

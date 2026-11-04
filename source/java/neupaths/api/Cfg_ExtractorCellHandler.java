@@ -6,11 +6,12 @@ package neupaths.api;
 import org.w3c.dom.Node;
 
 /**
- * Handler for parsing an {@link ExtractorCell}'s configuration.
+ * Handler for parsing an {@link ExtractorCell} configuration.
  *
  * @author Aaron Caraveo
  */
-final class Cfg_ExtractorCellHandler extends Cfg_CellHandler implements Cfg_SubscriptionHandlerInt
+final class Cfg_ExtractorCellHandler extends Cfg_CellHandler
+    implements Cfg_SubscriptionsHandlerInt
 {
   Cfg_ExtractorCellHandler ()
   {
@@ -19,7 +20,7 @@ final class Cfg_ExtractorCellHandler extends Cfg_CellHandler implements Cfg_Subs
     subscription = null;
   }
 
-  void processNode (String configFile, Node node)
+  void processNode (String definitionFile, Node node)
   {
     String nodeName = node.getNodeName().toUpperCase();
 
@@ -29,13 +30,13 @@ final class Cfg_ExtractorCellHandler extends Cfg_CellHandler implements Cfg_Subs
     }
     else if (nodeName.equals("SYNAPSES"))
     {
-      Cfg_CellSynapsesHandler handler = new Cfg_CellSynapsesHandler(xPath + "/Synapses");
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_CellSynapsesHandler handler = new Cfg_CellSynapsesHandler(cellType, xPath + "/Synapses");
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else if (nodeName.equals("SUBSCRIPTION"))
     {
-      Cfg_CellSubscriptionHandler handler = new Cfg_CellSubscriptionHandler(xPath + "/Subscription", SubscriptionType.EXTRACTOR);
-      Cfg_Utils.processElement(configFile, this, handler, node);
+      Cfg_CellSubscriptionHandler handler = new Cfg_CellSubscriptionHandler(cellType, xPath + "/Subscription", SubscriptionType.EXTRACTOR);
+      Cfg_Utils.processElement(definitionFile, this, handler, node);
     }
     else if (nodeName.equals("LOGGING_ENABLED"))
     {
@@ -70,6 +71,10 @@ final class Cfg_ExtractorCellHandler extends Cfg_CellHandler implements Cfg_Subs
     {
       subscriptionTraceInterval = Long.parseLong(Cfg_Utils.getNodeText(node));
     }
+    else if (nodeName.equals("TRANSACTION_HISTORY_WINDOW_MS"))
+    {
+      transactionHistoryWindow = Long.parseLong(Cfg_Utils.getNodeText(node));
+    }
     else if (nodeName.equals("CRYPTO_KEY_FILE"))
     {
       cryptoKeyFile = Cfg_Utils.getNodeText(node);
@@ -77,17 +82,22 @@ final class Cfg_ExtractorCellHandler extends Cfg_CellHandler implements Cfg_Subs
     else
     {
       throw new NeuPathsException("Unexpected " + xPath + " configuration tag '" +
-                                  nodeName + "' in file " + configFile);
+                                  nodeName + "' in file " + definitionFile);
     }
   }
 
   public void addSubscription (Cfg_CellSubscriptionHandler subscription)
   {
-    this.subscription = new ExtractorSubscriptionSpec(subscription.cellName,
-                                                      subscription.transmitterName,
-                                                      subscription.domain,
-                                                      subscription.filterTransactions);
+    if (this.subscription == null)
+    {
+      this.subscription = subscription;
+    }
+    else
+    {
+      throw new NeuPathsException("Extractor cell subscription already specified");
+    }
   }
   
-  ExtractorSubscriptionSpec subscription;  
+  Cfg_CellSubscriptionHandler subscription;  
+  long transactionHistoryWindow;
 }

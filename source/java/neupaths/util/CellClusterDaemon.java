@@ -129,7 +129,9 @@ public class CellClusterDaemon
       }
     }
 
-    if (Integer.valueOf(arguments.get("optCnt")) < 3)
+    int optCnt = arguments.get("optCnt");
+
+    if (optCnt < 3)
     {
       System.out.println("ERROR: Missing required arguments");
       printUsage();
@@ -184,14 +186,14 @@ public class CellClusterDaemon
                         },
                         cryptoKey);
 
+      daemonCell.setProperty("daemonName", daemonName);
+      daemonCell.setProperty("daemonID", uuid.toString());
+      daemonCell.setProperty("configTopDir", configTopDir);
+
       // Make sure global subscriptions don't leak out of daemon
       daemonCell.disableGlobalSubscriptionPropagation();
 
       //daemonCell.enableSystemLogging();
-
-      activator.setProperty("daemonName", daemonName);
-      activator.setProperty("daemonID", uuid.toString());
-      activator.setProperty("configTopDir", configTopDir);
 
       // Create the event cell
       EventCell eventCell = new EventCell("DaemonEvents",

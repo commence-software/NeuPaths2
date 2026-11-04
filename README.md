@@ -1,4 +1,4 @@
-# Version 2.0.2
+# Version 2.1.0
 
 ![NeuPaths_Logo_GitHub](assets/NeuPaths_Logo_GitHub.jpg)
 

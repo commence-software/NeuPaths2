@@ -756,9 +756,9 @@ public class Cell
         catch (Throwable te)
         {
           throw new NeuPathsException(type,
-                                         name,
-                                         "Activator initialization failed",
-                                         te);
+                                      name,
+                                      "Activator initialization failed",
+                                      te);
         }
       }
   
@@ -776,7 +776,7 @@ public class Cell
   /**
    * Suspends processing of stimuli.
    */
-  public final
+  public
   void
   pause ()
   {
@@ -794,7 +794,7 @@ public class Cell
   /**
    * Resumes processing of stimuli.
    */
-  public final
+  public
   void
   resume ()
   {

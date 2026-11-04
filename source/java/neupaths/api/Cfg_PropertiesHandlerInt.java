@@ -4,11 +4,11 @@
 package neupaths.api;
 
 /**
- * Interface for handling a receptor configuration.
+ * Interface for handling properties.
  *
  * @author Aaron Caraveo
  */
-interface Cfg_ReceptorHandlerInt
+interface Cfg_PropertiesHandlerInt
 {
-  void addReceptor (Cfg_CellReceptorHandler receptorSpec);
+  void addProperty (Cfg_CellPropertyHandler property);
 }

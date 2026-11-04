@@ -7,22 +7,22 @@ import java.util.UUID;
 import org.w3c.dom.Node;
 
 /**
- * Handler for parsing an {@link Activator}s receptor configuration.
+ * Handler for parsing an {@link Activator} receptor configuration.
  *
  * @author Aaron Caraveo
  */
 final class Cfg_CellReceptorHandler extends Cfg_ConfigHandler
 {
-  Cfg_CellReceptorHandler (String xPath)
+  Cfg_CellReceptorHandler (CellType cellType, String xPath)
   {
-    super(xPath);
+    super(cellType, xPath);
     
     name = null;
     mode = ReceptorMode.NON_BUFFERED;
     stimulusClassName = null;
   }
 
-  void processNode (String configFile, Node node)
+  void processNode (String definitionFile, Node node)
   {
     String nodeName = node.getNodeName().toUpperCase();
     
@@ -39,7 +39,7 @@ final class Cfg_CellReceptorHandler extends Cfg_ConfigHandler
       catch (IllegalArgumentException iae)
       {
         throw new NeuPathsException("Illegal value for " + xPath + "/Mode '" +
-                                    Cfg_Utils.getNodeText(node) + "' in file " + configFile);
+                                    Cfg_Utils.getNodeText(node) + "' in file " + definitionFile);
       }
     }
     else if (nodeName.equals("STIMULUS_CLASS"))
@@ -49,13 +49,14 @@ final class Cfg_CellReceptorHandler extends Cfg_ConfigHandler
     else
     {
       throw new NeuPathsException("Unexpected " + xPath + " configuration tag '" +
-                                     nodeName + "' in file " + configFile);
+                                     nodeName + "' in file " + definitionFile);
     }
   }
   
-  void processElement (String configFile, Cfg_ConfigHandler parentHandler)
+  void processElement (String             definitionFile,
+                       Cfg_ConfigHandler parentHandler)
   {
-    Cfg_ReceptorHandlerInt handler = (Cfg_ReceptorHandlerInt) parentHandler;
+    Cfg_ReceptorsHandlerInt handler = (Cfg_ReceptorsHandlerInt) parentHandler;
 
     handler.addReceptor(this);
   }

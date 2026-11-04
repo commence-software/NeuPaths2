@@ -30,8 +30,8 @@ import org.xml.sax.SAXParseException;
  * </p>
  * <p>
  * A cluster definition file contains an XML schema that lists the
- * cell definition file for each cell in the cluster.  Logging and
- * interval settings override the settings in the individual cell
+ * cell definition file for each cell in the cluster.  Logging, interval
+ * and crypto file settings override the settings in the individual cell
  * definition files.
  * </p>
  * <ul>
@@ -206,8 +206,6 @@ public class CellCluster implements Iterable<Cell>
       {
         Node node = nodes.item(0);
         String nodeName = node.getNodeName().toUpperCase();
-        Syn_Name daemonSynapse = null;
-        Syn_Name clusterSynapse = null;
 
         if (node.getNodeType() == Node.ELEMENT_NODE)
         {
@@ -222,63 +220,15 @@ public class CellCluster implements Iterable<Cell>
                                           clusterDefinitionFile);
             }
 
-            try
-            {
-              LinkedList<String> daemonOptions = new LinkedList<>();
-              daemonOptions.addLast(System.getProperty("java.io.tmpdir") + File.separator + "daemon_" + Math.abs(handler.clusterName.hashCode()) + ".syn");
-
-              // Daemon to Cluster
-              daemonSynapse =
-                  new Syn_Name(Syn_Scope.LOCAL,
-                               Syn_Type.STREAM,
-                               Syn_Mode.LISTENER,
-                               "Daemon:Ctrl",
-                               daemonOptions);
-
-              LinkedList<String> clusterOptions = new LinkedList<>();
-              clusterOptions.addLast(System.getProperty("java.io.tmpdir") + File.separator + "cluster_" + Math.abs(handler.clusterName.hashCode()) + ".syn");
-
-              // Cell to Cluster 
-              clusterSynapse =
-                  new Syn_Name(Syn_Scope.LOCAL,
-                               Syn_Type.STREAM,
-                               Syn_Mode.LISTENER,
-                               "Cluster:Ctrl",
-                               clusterOptions);
-            }
-            catch (Excp_SynapseFatal sfe)
-            {
-              throw new NeuPathsException("Could not create synapse name: " + sfe);
-            }
-
-            BridgeCell clusterBridge =
-                new BridgeCell(handler.clusterName,
-                               new String[] {
-                                   daemonSynapse.toString(),
-                                   clusterSynapse.toString()
-                               },
-                               new BridgeSubscriptionSpec[] {
-                                   new BridgeSubscriptionSpec("MasterControl",
-                                                              "Command",
-                                                              "Daemon:Ctrl")
-                               },
-                               Cfg_Utils.cryptoKeyBytes(handler.cryptoKeyFile));
-
-            // Don't propagate global subscriptions.  Doing so could result
-            // in stimuli crossing over the control domains to all clusters.
-            clusterBridge.disableGlobalSubscriptionPropagation();
-
-            cells.put(handler.clusterName, clusterBridge);
             name = handler.clusterName;
-            instanceID = clusterBridge.getInstanceID();
+            instanceID = UUID.randomUUID();
 
             for (String cellDefinitionFile : handler.cellDefinitionFiles)
             {
               Cell newCell = CellFactory.createCell(handler,
                                                     cellDefinitionFile);
 
-              if (handler.loggingSpecified &&
-                  newCell.getType() != CellType.EVENT)
+              if (handler.loggingSpecified)
               {
                 if (handler.loggingEnabled)
                 {
@@ -290,8 +240,7 @@ public class CellCluster implements Iterable<Cell>
                 }
               }
 
-              if (handler.traceLoggingSpecified &&
-                  newCell.getType() != CellType.EVENT)
+              if (handler.traceLoggingSpecified)
               {
                 if (handler.traceLoggingEnabled)
                 {
@@ -303,8 +252,7 @@ public class CellCluster implements Iterable<Cell>
                 }
               }
 
-              if (handler.debugLoggingSpecified &&
-                  newCell.getType() != CellType.EVENT)
+              if (handler.debugLoggingSpecified)
               {
                 if (handler.debugLoggingEnabled)
                 {
@@ -316,8 +264,7 @@ public class CellCluster implements Iterable<Cell>
                 }
               }
 
-              if (handler.runtimeLoggingSpecified &&
-                  newCell.getType() != CellType.EVENT)
+              if (handler.runtimeLoggingSpecified)
               {
                 if (handler.runtimeLoggingEnabled)
                 {
@@ -360,7 +307,8 @@ public class CellCluster implements Iterable<Cell>
 
               if (handler.pulseSpecified &&
                   (newCell.getType() == CellType.LOGIC ||
-                   newCell.getType() == CellType.LOAD_BALANCED))
+                   newCell.getType() == CellType.LOAD_BALANCED ||
+                   newCell.getType() == CellType.CUSTOM))
               {
                 newCell.setPulseInterval(handler.pulseInterval);
               }
@@ -387,17 +335,17 @@ public class CellCluster implements Iterable<Cell>
     catch (ParserConfigurationException pce)
     {
       throw new NeuPathsException("Could not parse cluster definition file " +
-                                     clusterDefinitionFile, pce);
+                                  clusterDefinitionFile, pce);
     }
     catch (SAXException se)
     {
       throw new NeuPathsException("Could not parse cluster definition file " +
-                                     clusterDefinitionFile, se);
+                                  clusterDefinitionFile, se);
     }
     catch (IOException ioe)
     {
       throw new NeuPathsException("Could not parse cluster definition file " +
-                                     clusterDefinitionFile, ioe);
+                                  clusterDefinitionFile, ioe);
     }
   }
 

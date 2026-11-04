@@ -1,11 +1,12 @@
 <logic_cell>
   <name>ZA_Flow</name>
   <synapses>
-    <synapse>Local#Stream#Peer#Zone_A#/tmp/reflex/za.sock</synapse>
+    <synapse>Network#Stream#Peer#Zone_A#30010#127.0.0.1</synapse>
   </synapses>
   <activators>
     <activator>
       <class>FlowSim</class>
+      <default/>
     </activator>
   </activators>
   <pulse_interval_ms>250</pulse_interval_ms>

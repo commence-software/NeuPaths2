@@ -20,6 +20,7 @@ final class Rx_TransactionInfo
     responseTransactionID = null;
     isLocal = false;
     transaction = new Rx_Transaction(null);
+    timestamp = 0L;
   }
   
   Rx_TransactionInfo
@@ -38,6 +39,8 @@ final class Rx_TransactionInfo
     isLocal = local;
 
     transaction = new Rx_Transaction(transactionID, receptors);
+
+    timestamp = System.currentTimeMillis();
   }
 
   UUID transactionID;
@@ -46,4 +49,5 @@ final class Rx_TransactionInfo
   UUID responseTransactionID;
   boolean isLocal;
   Rx_Transaction transaction;
+  long timestamp;
 }

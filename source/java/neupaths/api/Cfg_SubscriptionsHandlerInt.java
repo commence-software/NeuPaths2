@@ -10,5 +10,5 @@ package neupaths.api;
  */
 interface Cfg_SubscriptionsHandlerInt
 {
-  void addSubscription (SubscriptionSpec subscriptionSpec);
+  void addSubscription (Cfg_CellSubscriptionHandler subscription);
 }

@@ -3,24 +3,27 @@
 // SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
 package neupaths.api;
 
-import neupaths.util.PropertySet;
 import java.util.HashSet;
+import java.util.LinkedList;
 
 /**
  * Base handler for parsing a {@link Cell} configuration.
  *
  * @author Aaron Caraveo
  */
-abstract class Cfg_CellHandler extends Cfg_ConfigHandler implements Cfg_SynapsesHandlerInt
+abstract class Cfg_CellHandler extends Cfg_ConfigHandler
+    implements Cfg_PropertiesHandlerInt,
+               Cfg_SynapsesHandlerInt,
+               Cfg_ActivatorsHandlerInt
 {
-  Cfg_CellHandler (CellType type, String xPath)
+  Cfg_CellHandler (CellType cellType, String xPath)
   {
-    super(xPath);
+    super(cellType, xPath);
     
-    cellType = type;
-
     name = null;
-    properties = new PropertySet();
+    properties = new LinkedList<>();
+    synapseNames = new HashSet<>();
+    activators = new LinkedList<>();
     loggingEnabled = true;
     traceLoggingEnabled = false;
     debugLoggingEnabled = false;
@@ -33,16 +36,25 @@ abstract class Cfg_CellHandler extends Cfg_ConfigHandler implements Cfg_Synapses
     cryptoKeyFile = null;
   }
 
-  public void addSynapses (HashSet<String> synapseNames)
+  public void addProperty (Cfg_CellPropertyHandler property)
   {
-    this.synapseNames = synapseNames;
+    properties.add(property);
+  }
+  
+  public void addSynapse (String synapseName)
+  {
+    synapseNames.add(synapseName);
   }
 
-  CellType cellType;
-
+  public void addActivator (Cfg_CellActivatorHandler activator)
+  {
+    activators.add(activator);
+  }
+  
   String name;
-  PropertySet properties;
+  LinkedList<Cfg_CellPropertyHandler> properties;
   HashSet<String> synapseNames;
+  LinkedList<Cfg_CellActivatorHandler> activators;
   boolean loggingEnabled;
   boolean traceLoggingEnabled;
   boolean debugLoggingEnabled;

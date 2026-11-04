@@ -267,11 +267,51 @@ stateDiagram-v2
     Holding --> Discarded : SIGNAL addressed to another worker
     Discarded --> Available
     Selected --> Available : evaluate() then post fresh credit
+    Available --> Drained : pause() — credit supply stops
+    Selected --> Drained : paused mid-job — credit withheld
+    Drained --> Available : resume() re-seeds one credit
 ```
 
 `Available` means "at least one of my credits is queued at the controller." `Holding` is the
 gate-blocked state that makes the whole design work: the worker already has the data and is
 waiting only for permission — so dispatch costs one small signal, not a data transfer.
+
+### Pausing a worker — draining by credit starvation
+
+A worker is removed from the pool by **pausing it**, and the mechanism is the credit flow
+itself rather than any deregistration message. Three places now check that the cell is
+`ONLINE` or `DEGRADED` before a credit goes out:
+
+| Site | Effect when the worker is paused |
+|------|----------------------------------|
+| `Actv_LoadBalanceRegistration`'s retry thread | Stops posting bootstrap credits — a worker paused before it ever registered simply stays out of the pool. |
+| `LoadBalancedActivator.activate()` | Withholds the post-job credit after `evaluate()` returns, so completing a job no longer re-arms the worker. |
+| `LoadBalancedCell.resume()` (override) | On the way back, calls `super.resume()` and transmits one `Stim_LoadBalanceRequest` — the credit that puts the worker back in contention. |
+
+In practice an operator reaches this through the daemon control plane rather than in code —
+`IssueCommandToDaemon pause cell <daemon> <cluster> <cellName>`, where `cellName` is a
+regular expression, so a whole slice of a pool can be drained in one command (see
+[§3.6](03-subsystems.md#36-utilities--the-daemon-control-plane)).
+
+The result is a drain rather than a cut-off: the controller is never told that a worker
+paused, it simply stops seeing credits from it and matchmaking naturally routes work to the
+peers that are still offering. Because `pause()` leaves the nucleus online
+(see [§5.6](05-execution-model.md#56-pause-semantics)), the worker keeps its synapses and
+subscriptions throughout, so there is no re-join handshake on the way back.
+
+That override is load-bearing, not decoration. Credits are the *only* thing that makes a
+worker selectable, so a worker resumed without re-seeding one would hold zero outstanding
+credits and — its registration thread long since terminated by the original acknowledgement —
+would never be selected again. Re-seeding exactly one credit restores the steady-state
+invariant of one outstanding credit per idle worker.
+
+> **A credit already queued outlives the pause.** Pausing stops *new* credits; it does not
+> revoke those the controller has already queued. A worker paused with a credit still in the
+> controller's queue can therefore be selected once more, and because a paused activator
+> thread consumes its stimuli without evaluating them
+> ([§5.6](05-execution-model.md#56-pause-semantics)), that work item is dropped. Quiesce a
+> worker before relying on it being idle, and layer an acknowledgement on top if work must
+> not be lost.
 
 ## 6.6 Techniques worth stealing
 
@@ -286,6 +326,7 @@ The subsystem is a catalogue of reusable patterns:
 | **Broadcast + address filter** | Send one signal to all; each recipient compares an id in the payload and self-selects. | Targeted dispatch without point-to-point addressing. |
 | **Credit / token flow** | A worker's `REQUEST` is a standing offer consumed by one work item; a fresh one is posted after each job. | Flow control and natural backpressure across a pool. |
 | **Self-terminating bootstrap** | Retry on a timer until an acknowledgement arrives, then stop the thread. | Joining a mesh whose peers may not be up yet. |
+| **Drain by credit starvation** | Withhold a participant's credits instead of deregistering it; the scheduler routes elsewhere on its own. | Taking a pool member out of rotation without a membership protocol. |
 | **Tag-shedding rendezvous** | Move an id from *tag* to *payload* to cross into the global bundle, then back to *tag*. | Joining transaction-scoped data against unscoped state. |
 | **Idempotence guard** | `TransactionFilter.ENABLED` drops repeat stimuli of the same type within a transaction. | Redundant mesh paths that may deliver twice. |
 
@@ -304,17 +345,64 @@ The subsystem is a catalogue of reusable patterns:
   every second until acknowledged, so a worker that took several attempts to register may hold
   several queued credits and receive several early work items in a row. It self-corrects in the
   steady state, where each worker maintains one outstanding credit.
-- **Failure of a chosen worker loses that work item.** The credit is consumed at match time and
-  the signal is fire-and-forget; nothing re-queues the item if the addressee dies before
-  completing. Applications needing at-least-once delivery should layer their own acknowledgement
-  on top — for example a response transaction the producer waits on, as the example does with
-  `extractFromTransaction()`.
+- **Failure of a chosen worker loses that work item — within that pool.** The credit is consumed
+  at match time and the signal is fire-and-forget; nothing re-queues the item if the addressee
+  dies before completing. The framework's answer is not retry but **redundant execution**: run
+  two independent pools, each with its own controller, both servicing the same request under the
+  original transaction. The requester accepts the first response and discards the rest by
+  transaction filtering (see [§6.8](#68-surviving-the-loss-of-a-worker)). The per-pool loss still
+  happens; it simply stops being observable.
+  > Worth stating precisely, because the precise version is the stronger claim: NeuPaths does not
+  > offer at-least-once *delivery*. It offers the primitives to build **at-least-one-of-N
+  > execution**, which recovers at the speed of the surviving path rather than waiting out a
+  > retry timeout — usually the better trade for a control system.
 - **Distribution order is credit-arrival order.** Because credits are consumed FIFO, the policy is
   closer to *least-recently-served* than strict round-robin, and it naturally favours workers that
   finish quickly — a fast worker returns its credit sooner and gets more work. That is usually the
   desired behaviour for heterogeneous pools.
 
-## 6.8 Where to look in the source
+## 6.8 Surviving the loss of a worker
+
+A pool protects you from a *slow* worker — credits stop coming and matchmaking routes elsewhere.
+It does not protect you from a worker that dies holding work. For that, run the pool twice.
+
+Both pools subscribe to the same requests and both answer under the **original transaction**.
+The requester takes whichever response arrives first and discards the others by transaction
+filtering, exactly as a cell discards a duplicate stimulus that reached it by a second path:
+
+```mermaid
+flowchart LR
+    REQ["Requester<br/>creates transaction T"]
+    subgraph PA["Pool A — host 1, subnet 1"]
+        CA["LoadControllerCell"] --> WA["workers"]
+    end
+    subgraph PB["Pool B — host 2, subnet 2"]
+        CB["LoadControllerCell"] --> WB["workers"]
+    end
+    REQ -->|"work tagged T"| PA
+    REQ -->|"work tagged T"| PB
+    WA -->|"response under T"| F
+    WB -->|"response under T"| F
+    F{{"transaction filter<br/>first wins, rest dropped"}}
+    F --> OUT["Requester"]
+```
+
+A worker in pool A dying mid-job now costs nothing observable: pool B answers, the requester
+proceeds, and pool A's lost item never surfaces. The redundancy is only as good as its
+independence, so the pools want separate hosts, separate network paths (a multi-homed requester
+with physically distinct subnets) and separate power.
+
+`examples/Transaction_Filter` demonstrates the mechanism end to end at the smallest useful
+scale — redundant service providers rather than redundant pools, with chained transactions and
+the extractor filtering the second response. The pool version is the same shape with a
+`LoadControllerCell` in front of each provider.
+
+> **This does not help with overload.** Redundancy addresses *independent* failure; saturation is
+> a *common-mode* failure. Two pools fed the same requests fall behind identically and
+> simultaneously, at 2× the resource cost for 1× the throughput — see
+> [§5.7](05-execution-model.md#57-sharp-edges).
+
+## 6.9 Where to look in the source
 
 | Concern | File |
 |---------|------|
@@ -322,6 +410,10 @@ The subsystem is a catalogue of reusable patterns:
 | Worker cell; injects the registration activator | [`LoadBalancedCell.java`](../../source/java/neupaths/api/LoadBalancedCell.java) |
 | `activate()` override — address filter + credit return | [`LoadBalancedActivator.java`](../../source/java/neupaths/api/LoadBalancedActivator.java) |
 | Registration retry thread | [`Actv_LoadBalanceRegistration.java`](../../source/java/neupaths/api/Actv_LoadBalanceRegistration.java) |
+| `resume()` override — re-seeds one credit | [`LoadBalancedCell.java`](../../source/java/neupaths/api/LoadBalancedCell.java) |
+| Transaction filtering (the dedup itself) | [`Activator.java`](../../source/java/neupaths/api/Activator.java) `isDuplicate()`, [`TransactionFilter.java`](../../source/java/neupaths/api/TransactionFilter.java) |
+| Redundant providers, working example | [`examples/Transaction_Filter/`](../../examples/Transaction_Filter/) |
+| Operator-facing `pause`/`resume` commands | [`IssueCommandToDaemon.java`](../../source/java/neupaths/util/IssueCommandToDaemon.java), [`DaemonCmdActv.java`](../../source/java/neupaths/util/DaemonCmdActv.java) |
 | Channel name constants | [`LB.java`](../../source/java/neupaths/api/LB.java) |
 | Transaction bundles and the global bundle | [`Rx_Collection.java`](../../source/java/neupaths/api/Rx_Collection.java) |
 | Runnable example | [`examples/LoadBalance`](../../examples/LoadBalance) |

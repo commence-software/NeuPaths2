@@ -70,4 +70,23 @@ final class Cfg_ExtractorCellParser extends Cfg_CellDefinitionParser
 
     return newCell;
   }
+
+  protected Mdl_Cell model ()
+  {
+    Cfg_ExtractorCellHandler extractor = (Cfg_ExtractorCellHandler) handler;
+    Mdl_Cell newCell = new Mdl_Cell(handler.name, CellType.EXTRACTOR);
+
+    for (String syn : handler.synapseNames)
+    {
+      newCell.syns.add(syn);
+    }
+
+    newCell.subs.add(new Mdl_Sub(extractor.subscription.cellName,
+                                 extractor.subscription.transmitterName,
+                                 extractor.subscription.receptorName,
+                                 extractor.subscription.domain,
+                                 "null"));
+    
+    return newCell;
+  }
 }

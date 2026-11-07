@@ -77,4 +77,26 @@ final class Cfg_BridgeCellParser extends Cfg_CellDefinitionParser
 
     return newCell;
   }
+
+  protected Mdl_Cell model ()
+  {
+    Cfg_BridgeCellHandler bridge = (Cfg_BridgeCellHandler) handler;
+    Mdl_Cell newCell = new Mdl_Cell(handler.name, CellType.BRIDGE);
+
+    for (String syn : handler.synapseNames)
+    {
+      newCell.syns.add(syn);
+    }
+    
+    for (Cfg_CellSubscriptionHandler sub : bridge.subscriptions)
+    {
+      newCell.subs.add(new Mdl_Sub(sub.cellName,
+                                   sub.transmitterName,
+                                   sub.receptorName,
+                                   sub.domain,
+                                   "null"));
+    }
+
+    return newCell;
+  }
 }

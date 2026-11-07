@@ -17,7 +17,7 @@ final class Cfg_CellSystemHandler extends Cfg_ConfigHandler
   {
     super(null, "Cell_System");
 
-    systemName = null;
+    name = null;
     clusterDefinitionFiles = null;
   }
 
@@ -27,7 +27,7 @@ final class Cfg_CellSystemHandler extends Cfg_ConfigHandler
 
     if (nodeName.equals("NAME"))
     {
-      systemName = Cfg_Utils.getNodeText(node);
+      name = Cfg_Utils.getNodeText(node);
     }
     else if (nodeName.equals("CLUSTER_DEFINITIONS"))
     {
@@ -41,6 +41,6 @@ final class Cfg_CellSystemHandler extends Cfg_ConfigHandler
     }
   }
 
-  String systemName;
+  String name;
   LinkedList<String> clusterDefinitionFiles;
 }

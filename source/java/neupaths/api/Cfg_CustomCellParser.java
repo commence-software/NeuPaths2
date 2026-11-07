@@ -314,4 +314,38 @@ final class Cfg_CustomCellParser extends Cfg_CellDefinitionParser
 
     return newCell;
   }
+
+  protected Mdl_Cell model ()
+  {
+    Mdl_Cell newCell = new Mdl_Cell(handler.name, CellType.CUSTOM);
+    
+    for (String syn : handler.synapseNames)
+    {
+      newCell.syns.add(syn);
+    }
+
+    for (Cfg_CellActivatorHandler a : handler.activators)
+    {
+      for (Cfg_CellReceptorHandler r : a.receptors)
+      {
+        newCell.rxs.add(new Mdl_Rx(r.name, r.stimulusClassName));
+      }
+
+      for (Cfg_CellTransmitterHandler t : a.transmitters)
+      {
+        newCell.txs.add(new Mdl_Tx(t.name, t.stimulusClassName));
+      }
+
+      for (Cfg_CellSubscriptionHandler s : a.subscriptions)
+      {
+        newCell.subs.add(new Mdl_Sub(s.cellName,
+                                     s.transmitterName,
+                                     s.receptorName,
+                                     s.domain,
+                                     a.name));
+      }
+    }
+    
+    return newCell;
+  }
 }

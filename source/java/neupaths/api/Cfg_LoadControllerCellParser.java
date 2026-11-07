@@ -151,4 +151,31 @@ final class Cfg_LoadControllerCellParser extends Cfg_CellDefinitionParser
 
     return newCell;
   }
+
+  protected Mdl_Cell model ()
+  {
+    Cfg_LoadControllerCellHandler lch = (Cfg_LoadControllerCellHandler) handler;
+    Mdl_Cell newCell = new Mdl_Cell(handler.name, CellType.LOAD_CONTROLLER);
+    
+    for (String syn : handler.synapseNames)
+    {
+      newCell.syns.add(syn);
+    }
+
+    for (Cfg_CellReceptorHandler r : lch.receptors)
+    {
+      newCell.rxs.add(new Mdl_Rx(r.name, r.stimulusClassName));
+    }
+    
+    for (Cfg_CellSubscriptionHandler s : lch.subscriptions)
+    {
+      newCell.subs.add(new Mdl_Sub(s.cellName,
+                                   s.transmitterName,
+                                   s.receptorName,
+                                   s.domain,
+                                   "null"));
+    }
+    
+    return newCell;
+  }
 }

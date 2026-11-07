@@ -192,10 +192,9 @@ public class CellCluster implements Iterable<Cell>
 
     Cfg_CellClusterParser parser = new Cfg_CellClusterParser(clusterDefinitionFile);
 
-    parser.parse();
     parser.validate();
 
-    name = parser.handler.clusterName;
+    name = parser.handler.name;
     instanceID = UUID.randomUUID();
 
     parser.instantiate(cells);
@@ -654,22 +653,4 @@ public class CellCluster implements Iterable<Cell>
   private String name;
   private UUID instanceID;
   private LinkedHashMap<String, Cell> cells;
-
-  private class XMLErrorHandler implements ErrorHandler
-  {
-    public void error (SAXParseException exception) throws SAXException
-    {
-      throw exception;
-    }
-
-    public void fatalError (SAXParseException exception) throws SAXException
-    {
-      throw exception;
-    }
-
-    public void warning (SAXParseException exception) throws SAXException
-    {
-      throw exception;
-    }
-  }
 }

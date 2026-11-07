@@ -17,7 +17,7 @@ final class Cfg_CellClusterHandler extends Cfg_ConfigHandler
   {
     super(null, "Cell_Cluster");
 
-    clusterName = null;
+    name = null;
     cellDefinitionFiles = null;
     loggingEnabled = true;
     loggingSpecified = false;
@@ -46,7 +46,7 @@ final class Cfg_CellClusterHandler extends Cfg_ConfigHandler
 
     if (nodeName.equals("NAME"))
     {
-      clusterName = Cfg_Utils.getNodeText(node);
+      name = Cfg_Utils.getNodeText(node);
     }
     else if (nodeName.equals("CELL_DEFINITIONS"))
     {
@@ -110,7 +110,7 @@ final class Cfg_CellClusterHandler extends Cfg_ConfigHandler
     }
   }
 
-  String clusterName;
+  String name;
   LinkedList<String> cellDefinitionFiles;
   boolean loggingEnabled;
   boolean loggingSpecified;

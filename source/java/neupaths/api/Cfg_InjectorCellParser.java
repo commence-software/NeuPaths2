@@ -82,4 +82,20 @@ final class Cfg_InjectorCellParser extends Cfg_CellDefinitionParser
 
     return newCell;
   }
+
+  protected Mdl_Cell model ()
+  {
+    Cfg_InjectorCellHandler injector = (Cfg_InjectorCellHandler) handler;
+    Mdl_Cell newCell = new Mdl_Cell(handler.name, CellType.INJECTOR);
+
+    for (String syn : handler.synapseNames)
+    {
+      newCell.syns.add(syn);
+    }
+
+    newCell.txs.add(new Mdl_Tx(injector.transmitter.name,
+                               injector.transmitter.stimulusClassName));
+    
+    return newCell;
+  }
 }

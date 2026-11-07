@@ -1275,94 +1275,12 @@ public class CellFactory
   public static
   <T extends Cell> T createCell (String cellDefinitionFile)
   {
-    Cell newCell = null;
+    Cfg_CellDefinitionParser parser =
+      Cfg_CellDefinitionParser.createParser(cellDefinitionFile);
 
-    try
-    {
-      DocumentBuilderFactory documentFactory = DocumentBuilderFactory.newInstance();
-
-      DocumentBuilder documentBuilder = documentFactory.newDocumentBuilder();
-
-      documentBuilder.setErrorHandler(new XMLErrorHandler());
-      
-      Document document = documentBuilder.parse(cellDefinitionFile);
-      
-      NodeList nodes = document.getChildNodes();
-      
-      if (nodes.getLength() == 1)
-      {
-        Node root = nodes.item(0);
-
-        if (root.getNodeType() == Node.ELEMENT_NODE)
-        {
-          String nodeName = root.getNodeName().toUpperCase();
-          Cfg_CellDefinitionParser parser = null;
-
-          switch (nodeName)
-          {
-            case "BRIDGE_CELL":
-              parser = new Cfg_BridgeCellParser(cellDefinitionFile);
-              break;
-            case "EVENT_CELL":
-              parser = new Cfg_EventCellParser(cellDefinitionFile);
-              break;
-            case "EXTRACTOR_CELL":
-              parser = new Cfg_ExtractorCellParser(cellDefinitionFile);
-              break;
-            case "INJECTOR_CELL":
-              parser = new Cfg_InjectorCellParser(cellDefinitionFile);
-              break;
-            case "LOAD_BALANCED_CELL":
-              parser = new Cfg_LoadBalancedCellParser(cellDefinitionFile);
-              break;
-            case "LOAD_CONTROLLER_CELL":
-              parser = new Cfg_LoadControllerCellParser(cellDefinitionFile);
-              break;
-            case "LOGIC_CELL":
-              parser = new Cfg_LogicCellParser(cellDefinitionFile);
-              break;
-            case "ROUTER_CELL":
-              parser = new Cfg_RouterCellParser(cellDefinitionFile);
-              break;
-            case "CUSTOM_CELL":
-              parser = new Cfg_CustomCellParser(cellDefinitionFile);
-              break;
-            default:
-              throw new NeuPathsException("Cell definition file " +
-                                          cellDefinitionFile +
-                                          " contains invalid top-level element:" +
-                                          nodeName);
-          }
-
-          parser.parseNode(root);
-          parser.validate();
-          newCell = parser.instantiate();
-        }
-      }
-      else
-      {
-        throw new NeuPathsException("Cell definition file " +
-                                    cellDefinitionFile +
-                                    " has invalid format");
-      }
-    }
-    catch (ParserConfigurationException pce)
-    {
-      throw new NeuPathsException("Could not parse cell definition file " +
-                                  cellDefinitionFile, pce);
-    }
-    catch (SAXException se)
-    {
-      throw new NeuPathsException("Could not parse cell definition file " +
-                                  cellDefinitionFile, se);
-    }
-    catch (IOException ioe)
-    {
-      throw new NeuPathsException("Could not parse cell definition file " +
-                                  cellDefinitionFile, ioe);
-    }
-
-    return (T) newCell;
+    parser.validate();
+    
+    return (T) parser.instantiate();
   }
 
   private static class XMLErrorHandler implements ErrorHandler

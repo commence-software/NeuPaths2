@@ -166,6 +166,22 @@ final class Syn_Name
     return text;
   }
   
+  String
+  getModelessText ()
+  {
+    String optionList = "";
+    for (int i = 0; i < options.size(); i++)
+    {
+      optionList += (Syn.SYNAPSE_NAME_DELIM + options.get(i));
+    }
+    
+    String text = scope + Syn.SYNAPSE_NAME_DELIM +
+                  type + Syn.SYNAPSE_NAME_DELIM +
+                  domain + optionList;
+
+    return text;
+  }
+  
   int optionCount ()
   {
     return options.size();

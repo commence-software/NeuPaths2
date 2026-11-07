@@ -47,4 +47,16 @@ final class Cfg_RouterCellParser extends Cfg_CellDefinitionParser
 
     return newCell;
   }
+
+  protected Mdl_Cell model ()
+  {
+    Mdl_Cell newCell = new Mdl_Cell(handler.name, CellType.ROUTER);
+
+    for (String syn : handler.synapseNames)
+    {
+      newCell.syns.add(syn);
+    }
+
+    return newCell;
+  }
 }

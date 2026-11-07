@@ -16,54 +16,27 @@ import org.xml.sax.SAXParseException;
 
 abstract class Cfg_CellDefinitionParser
 {
-  Cfg_CellDefinitionParser (CellType         cellType,
-                             String           cellDefinitionFile,
-                             Cfg_CellHandler handler)
+  protected
+  Cfg_CellDefinitionParser (CellType        cellType,
+                            String          cellDefinitionFile,
+                            Cfg_CellHandler handler)
   {
     this.cellType = cellType;
     this.cellDefinitionFile = cellDefinitionFile;
     this.handler = handler;
-
-    switch (cellType)
-    {
-      case BRIDGE:
-        rootNode = "BRIDGE_CELL";
-        break;
-      case EVENT:
-        rootNode = "EVENT_CELL";
-        break;
-      case EXTRACTOR:
-        rootNode = "EXTRACTOR_CELL";
-        break;
-      case INJECTOR:
-        rootNode = "INJECTOR_CELL";
-        break;
-      case LOAD_BALANCED:
-        rootNode = "LOAD_BALANCED_CELL";
-        break;
-      case LOAD_CONTROLLER:
-        rootNode = "LOAD_CONTROLLER_CELL";
-        break;
-      case LOGIC:
-        rootNode = "LOGIC_CELL";
-        break;
-      case ROUTER:
-        rootNode = "ROUTER_CELL";
-        break;
-      case CUSTOM:
-        rootNode = "CUSTOM_CELL";
-        break;
-      default:
-        throw new NeuPathsException("Invalid cell type");
-    }
   }
 
   protected abstract void parseNode (Node root);
   protected abstract void validate ();
   protected abstract Cell instantiate ();
+  protected abstract Mdl_Cell model ();
   
-  protected void parse ()
+  static
+  Cfg_CellDefinitionParser
+  createParser (String cellDefinitionFile)
   {
+    Cfg_CellDefinitionParser parser = null;
+    
     try
     {
       DocumentBuilderFactory documentFactory =
@@ -79,22 +52,49 @@ abstract class Cfg_CellDefinitionParser
       
       if (nodes.getLength() == 1)
       {
-        Node node = nodes.item(0);
-        String nodeName = node.getNodeName().toUpperCase();
+        Node root = nodes.item(0);
 
-        if (node.getNodeType() == Node.ELEMENT_NODE)
+        if (root.getNodeType() == Node.ELEMENT_NODE)
         {
-          if (nodeName.equals(rootNode))
+          String nodeName = root.getNodeName().toUpperCase();
+
+          switch (nodeName)
           {
-            parseNode(node);
+            case "BRIDGE_CELL":
+              parser = new Cfg_BridgeCellParser(cellDefinitionFile);
+              break;
+            case "EVENT_CELL":
+              parser = new Cfg_EventCellParser(cellDefinitionFile);
+              break;
+            case "EXTRACTOR_CELL":
+              parser = new Cfg_ExtractorCellParser(cellDefinitionFile);
+              break;
+            case "INJECTOR_CELL":
+              parser = new Cfg_InjectorCellParser(cellDefinitionFile);
+              break;
+            case "LOAD_BALANCED_CELL":
+              parser = new Cfg_LoadBalancedCellParser(cellDefinitionFile);
+              break;
+            case "LOAD_CONTROLLER_CELL":
+              parser = new Cfg_LoadControllerCellParser(cellDefinitionFile);
+              break;
+            case "LOGIC_CELL":
+              parser = new Cfg_LogicCellParser(cellDefinitionFile);
+              break;
+            case "ROUTER_CELL":
+              parser = new Cfg_RouterCellParser(cellDefinitionFile);
+              break;
+            case "CUSTOM_CELL":
+              parser = new Cfg_CustomCellParser(cellDefinitionFile);
+              break;
+            default:
+              throw new NeuPathsException("Cell definition file " +
+                                          cellDefinitionFile +
+                                          " contains invalid top-level element:" +
+                                          nodeName);
           }
-          else
-          {
-            throw new NeuPathsException("Cell definition file " +
-                                        cellDefinitionFile +
-                                        " contains invalid top-level element: " +
-                                        nodeName);
-          }
+
+          parser.parseNode(root);
         }
         else
         {
@@ -125,6 +125,8 @@ abstract class Cfg_CellDefinitionParser
       throw new NeuPathsException("Could not parse cell definition file " +
                                   cellDefinitionFile, ioe);
     }
+
+    return parser;
   }
 
   protected void applyCellOptions (Cell cell)
@@ -213,5 +215,4 @@ abstract class Cfg_CellDefinitionParser
   CellType cellType;
   String cellDefinitionFile;
   Cfg_CellHandler handler;
-  String rootNode;
 }

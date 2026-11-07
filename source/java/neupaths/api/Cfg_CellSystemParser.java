@@ -6,6 +6,7 @@ package neupaths.api;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.UUID;
+import java.io.File;
 import java.io.IOException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -19,9 +20,10 @@ import org.xml.sax.SAXParseException;
 
 final class Cfg_CellSystemParser
 {
-  Cfg_CellSystemParser (String systemDefinitionFile)
+  Cfg_CellSystemParser (String systemDefinitionFile, String configTopDir)
   {
     this.systemDefinitionFile = systemDefinitionFile;
+    this.configTopDir = configTopDir;
 
     handler = new Cfg_CellSystemHandler();
 
@@ -105,7 +107,13 @@ final class Cfg_CellSystemParser
   {
     for (String clusterDefinitionFile : handler.clusterDefinitionFiles)
     {
-      CellCluster newCluster = new CellCluster(clusterDefinitionFile);
+      String clusterDef = clusterDefinitionFile;
+      if (configTopDir != null)
+      {
+        clusterDef = configTopDir + File.separator + clusterDefinitionFile;
+      }
+      
+      CellCluster newCluster = new CellCluster(clusterDef);
 
       clusters.put(newCluster.getName(), newCluster);
     }
@@ -118,15 +126,27 @@ final class Cfg_CellSystemParser
     // First pass builds the cell list
     for (String clusterDefinitionFile : handler.clusterDefinitionFiles)
     {
+      String clusterDef = clusterDefinitionFile;
+      if (configTopDir != null)
+      {
+        clusterDef = configTopDir + File.separator + clusterDefinitionFile;
+      }
+      
       Cfg_CellClusterParser clusterParser =
-        new Cfg_CellClusterParser(clusterDefinitionFile);
+        new Cfg_CellClusterParser(clusterDef, configTopDir);
 
       clusterParser.validate();
 
       for (String cellDefinitionFile : clusterParser.handler.cellDefinitionFiles)
       {
+        String cellDef = cellDefinitionFile;
+        if (configTopDir != null)
+        {
+          cellDef = configTopDir + File.separator + cellDefinitionFile;
+        }
+      
         Cfg_CellDefinitionParser cellParser =
-          Cfg_CellDefinitionParser.createParser(cellDefinitionFile);
+          Cfg_CellDefinitionParser.createParser(cellDef);
   
         cellParser.validate();
         
@@ -267,5 +287,6 @@ final class Cfg_CellSystemParser
   }
 
   String systemDefinitionFile;
+  String configTopDir;
   Cfg_CellSystemHandler handler;
 }

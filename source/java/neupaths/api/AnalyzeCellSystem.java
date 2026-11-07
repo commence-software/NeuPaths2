@@ -8,77 +8,81 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.io.File;
 
-public final class AnalyzeModel
+/**
+ * Produces a <i>Dataflow</i> and <i>System</i> model for a cellular system.
+ * The model is spooled to standard output as JSON.
+ * <p>
+ * The cellular system is specified in a system definition file, which
+ * contains an XML schema listing the cluster definition files for the
+ * system.
+ * </p>
+ * <ul>
+ * <pre>
+ * {@literal <cell_system>}
+ * {@literal     <name></name>}
+ * {@literal     <cluster_definitions>}
+ * {@literal         <cluster_definition></cluster_definition>}
+ * {@literal         ...}
+ * {@literal     </cluster_definitions>}
+ * {@literal </cell_system>}</pre>
+ * </ul>
+ * <p>
+ * Each {@literal <cluster_definition>} is the pathname of a cluster definition
+ * file as detailed in {@link CellCluster}.
+ * </p>
+ * <p>
+ * <ul>
+ * <pre>{@code usage: java -classpath neupaths.jar neupaths.api.AnalyzeCellSystem <systemDefinitionFile> <configTopDir> >}</pre>
+ * <p>
+ * <i>systemDefinitionFile</i>: Pathname of the system definition file.
+ * </p>
+ * <p>
+ * <i>configTopDir</i>: Pathname of the top-level directory for the cluster
+ * and cell definition files.
+ * </p>
+ * </ul>
+ * </p>
+ * 
+ * @author Aaron Caraveo
+ */
+public final class AnalyzeCellSystem
 {
-  private AnalyzeModel ()
+  private AnalyzeCellSystem ()
   {
     // Construction is not necessary
   }
 
   private static void printUsage ()
   {
-    System.out.println("usage: java -classpath neupaths.jar neupaths.api.AnalyzeModel <s|c> <configTopDir> <defPathname>");
-    System.out.println("    s             Cell System definition");
-    System.out.println("    c             Cell Cluster definition");
-    System.out.println("    configTopDir  Pathname of the top-level directory for the definition files");
-    System.out.println("    defPathname   Pathname of system or cluster definition file relative to configTopDir");
+    System.out.println("usage: java -classpath neupaths.jar neupaths.api.AnalyzeCellSystem <systemDefinitionFile> <configTopDir>");
+    System.out.println("    systemDefinitionFile    Pathname of the system definition file.");
+    System.out.println("    configTopDir            Pathname of the top-level directory for the cluster and cell definition files");
   }
   
   public static void main (String args[])
   {
-    if (args.length != 3)
+    if (args.length != 2)
     {
       printUsage();
       System.exit(1);
     }
 
-    String definitionFile = args[1] + File.separator + args[2];
-    
-    LinkedHashMap<String, Mdl_Cell> mdlCells = null;
-    LinkedHashSet<Mdl_Flow> mdlFlows = null;
-    LinkedHashSet<Mdl_Syn> mdlSyns = null;
-  
-    if (args[0].toLowerCase().equals("s"))
-    {
-      Cfg_CellSystemParser parser = new Cfg_CellSystemParser(definitionFile);
-      parser.validate();
+    Cfg_CellSystemParser parser = new Cfg_CellSystemParser(args[0], args[1]);
+    parser.validate();
 
-      Mdl_System system = new Mdl_System(parser.handler.name);
-      parser.model(system.cells, system.flows, system.syns);
+    Mdl_System system = new Mdl_System(parser.handler.name);
+    parser.model(system.cells, system.flows, system.syns);
 
-      mdlCells = system.cells;
-      mdlFlows = system.flows;
-      mdlSyns = system.syns;
-    }
-    else if (args[0].toLowerCase().equals("c"))
-    {
-      Cfg_CellClusterParser parser = new Cfg_CellClusterParser(definitionFile);
-      parser.validate();
-
-      Mdl_Cluster cluster = new Mdl_Cluster(parser.handler.name);
-      parser.model(cluster.cells, cluster.flows, cluster.syns);
-
-      mdlCells = cluster.cells;
-      mdlFlows = cluster.flows;
-      mdlSyns = cluster.syns;
-    }
-    else
-    {
-      System.out.println("ERROR: Invalid definition type " + args[0]);
-      printUsage();
-      System.exit(1);
-    }
-    
     System.out.println("{");
     System.out.println("  \"Format\": \"neupaths-topology/1\",");
     System.out.format ("  \"Generated\": \"%s\",\n", new Date());
-    System.out.format ("  \"Source\": \"%s\",\n", definitionFile);
+    System.out.format ("  \"Source\": \"%s\",\n", args[0]);
     System.out.println("");
 
     System.out.println("  \"Cells\": [");
 
     boolean firstCell = true;
-    for (Mdl_Cell cell : mdlCells.values())
+    for (Mdl_Cell cell : system.cells.values())
     {
       if (firstCell)
       {
@@ -96,7 +100,7 @@ public final class AnalyzeModel
     System.out.println("  \"Dataflow\": [");
 
     boolean firstFlow = true;
-    for (Mdl_Flow flow : mdlFlows)
+    for (Mdl_Flow flow : system.flows)
     {
       if (firstFlow)
       {
@@ -118,7 +122,7 @@ public final class AnalyzeModel
     System.out.println("  \"Synapses\": [");
 
     boolean firstSyn = true;
-    for (Mdl_Syn syn : mdlSyns)
+    for (Mdl_Syn syn : system.syns)
     {
       if (firstSyn)
       {

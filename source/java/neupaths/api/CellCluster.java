@@ -185,12 +185,15 @@ public class CellCluster implements Iterable<Cell>
    * cell definitions listed in a cluster definition file.
    *
    * @param clusterDefinitionFile Pathname of a cluster definition XML file.
+   * @param configTopDir          Pathname of the top-level directory for
+   *                              cell definition files.
    */
-  public CellCluster (String clusterDefinitionFile)
+  public CellCluster (String clusterDefinitionFile, String configTopDir)
   {
     cells = new LinkedHashMap<>();
 
-    Cfg_CellClusterParser parser = new Cfg_CellClusterParser(clusterDefinitionFile);
+    Cfg_CellClusterParser parser =
+      new Cfg_CellClusterParser(clusterDefinitionFile, configTopDir);
 
     parser.validate();
 
@@ -200,6 +203,19 @@ public class CellCluster implements Iterable<Cell>
     parser.instantiate(cells);
   }
 
+  //---------------------------------------------------------------------------
+
+  /**
+   * Creates a collection of NeuPaths cell objects according to the
+   * cell definitions listed in a cluster definition file.
+   *
+   * @param clusterDefinitionFile Pathname of a cluster definition XML file.
+   */
+  public CellCluster (String clusterDefinitionFile)
+  {
+    this(clusterDefinitionFile, null);
+  }
+  
   //---------------------------------------------------------------------------
 
   /**

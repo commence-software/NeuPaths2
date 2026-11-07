@@ -6,6 +6,7 @@ package neupaths.api;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.UUID;
+import java.io.File;
 import java.io.IOException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -19,10 +20,11 @@ import org.xml.sax.SAXParseException;
 
 final class Cfg_CellClusterParser
 {
-  Cfg_CellClusterParser (String clusterDefinitionFile)
+  Cfg_CellClusterParser (String clusterDefinitionFile, String configTopDir)
   {
     this.clusterDefinitionFile = clusterDefinitionFile;
-
+    this.configTopDir = configTopDir;
+    
     handler = new Cfg_CellClusterHandler();
 
     parse();
@@ -105,7 +107,13 @@ final class Cfg_CellClusterParser
   {
     for (String cellDefinitionFile : handler.cellDefinitionFiles)
     {
-      Cell newCell = CellFactory.createCell(cellDefinitionFile);
+      String cellDef = cellDefinitionFile;
+      if (configTopDir != null)
+      {
+        cellDef = configTopDir + File.separator + cellDefinitionFile;
+      }
+      
+      Cell newCell = CellFactory.createCell(cellDef);
 
       if (handler.loggingSpecified)
       {
@@ -203,8 +211,14 @@ final class Cfg_CellClusterParser
     // First pass builds the cell list
     for (String cellDefinitionFile : handler.cellDefinitionFiles)
     {
+      String cellDef = cellDefinitionFile;
+      if (configTopDir != null)
+      {
+        cellDef = configTopDir + File.separator + cellDefinitionFile;
+      }
+      
       Cfg_CellDefinitionParser parser =
-        Cfg_CellDefinitionParser.createParser(cellDefinitionFile);
+        Cfg_CellDefinitionParser.createParser(cellDef);
 
       parser.validate();
       
@@ -339,5 +353,6 @@ final class Cfg_CellClusterParser
   }
   
   String clusterDefinitionFile;
+  String configTopDir;
   Cfg_CellClusterHandler handler;
 }

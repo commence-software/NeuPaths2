@@ -466,6 +466,8 @@ final class Bnd_StreamPeer extends Bnd_Binder
         
         if (terminatePeer.isNotSet())
         {
+          setState(CellState.DEGRADED);
+          
           // Re-join the cell network
           joinThread = new JoinThread();
           joinThread.start();

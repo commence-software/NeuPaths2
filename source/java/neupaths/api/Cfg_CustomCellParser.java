@@ -326,24 +326,84 @@ final class Cfg_CustomCellParser extends Cfg_CellDefinitionParser
 
     for (Cfg_CellActivatorHandler a : handler.activators)
     {
-      for (Cfg_CellReceptorHandler r : a.receptors)
+      if (a.name == null)
       {
-        newCell.rxs.add(new Mdl_Rx(r.name, r.stimulusClassName));
+        a.name = a.className;
       }
+      
+      if (a.useDefaultConstructor)
+      {
+        try
+        {
+          // Load the activator class
+          Class<?> actvtrClass = Class.forName(a.className);
 
-      for (Cfg_CellTransmitterHandler t : a.transmitters)
-      {
-        newCell.txs.add(new Mdl_Tx(t.name, t.stimulusClassName));
-      }
+          Activator actvtrObj =
+            (Activator) actvtrClass.getDeclaredConstructor().newInstance();
 
-      for (Cfg_CellSubscriptionHandler s : a.subscriptions)
-      {
-        newCell.subs.add(new Mdl_Sub(s.cellName,
-                                     s.transmitterName,
-                                     s.receptorName,
-                                     s.domain,
-                                     a.name));
+          for (ReceptorSpec r : actvtrObj.receptorSpecs)
+          {
+            newCell.rxs.add(new Mdl_Rx(r.getName(),
+                                       r.getStimulusClassName()));
+          }
+    
+          for (TransmitterSpec t : actvtrObj.transmitterSpecs)
+          {
+            newCell.txs.add(new Mdl_Tx(t.getName(),
+                                       t.getStimulusClassName()));
+          }
+    
+          for (SubscriptionSpec s : actvtrObj.subscriptionSpecs)
+          {
+            newCell.subs.add(new Mdl_Sub(s.getCellName(),
+                                         s.getTransmitterName(),
+                                         s.getReceptorName(),
+                                         s.getDomain(),
+                                         a.name));
+          }
+        }
+        catch (ClassNotFoundException cnfe)
+        {
+          throw new NeuPathsException("Could not instantiate activator " + a.name + " in file " + cellDefinitionFile, cnfe);
+        }
+        catch (NoSuchMethodException nsme)
+        {
+          throw new NeuPathsException("Could not instantiate activator " + a.name + " in file " + cellDefinitionFile, nsme);
+        }
+        catch (InstantiationException ie)
+        {
+          throw new NeuPathsException("Could not instantiate activator " + a.name + " in file " + cellDefinitionFile, ie);
+        }
+        catch (IllegalAccessException iae)
+        {
+          throw new NeuPathsException("Could not instantiate activator " + a.name + " in file " + cellDefinitionFile, iae);
+        }
+        catch (java.lang.reflect.InvocationTargetException ite)
+        {
+          throw new NeuPathsException("Could not instantiate activator " + a.name + " in file " + cellDefinitionFile, ite);
+        }
       }
+      else
+      {
+        for (Cfg_CellReceptorHandler r : a.receptors)
+        {
+          newCell.rxs.add(new Mdl_Rx(r.name, r.stimulusClassName));
+        }
+  
+        for (Cfg_CellTransmitterHandler t : a.transmitters)
+        {
+          newCell.txs.add(new Mdl_Tx(t.name, t.stimulusClassName));
+        }
+  
+        for (Cfg_CellSubscriptionHandler s : a.subscriptions)
+        {
+          newCell.subs.add(new Mdl_Sub(s.cellName,
+                                       s.transmitterName,
+                                       s.receptorName,
+                                       s.domain,
+                                       a.name));
+        }
+      } // if using default constructor
     }
     
     return newCell;

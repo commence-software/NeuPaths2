@@ -205,10 +205,10 @@ public abstract class Activator
       throw new NeuPathsException("Activator " + name + ": Failed to create receptor collection", re);
     }
     
+    transmitterSpecs = new TransmitterSpecSet(transmitters);
+    
     try
     {
-      TransmitterSpecSet transmitterSpecs = new TransmitterSpecSet(transmitters);
-      
       this.transmitters = new Tx_Collection(transmitterSpecs);
     }
     catch (Excp_Transmitter te)
@@ -1009,6 +1009,7 @@ public abstract class Activator
   {
     try
     {
+      transmitterSpecs.add(transmitter);
       transmitters.addTransmitters(new TransmitterSpecSet(transmitter));
     }
     catch (Excp_Transmitter te)
@@ -1170,6 +1171,7 @@ public abstract class Activator
   }
 
   ReceptorSpecSet receptorSpecs;
+  TransmitterSpecSet transmitterSpecs;
   LogicSubscriptionSpecSet subscriptionSpecs;
   
   private String name;

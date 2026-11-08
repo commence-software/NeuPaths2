@@ -290,17 +290,17 @@ final class Cfg_LogicCellParser extends Cfg_CellDefinitionParser
       {
         a.name = a.className;
       }
-      
-      if (a.useDefaultConstructor)
+        
+      try
       {
-        try
+        // Load the activator class
+        Class<?> actvtrClass = Class.forName(a.className);
+    
+        if (a.useDefaultConstructor)
         {
-          // Load the activator class
-          Class<?> actvtrClass = Class.forName(a.className);
-
           Activator actvtrObj =
             (Activator) actvtrClass.getDeclaredConstructor().newInstance();
-
+    
           for (ReceptorSpec r : actvtrObj.receptorSpecs)
           {
             newCell.rxs.add(new Mdl_Rx(r.getName(),
@@ -323,50 +323,61 @@ final class Cfg_LogicCellParser extends Cfg_CellDefinitionParser
                                          a.name));
           }
         }
-        catch (ClassNotFoundException cnfe)
+        else
         {
-          throw new NeuPathsException("Could not instantiate activator " + a.name + " in file " + cellDefinitionFile, cnfe);
-        }
-        catch (NoSuchMethodException nsme)
-        {
-          throw new NeuPathsException("Could not instantiate activator " + a.name + " in file " + cellDefinitionFile, nsme);
-        }
-        catch (InstantiationException ie)
-        {
-          throw new NeuPathsException("Could not instantiate activator " + a.name + " in file " + cellDefinitionFile, ie);
-        }
-        catch (IllegalAccessException iae)
-        {
-          throw new NeuPathsException("Could not instantiate activator " + a.name + " in file " + cellDefinitionFile, iae);
-        }
-        catch (java.lang.reflect.InvocationTargetException ite)
-        {
-          throw new NeuPathsException("Could not instantiate activator " + a.name + " in file " + cellDefinitionFile, ite);
-        }
+          for (Cfg_CellReceptorHandler r : a.receptors)
+          {
+            newCell.rxs.add(new Mdl_Rx(r.name, r.stimulusClassName));
+          }
+    
+          for (Cfg_CellTransmitterHandler t : a.transmitters)
+          {
+            newCell.txs.add(new Mdl_Tx(t.name, t.stimulusClassName));
+          }
+    
+          for (Cfg_CellSubscriptionHandler s : a.subscriptions)
+          {
+            newCell.subs.add(new Mdl_Sub(s.subType,
+                                         s.cellName,
+                                         s.transmitterName,
+                                         s.receptorName,
+                                         s.domain,
+                                         a.name));
+          }
+          
+          if (PulsedActivator.class.isAssignableFrom(actvtrClass))
+          {
+            // Add Pulsed loopback
+            newCell.subs.add(new Mdl_Sub(SubscriptionType.LOOPBACK,
+                                         handler.name,
+                                         "Pulse",
+                                         "Pulse",
+                                         Syn.GLOBAL_DOMAIN,
+                                         a.name));
+          }
+        } // if using default constructor
       }
-      else
+      catch (ClassNotFoundException cnfe)
       {
-        for (Cfg_CellReceptorHandler r : a.receptors)
-        {
-          newCell.rxs.add(new Mdl_Rx(r.name, r.stimulusClassName));
-        }
-  
-        for (Cfg_CellTransmitterHandler t : a.transmitters)
-        {
-          newCell.txs.add(new Mdl_Tx(t.name, t.stimulusClassName));
-        }
-  
-        for (Cfg_CellSubscriptionHandler s : a.subscriptions)
-        {
-          newCell.subs.add(new Mdl_Sub(s.subType,
-                                       s.cellName,
-                                       s.transmitterName,
-                                       s.receptorName,
-                                       s.domain,
-                                       a.name));
-        }
-      } // if using default constructor
-    }
+        throw new NeuPathsException("Could not instantiate activator " + a.name + " in file " + cellDefinitionFile, cnfe);
+      }
+      catch (NoSuchMethodException nsme)
+      {
+        throw new NeuPathsException("Could not instantiate activator " + a.name + " in file " + cellDefinitionFile, nsme);
+      }
+      catch (InstantiationException ie)
+      {
+        throw new NeuPathsException("Could not instantiate activator " + a.name + " in file " + cellDefinitionFile, ie);
+      }
+      catch (IllegalAccessException iae)
+      {
+        throw new NeuPathsException("Could not instantiate activator " + a.name + " in file " + cellDefinitionFile, iae);
+      }
+      catch (java.lang.reflect.InvocationTargetException ite)
+      {
+        throw new NeuPathsException("Could not instantiate activator " + a.name + " in file " + cellDefinitionFile, ite);
+      }
+    } // for each activator
     
     return newCell;
   }

@@ -176,7 +176,17 @@ final class Cfg_LoadControllerCellParser extends Cfg_CellDefinitionParser
                                    s.domain,
                                    null));
     }
+
+    newCell.txs.add(new Mdl_Tx("LBRegistration", "LoadBalanceRegistration"));
+    newCell.txs.add(new Mdl_Tx("LBSignal", "LoadBalanceSignal"));
     
+    newCell.subs.add(new Mdl_Sub(SubscriptionType.LOGIC,
+                                 lch.cellNamePrefix + ".*",
+                                 "LBRequest",
+                                 "LBRequest",
+                                 lch.cellDomain,
+                                 "CellRegistration"));
+
     return newCell;
   }
 }

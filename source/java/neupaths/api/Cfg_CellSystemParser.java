@@ -212,8 +212,6 @@ final class Cfg_CellSystemParser
     {
       for (String scanSyn : scanCell.syns)
       {
-        //System.out.println("DEBUG: processing " + scanSyn);
-        
         try
         {
           Syn_Name scanName = new Syn_Name(scanSyn);
@@ -239,18 +237,13 @@ final class Cfg_CellSystemParser
     
                   String checkSynModeless = checkName.getModelessText();
 
-                  //System.out.format("DEBUG: scanModeless: %s, checkModeless: %s\n", scanSynModeless, checkSynModeless);
-                  
                   if (checkSynModeless.equals(scanSynModeless))
                   {
                     Mdl_Syn syn = new Mdl_Syn(scanSyn, scanCell.name);
 
-                    //System.out.println("DEBUG: Looking for " + syn.name + "/" + syn.listener);
-                    
                     boolean found = false;
                     for (Mdl_Syn s : syns)
                     {
-                      //System.out.println("DEBUG: Checking " + s.name + "/" + s.listener);
                       if (s.equals(syn))
                       {
                         s.peers.add(checkCell.name);
@@ -259,8 +252,6 @@ final class Cfg_CellSystemParser
                       }
                     }
 
-                    //System.out.println("DEBUG: Found? " + found);
-                    
                     if (!found)
                     {
                       syn.peers.add(checkCell.name);

@@ -137,10 +137,10 @@ public class LoadControllerCell extends Cell
   }
 
   //===========================================================================
-  //  PRIVATE MEMBERS
+  //  NESTED CLASSES
   //===========================================================================
 
-  private static class CellRegistration extends Activator
+  static class CellRegistration extends Activator
   {
     public CellRegistration (String cellNamePrefix, String cellDomain)
     {
@@ -171,7 +171,7 @@ public class LoadControllerCell extends Cell
   
   //---------------------------------------------------------------------------
   
-  private static class TransactionExtractor extends Activator
+  static class TransactionExtractor extends Activator
   {
     public TransactionExtractor
       (ReceptorSpec[]          receptors,
@@ -197,7 +197,7 @@ public class LoadControllerCell extends Cell
 
   //---------------------------------------------------------------------------
   
-  private static class TransactionRequest extends Activator
+  static class TransactionRequest extends Activator
   {
     public TransactionRequest (String cellNamePrefix, String cellDomain)
     {
@@ -235,7 +235,7 @@ public class LoadControllerCell extends Cell
   
   //---------------------------------------------------------------------------
   
-  private static class SignalGenerator extends Activator
+  static class SignalGenerator extends Activator
   {
     public SignalGenerator
       (ReceptorSpec[]          receptors,

@@ -1,0 +1,6 @@
+<cell_system>
+  <name>LoadBalanceSystem</name>
+  <cluster_definitions>
+    <cluster_definition>cfg/Cluster.xml</cluster_definition>
+  </cluster_definitions>
+</cell_system>

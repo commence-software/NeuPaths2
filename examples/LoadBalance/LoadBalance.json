@@ -1,0 +1,80 @@
+{
+  "Format": "neupaths-topology/1",
+  "Generated": "Sun Nov 08 13:27:15 EST 2026",
+  "Source": "cfg/System.xml",
+
+  "Cells": [
+      { "Name": "TestController", "Type": "Load-Controller" }
+    , { "Name": "TestInjector", "Type": "Injector" }
+    , { "Name": "TestExtractor", "Type": "Extractor" }
+    , { "Name": "LBC_1", "Type": "Load-Balanced" }
+    , { "Name": "LBC_2", "Type": "Load-Balanced" }
+    , { "Name": "LBC_3", "Type": "Load-Balanced" }
+  ],
+
+  "Dataflow": [
+      { "From": "TestInjector", "Transmitter": "Request",
+        "To": "TestController", "Receptor": "Request",
+        "Domain": "Test", "Activator": null }
+    , { "From": "LBC_1", "Transmitter": "LBRequest",
+        "To": "TestController", "Receptor": "LBRequest",
+        "Domain": "Test", "Activator": "CellRegistration" }
+    , { "From": "LBC_2", "Transmitter": "LBRequest",
+        "To": "TestController", "Receptor": "LBRequest",
+        "Domain": "Test", "Activator": "CellRegistration" }
+    , { "From": "LBC_3", "Transmitter": "LBRequest",
+        "To": "TestController", "Receptor": "LBRequest",
+        "Domain": "Test", "Activator": "CellRegistration" }
+    , { "From": "LBC_1", "Transmitter": "Response",
+        "To": "TestExtractor", "Receptor": "Response",
+        "Domain": "Test", "Activator": null }
+    , { "From": "LBC_2", "Transmitter": "Response",
+        "To": "TestExtractor", "Receptor": "Response",
+        "Domain": "Test", "Activator": null }
+    , { "From": "LBC_3", "Transmitter": "Response",
+        "To": "TestExtractor", "Receptor": "Response",
+        "Domain": "Test", "Activator": null }
+    , { "From": "TestController", "Transmitter": "LBSignal",
+        "To": "LBC_1", "Receptor": "LBSignal",
+        "Domain": "Test", "Activator": "LBActivator1" }
+    , { "From": "TestInjector", "Transmitter": "Request",
+        "To": "LBC_1", "Receptor": "Request",
+        "Domain": "Test", "Activator": "LBActivator1" }
+    , { "From": "TestController", "Transmitter": "LBRegistration",
+        "To": "LBC_1", "Receptor": "LBRegistration",
+        "Domain": "Test", "Activator": "LoadBalanceRegistration" }
+    , { "From": "TestController", "Transmitter": "LBSignal",
+        "To": "LBC_2", "Receptor": "LBSignal",
+        "Domain": "Test", "Activator": "LBActivator2" }
+    , { "From": "TestInjector", "Transmitter": "Request",
+        "To": "LBC_2", "Receptor": "Request",
+        "Domain": "Test", "Activator": "LBActivator2" }
+    , { "From": "TestController", "Transmitter": "LBRegistration",
+        "To": "LBC_2", "Receptor": "LBRegistration",
+        "Domain": "Test", "Activator": "LoadBalanceRegistration" }
+    , { "From": "TestController", "Transmitter": "LBRegistration",
+        "To": "LBC_3", "Receptor": "LBRegistration",
+        "Domain": "Test", "Activator": "LoadBalanceRegistration" }
+    , { "From": "TestInjector", "Transmitter": "Request",
+        "To": "LBC_3", "Receptor": "Request",
+        "Domain": "Test", "Activator": "LBActivator3" }
+    , { "From": "TestController", "Transmitter": "LBSignal",
+        "To": "LBC_3", "Receptor": "LBSignal",
+        "Domain": "Test", "Activator": "LBActivator3" }
+  ],
+
+  "Synapses": [
+      { "Name": "Local#Stream#Test#/tmp/lc.sock",
+        "Scope": "Local", "Type": "Stream",
+        "Domain": "Test", "Address": "/tmp/lc.sock",
+        "Listener": "TestController",
+        "Peers": [
+            "TestInjector"
+          , "TestExtractor"
+          , "LBC_1"
+          , "LBC_2"
+          , "LBC_3"
+        ]
+      }
+  ]
+}

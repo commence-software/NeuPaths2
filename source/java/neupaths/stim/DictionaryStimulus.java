@@ -89,7 +89,7 @@ public final class DictionaryStimulus extends Stimulus
   
   public String toString()
   {
-    return TYPE_NAME + "(" + getInstanceID() + ") " + map;
+    return TYPE_NAME + "(" + getInstanceID() + ")";
   }
 
   public

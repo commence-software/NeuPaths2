@@ -1056,34 +1056,34 @@ public class Cell
   {
     if (loggingEnabled.isSet())
     {
-      String allDetails = details;
-      if (cause != null)
-      {
-        allDetails += "\n=> " + cause;
-
-        allDetails += "\nTrace:";
-        for (StackTraceElement e : cause.getStackTrace())
-        {
-          allDetails += "\n  " + e;
-        }
-      }
-
-      EventStimulus event = new EventStimulus(type, source, allDetails);
-      event.setProducerCellID(instanceID);
-      event.setProducerCellName(name);
-      event.setProducerTransmitterName(Evt.EVENT_TRANSMITTER);
-      
       if ( (type != EventType.RUNTIME && type != EventType.TRACE && type != EventType.DEBUG) ||
            (type == EventType.RUNTIME && runtimeLoggingEnabled.isSet()) ||
            (type == EventType.TRACE && traceLoggingEnabled.isSet()) ||
            (type == EventType.DEBUG && debugLoggingEnabled.isSet()) )
       {
+        String allDetails = details;
+        if (cause != null)
+        {
+          allDetails += "\n=> " + cause;
+  
+          allDetails += "\nTrace:";
+          for (StackTraceElement e : cause.getStackTrace())
+          {
+            allDetails += "\n  " + e;
+          }
+        }
+  
+        EventStimulus event = new EventStimulus(type, source, allDetails);
+        event.setProducerCellID(instanceID);
+        event.setProducerCellName(name);
+        event.setProducerTransmitterName(Evt.EVENT_TRANSMITTER);
+        
         transmitStimulus(event, false);
-
+  
         if (debugOutputEnabled.isSet())
           System.out.print(event);
       }
-    }
+    } // if logging enabled
   }
   
   //---------------------------------------------------------------------------

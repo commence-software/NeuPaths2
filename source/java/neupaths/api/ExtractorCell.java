@@ -206,13 +206,16 @@ public class ExtractorCell extends Cell
         }
         else
         {
-          logEvent(EventType.RUNTIME,
-                   getName(),
-                   "Extractor ignored: " +
-                   stimulus.getTypeName() + "/" +
-                   stimulus.getProducerCellName() + "/" +
-                   stimulus.getProducerTransmitterName() + "/" +
-                   stimulus.getTransactionID());
+          if (isRuntimeLoggingEnabled())
+          {
+            logEvent(EventType.RUNTIME,
+                     getName(),
+                     "Extractor ignored: " +
+                     stimulus.getTypeName() + "/" +
+                     stimulus.getProducerCellName() + "/" +
+                     stimulus.getProducerTransmitterName() + "/" +
+                     stimulus.getTransactionID());
+          }
         }
       }
       catch (InterruptedException ie)
@@ -263,13 +266,16 @@ public class ExtractorCell extends Cell
         }
         else
         {
-          logEvent(EventType.RUNTIME,
-                   getName(),
-                   "Extractor ignored: " +
-                   stimulus.getTypeName() + "/" +
-                   stimulus.getProducerCellName() + "/" +
-                   stimulus.getProducerTransmitterName() + "/" +
-                   stimulus.getTransactionID());
+          if (isRuntimeLoggingEnabled())
+          {
+            logEvent(EventType.RUNTIME,
+                     getName(),
+                     "Extractor ignored: " +
+                     stimulus.getTypeName() + "/" +
+                     stimulus.getProducerCellName() + "/" +
+                     stimulus.getProducerTransmitterName() + "/" +
+                     stimulus.getTransactionID());
+          }
         }
       }
       catch (InterruptedException ie)

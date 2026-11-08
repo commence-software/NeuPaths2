@@ -828,10 +828,13 @@ public abstract class Activator
   void
   evaluateStimulus (Stimulus stimulus)
   {
-    cell.logEvent(EventType.RUNTIME,
-                  "Activator " + name + " in " + cell.getName() +
-                  " (" + cell.getInstanceID() + ")",
-                  "RUNTIME;ACTIVATOR;EVALUATE;1;" + stimulus.getInstanceID() + ";" + stimulus);
+    if (cell.isRuntimeLoggingEnabled())
+    {
+      cell.logEvent(EventType.RUNTIME,
+                    "Activator " + name + " in " + cell.getName() +
+                    " (" + cell.getInstanceID() + ")",
+                    "RUNTIME;ACTIVATOR;EVALUATE;1;" + stimulus.getInstanceID() + ";" + stimulus);
+    }
     
     try
     {
@@ -906,11 +909,15 @@ public abstract class Activator
                 {
                   receptorDepths += (r.getName() + "[" + r.depth() + "]  ");
                 }
-          
-                cell.logEvent(EventType.RUNTIME,
-                              "Activator " + name + " in " + cell.getName() +
-                              " (" + cell.getInstanceID() + ")",
-                              "Receptor Depths(" + cell.getName() + "/" + name + ")  " + receptorDepths);
+
+                if (cell.isRuntimeLoggingEnabled())
+                {
+                  cell.logEvent(EventType.RUNTIME,
+                                "Activator " + name + " in " + cell.getName() +
+                                " (" + cell.getInstanceID() + ")",
+                                "Receptor Depths(" + cell.getName() + "/" +
+                                name + ")  " + receptorDepths);
+                }
               }
 
               // Take a snapshot

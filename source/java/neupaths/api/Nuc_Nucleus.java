@@ -4,8 +4,10 @@
 package neupaths.api;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.UUID;
@@ -590,13 +592,16 @@ final class Nuc_Nucleus
       }
       
       String traceInfo = formatStimulusTrace(s);
-      
-      cell.logEvent(EventType.TRACE,
-                    cellName + " (" + cellInstanceID + ") INGRESS",
-                    "Stimulus trace for type '" + s.typeName +
-                    "' (" + s.instanceID + ") on transmitter '" +
-                    s.producerTransmitterName + "'" + transactionInfo +
-                    ": " + traceInfo);
+
+      if (cell.isTraceLoggingEnabled())
+      {
+        cell.logEvent(EventType.TRACE,
+                      cellName + " (" + cellInstanceID + ") INGRESS",
+                      "Stimulus trace for type '" + s.typeName +
+                      "' (" + s.instanceID + ") on transmitter '" +
+                      s.producerTransmitterName + "'" + transactionInfo +
+                      ": " + traceInfo);
+      }
     }
   }  // end logStimulusIngressTrace
 
@@ -615,13 +620,16 @@ final class Nuc_Nucleus
       }
       
       String traceInfo = formatStimulusTrace(s);
-      
-      cell.logEvent(EventType.TRACE,
-                    cellName + " (" + cellInstanceID + ") EGRESS",
-                    "Stimulus trace for type '" + s.typeName +
-                    "' (" + s.instanceID + ") on synapse " +
-                    peerSynapseInstanceID + transactionInfo +
-                    ": " + traceInfo);
+
+      if (cell.isTraceLoggingEnabled())
+      {
+        cell.logEvent(EventType.TRACE,
+                      cellName + " (" + cellInstanceID + ") EGRESS",
+                      "Stimulus trace for type '" + s.typeName +
+                      "' (" + s.instanceID + ") on synapse " +
+                      peerSynapseInstanceID + transactionInfo +
+                      ": " + traceInfo);
+      }
     }
   }  // end logStimulusEgressTrace
 
@@ -718,9 +726,13 @@ final class Nuc_Nucleus
 
       if (peerList == null)
       {
-        cell.logEvent(EventType.RUNTIME,
-                      threadName + "[subscribe]",
-                      "RUNTIME;NUCLEUS;SUBSCRIBE;1;" + cellName + ";" + msg.instanceID + ";" + sub + ";first peer");
+        if (cell.isRuntimeLoggingEnabled())
+        {
+          cell.logEvent(EventType.RUNTIME,
+                        threadName + "[subscribe]",
+                        "RUNTIME;NUCLEUS;SUBSCRIBE;1;" + cellName + ";" +
+                        msg.instanceID + ";" + sub + ";first peer");
+        }
 
         peerList = new HashSet<UUID>();
 
@@ -744,9 +756,13 @@ final class Nuc_Nucleus
 
       if (peerInfo != null)
       {
-        cell.logEvent(EventType.RUNTIME,
-                      threadName + "[subscribe]",
-                      "RUNTIME;NUCLEUS;SUBSCRIBE;2;" + cellName + ";" + msg.instanceID + ";" + sub + ";peer: " + peerInfo);
+        if (cell.isRuntimeLoggingEnabled())
+        {
+          cell.logEvent(EventType.RUNTIME,
+                        threadName + "[subscribe]",
+                        "RUNTIME;NUCLEUS;SUBSCRIBE;2;" + cellName + ";" +
+                        msg.instanceID + ";" + sub + ";peer: " + peerInfo);
+        }
 
         peerInfo.subscriptions.add(sub);
 
@@ -819,7 +835,8 @@ final class Nuc_Nucleus
     Nuc_SubscriptionInfo producerInfo = new Nuc_SubscriptionInfo(msg);
     HashSet<UUID> peerList = new HashSet<UUID>();
     
-    if (!msg.typeID.equals(EventStimulus.TYPE_ID))
+    if (!msg.typeID.equals(EventStimulus.TYPE_ID) &&
+        cell.isRuntimeLoggingEnabled())
     {
       cell.logEvent(EventType.RUNTIME,
                     threadName + "[routeStimulus]",
@@ -835,7 +852,8 @@ final class Nuc_Nucleus
         // Check if subscription matches (supports regular expressions)
         if (producerInfo.matches(sub.getKey()))
         {
-          if (!msg.typeID.equals(EventStimulus.TYPE_ID))
+          if (!msg.typeID.equals(EventStimulus.TYPE_ID) &&
+              cell.isRuntimeLoggingEnabled())
           {
             cell.logEvent(EventType.RUNTIME,
                           threadName + "[routeStimulus]",
@@ -860,7 +878,8 @@ final class Nuc_Nucleus
                 // Iterate over peer's subscriptions looking for an exact match
                 for (Nuc_SubscriptionInfo peerSub : peerInfo.subscriptions)
                 {
-                  if (!msg.typeID.equals(EventStimulus.TYPE_ID))
+                  if (!msg.typeID.equals(EventStimulus.TYPE_ID) &&
+                      cell.isRuntimeLoggingEnabled())
                   {
                     cell.logEvent(EventType.RUNTIME,
                                   threadName + "[routeStimulus]",
@@ -876,7 +895,8 @@ final class Nuc_Nucleus
                         (msg.arrivalDomain == null ||
                          peerInfo.synapseDomain.equals(msg.arrivalDomain)))))
                   {
-                    if (!msg.typeID.equals(EventStimulus.TYPE_ID))
+                    if (!msg.typeID.equals(EventStimulus.TYPE_ID) &&
+                        cell.isRuntimeLoggingEnabled())
                     {
                       cell.logEvent(EventType.RUNTIME,
                                     threadName + "[routeStimulus]",
@@ -919,7 +939,8 @@ final class Nuc_Nucleus
   {
     Nuc_SubscriptionInfo producerInfo = new Nuc_SubscriptionInfo(msg);
 
-    if (!msg.typeID.equals(EventStimulus.TYPE_ID))
+    if (!msg.typeID.equals(EventStimulus.TYPE_ID) &&
+        cell.isRuntimeLoggingEnabled())
     {
       cell.logEvent(EventType.RUNTIME,
                     threadName + "[processStimulus]",
@@ -931,7 +952,8 @@ final class Nuc_Nucleus
       // Hand off stimulus to Cell if there's a subscription
       for (SubscriptionSpec subscription : subscriptions)
       {
-        if (!msg.typeID.equals(EventStimulus.TYPE_ID))
+        if (!msg.typeID.equals(EventStimulus.TYPE_ID) &&
+            cell.isRuntimeLoggingEnabled())
         {
           cell.logEvent(EventType.RUNTIME,
                         threadName + "[processStimulus]",
@@ -1294,32 +1316,37 @@ final class Nuc_Nucleus
       {
         try
         {
-          if (subscriptionTraceIntervalMs.getValue() > 0L)
+          if (subscriptionTraceIntervalMs.getValue() > 0L &&
+              cell.isTraceLoggingEnabled())
           {
             Thread.sleep(subscriptionTraceIntervalMs.getValue());
+
+            List<Nuc_SubscriptionInfo> snapshot = null;
             
             subscriptionMutex.lock();
             try
             {
-              String listOfSubscriptions = "";
-  
-              for (Nuc_SubscriptionInfo sub : subscriptionMap.keySet())
-              {
-                if (!sub.transmitterName.equals(Cdet.CDET_DETECTION_TRANSMITTER) &&
-                    !sub.transmitterName.equals(Evt.EVENT_TRANSMITTER))
-                {
-                  listOfSubscriptions += ("\n  " + sub);
-                }
-              }  // for each subscription
-  
-              cell.logEvent(EventType.TRACE,
-                            getName(),
-                            "Registered Subscriptions: " + listOfSubscriptions);
+              snapshot = new ArrayList<>(subscriptionMap.keySet());
             }
             finally
             {
               subscriptionMutex.unlock();
             }
+
+            StringBuilder sb = new StringBuilder("Registered Subscriptions:");
+            
+            for (Nuc_SubscriptionInfo sub : snapshot)
+            {
+              if (!sub.transmitterName.equals(Cdet.CDET_DETECTION_TRANSMITTER) &&
+                  !sub.transmitterName.equals(Evt.EVENT_TRANSMITTER))
+              {
+                sb.append("\n  ").append(sub);
+              }
+            }  // for each subscription
+
+            cell.logEvent(EventType.TRACE,
+                          getName(),
+                          sb.toString());
           }
           else
           {

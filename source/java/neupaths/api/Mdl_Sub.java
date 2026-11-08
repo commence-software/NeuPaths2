@@ -5,8 +5,14 @@ package neupaths.api;
 
 final class Mdl_Sub
 {
-  Mdl_Sub (String cell, String tx, String rx, String dmn, String act)
+  Mdl_Sub (SubscriptionType type,
+           String           cell,
+           String           tx,
+           String           rx,
+           String           dmn,
+           String           act)
   {
+    this.type = type;
     this.cell = cell;
     this.tx = tx;
     this.rx = rx;
@@ -80,6 +86,8 @@ final class Mdl_Sub
     return true;
   }
 
+  SubscriptionType type;
+  
   String cell;
   String tx;
   String rx;

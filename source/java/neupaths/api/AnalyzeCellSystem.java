@@ -8,6 +8,9 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.io.File;
 
+import neupaths.util.CommandLine;
+import neupaths.util.PropertySet;
+
 /**
  * Produces a <i>Dataflow</i> and <i>System</i> model for a cellular system.
  * The model is spooled to standard output as JSON.
@@ -32,13 +35,14 @@ import java.io.File;
  * </p>
  * <p>
  * <ul>
- * <pre>{@code usage: java -classpath neupaths.jar neupaths.api.AnalyzeCellSystem <systemDefinitionFile> <configTopDir> >}</pre>
- * <p>
- * <i>systemDefinitionFile</i>: Pathname of the system definition file.
- * </p>
+ * <pre>{@code usage: java -classpath neupaths.jar:<other_jars_etc> neupaths.api.AnalyzeCellSystem [-d|--dir <configTopDir>] <systemDefinitionFile>}</pre>
  * <p>
  * <i>configTopDir</i>: Pathname of the top-level directory for the cluster
- * and cell definition files.
+ * and cell definition files.  When not specified, current working directory
+ * is used.
+ * </p>
+ * <p>
+ * <i>systemDefinitionFile</i>: Pathname of the system definition file.
  * </p>
  * </ul>
  * </p>
@@ -54,20 +58,45 @@ public final class AnalyzeCellSystem
 
   private static void printUsage ()
   {
-    System.out.println("usage: java -classpath neupaths.jar neupaths.api.AnalyzeCellSystem <systemDefinitionFile> <configTopDir>");
+    System.out.println("usage: java -classpath neupaths.jar:<other_jars_etc> neupaths.api.AnalyzeCellSystem [-d|--dir <configTopDir>] <systemDefinitionFile>");
+    System.out.println("    configTopDir            Pathname of the top-level directory for the cluster and cell definition files.");
     System.out.println("    systemDefinitionFile    Pathname of the system definition file.");
-    System.out.println("    configTopDir            Pathname of the top-level directory for the cluster and cell definition files");
   }
   
   public static void main (String args[])
   {
-    if (args.length != 2)
+    PropertySet arguments = CommandLine.parse(args, new String[] {"d", "dir"});
+    String configTopDir = null;
+    String systemDef = null;
+
+    if (arguments == null)
+    {
+      System.out.println("ERROR: Invalid command-line flag");
+      printUsage();
+      System.exit(1);
+    }
+
+    if (arguments.contains("d") || arguments.contains("dir"))
+    {
+      if (arguments.contains("d"))
+        configTopDir = arguments.get("d");
+      else
+        configTopDir = arguments.get("dir");
+    }
+
+    int optCnt = arguments.get("optCnt");
+    
+    if (optCnt != 1)
     {
       printUsage();
       System.exit(1);
     }
 
-    Cfg_CellSystemParser parser = new Cfg_CellSystemParser(args[0], args[1]);
+    systemDef = arguments.get("opt1");
+    
+    Cfg_CellSystemParser parser =
+      new Cfg_CellSystemParser(systemDef, configTopDir);
+    
     parser.validate();
 
     Mdl_System system = new Mdl_System(parser.handler.name);
@@ -102,6 +131,10 @@ public final class AnalyzeCellSystem
     boolean firstFlow = true;
     for (Mdl_Flow flow : system.flows)
     {
+      String flowAct = "null";
+      if (flow.act != null)
+        flowAct = String.format("\"%s\"", flow.act);
+      
       if (firstFlow)
       {
         System.out.format("      { \"From\": \"%s\", \"Transmitter\": \"%s\",\n", flow.src, flow.tx);
@@ -113,7 +146,7 @@ public final class AnalyzeCellSystem
       }
 
       System.out.format("        \"To\": \"%s\", \"Receptor\": \"%s\",\n", flow.dst, flow.rx);
-      System.out.format("        \"Domain\": \"%s\", \"Activator\": \"%s\" }\n", flow.dmn, flow.act);
+      System.out.format("        \"Domain\": \"%s\", \"Activator\": %s }\n", flow.dmn, flowAct);
     }
     
     System.out.println("  ],");

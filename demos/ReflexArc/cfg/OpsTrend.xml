@@ -1,7 +1,7 @@
 <logic_cell>
   <name>OpsTrend</name>
   <synapses>
-    <synapse>Network#Stream#Peer#Ops#30001#127.0.0.1</synapse>
+    <synapse>Network#Stream#Peer#Ops#30001</synapse>
   </synapses>
   <activators>
     <activator>

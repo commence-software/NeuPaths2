@@ -1,0 +1,180 @@
+{
+  "Format": "neupaths-topology/1",
+  "Generated": "Sun Nov 08 09:53:23 EST 2026",
+  "Source": "cfg/System.xml",
+
+  "Cells": [
+      { "Name": "OpsConsoleIn", "Type": "Injector" }
+    , { "Name": "OpsConsoleOut", "Type": "Extractor" }
+    , { "Name": "OpsRouter", "Type": "Router" }
+    , { "Name": "OpsTrend", "Type": "Logic" }
+    , { "Name": "OpsEvents", "Type": "Event" }
+    , { "Name": "ZA_Acoustic", "Type": "Logic" }
+    , { "Name": "ZA_Bridge1", "Type": "Bridge" }
+    , { "Name": "ZA_Bridge2", "Type": "Bridge" }
+    , { "Name": "ZA_Flow", "Type": "Logic" }
+    , { "Name": "ZA_Pressure", "Type": "Logic" }
+    , { "Name": "ZA_Reflex", "Type": "Logic" }
+    , { "Name": "ZA_Valve", "Type": "Logic" }
+    , { "Name": "ZA_Router", "Type": "Router" }
+    , { "Name": "ZA_Events", "Type": "Event" }
+  ],
+
+  "Dataflow": [
+      { "From": "OpsTrend", "Transmitter": "Trend",
+        "To": "OpsConsoleOut", "Receptor": "Trend",
+        "Domain": "Ops", "Activator": null }
+    , { "From": "ZA_Reflex", "Transmitter": "Anomaly",
+        "To": "OpsConsoleOut", "Receptor": "Anomaly",
+        "Domain": "Ops", "Activator": null }
+    , { "From": "ZA_Reflex", "Transmitter": "SensorAlarm",
+        "To": "OpsConsoleOut", "Receptor": "SensorAlarm",
+        "Domain": "Ops", "Activator": null }
+    , { "From": "ZA_Reflex", "Transmitter": "Leak",
+        "To": "OpsConsoleOut", "Receptor": "Leak",
+        "Domain": "Ops", "Activator": null }
+    , { "From": "ZA_Flow", "Transmitter": "Flow",
+        "To": "OpsTrend", "Receptor": "Flow",
+        "Domain": "Ops", "Activator": "TrendAnalyzer" }
+    , { "From": "ZA_Pressure", "Transmitter": "Pressure",
+        "To": "OpsTrend", "Receptor": "Pressure",
+        "Domain": "Ops", "Activator": "TrendAnalyzer" }
+    , { "From": "ZA_Acoustic", "Transmitter": "Pulse",
+        "To": "ZA_Acoustic", "Receptor": "Pulse",
+        "Domain": "@", "Activator": "AcousticSim" }
+    , { "From": "OpsConsoleIn", "Transmitter": "ValveCmd",
+        "To": "ZA_Bridge1", "Receptor": "ValveCmd",
+        "Domain": "Ops", "Activator": null }
+    , { "From": "ZA_Acoustic", "Transmitter": "Acoustic",
+        "To": "ZA_Bridge1", "Receptor": "Acoustic",
+        "Domain": "Zone_A", "Activator": null }
+    , { "From": "ZA_Flow", "Transmitter": "Flow",
+        "To": "ZA_Bridge1", "Receptor": "Flow",
+        "Domain": "Zone_A", "Activator": null }
+    , { "From": "ZA_Pressure", "Transmitter": "Pressure",
+        "To": "ZA_Bridge1", "Receptor": "Pressure",
+        "Domain": "Zone_A", "Activator": null }
+    , { "From": "ZA_Reflex", "Transmitter": "Anomaly",
+        "To": "ZA_Bridge1", "Receptor": "Anomaly",
+        "Domain": "Zone_A", "Activator": null }
+    , { "From": "ZA_Reflex", "Transmitter": "SensorAlarm",
+        "To": "ZA_Bridge1", "Receptor": "SensorAlarm",
+        "Domain": "Zone_A", "Activator": null }
+    , { "From": "ZA_Reflex", "Transmitter": "Leak",
+        "To": "ZA_Bridge1", "Receptor": "Leak",
+        "Domain": "Zone_A", "Activator": null }
+    , { "From": "ZA_Valve", "Transmitter": "ValveState",
+        "To": "ZA_Bridge1", "Receptor": "ValveState",
+        "Domain": "Zone_A", "Activator": null }
+    , { "From": "OpsConsoleIn", "Transmitter": "ValveCmd",
+        "To": "ZA_Bridge2", "Receptor": "ValveCmd",
+        "Domain": "Ops", "Activator": null }
+    , { "From": "ZA_Acoustic", "Transmitter": "Acoustic",
+        "To": "ZA_Bridge2", "Receptor": "Acoustic",
+        "Domain": "Zone_A", "Activator": null }
+    , { "From": "ZA_Flow", "Transmitter": "Flow",
+        "To": "ZA_Bridge2", "Receptor": "Flow",
+        "Domain": "Zone_A", "Activator": null }
+    , { "From": "ZA_Pressure", "Transmitter": "Pressure",
+        "To": "ZA_Bridge2", "Receptor": "Pressure",
+        "Domain": "Zone_A", "Activator": null }
+    , { "From": "ZA_Reflex", "Transmitter": "Anomaly",
+        "To": "ZA_Bridge2", "Receptor": "Anomaly",
+        "Domain": "Zone_A", "Activator": null }
+    , { "From": "ZA_Reflex", "Transmitter": "SensorAlarm",
+        "To": "ZA_Bridge2", "Receptor": "SensorAlarm",
+        "Domain": "Zone_A", "Activator": null }
+    , { "From": "ZA_Reflex", "Transmitter": "Leak",
+        "To": "ZA_Bridge2", "Receptor": "Leak",
+        "Domain": "Zone_A", "Activator": null }
+    , { "From": "ZA_Valve", "Transmitter": "ValveState",
+        "To": "ZA_Bridge2", "Receptor": "ValveState",
+        "Domain": "Zone_A", "Activator": null }
+    , { "From": "ZA_Flow", "Transmitter": "Pulse",
+        "To": "ZA_Flow", "Receptor": "Pulse",
+        "Domain": "@", "Activator": "FlowSim" }
+    , { "From": "ZA_Pressure", "Transmitter": "Pulse",
+        "To": "ZA_Pressure", "Receptor": "Pulse",
+        "Domain": "@", "Activator": "PressureSim" }
+    , { "From": "ZA_Reflex", "Transmitter": "Pulse",
+        "To": "ZA_Reflex", "Receptor": "Pulse",
+        "Domain": "@", "Activator": "Watchdog" }
+    , { "From": "ZA_Pressure", "Transmitter": "Pressure",
+        "To": "ZA_Reflex", "Receptor": "Pressure",
+        "Domain": "Zone_A", "Activator": "BurstDetector" }
+    , { "From": "ZA_Flow", "Transmitter": "Flow",
+        "To": "ZA_Reflex", "Receptor": "Flow",
+        "Domain": "Zone_A", "Activator": "BurstDetector" }
+    , { "From": "ZA_Acoustic", "Transmitter": "Acoustic",
+        "To": "ZA_Reflex", "Receptor": "Reading",
+        "Domain": "Zone_A", "Activator": "AcousticTracker" }
+    , { "From": "ZA_Valve", "Transmitter": "ValveState",
+        "To": "ZA_Reflex", "Receptor": "ValveState",
+        "Domain": "Zone_A", "Activator": "ValveGuard" }
+    , { "From": "ZA_Pressure", "Transmitter": "Pressure",
+        "To": "ZA_Reflex", "Receptor": "Pressure",
+        "Domain": "Zone_A", "Activator": "LeakLocalizer" }
+    , { "From": "ZA_Flow", "Transmitter": "Flow",
+        "To": "ZA_Reflex", "Receptor": "Flow",
+        "Domain": "Zone_A", "Activator": "LeakLocalizer" }
+    , { "From": "ZA_Reflex", "Transmitter": "Anomaly",
+        "To": "ZA_Reflex", "Receptor": "Anomaly",
+        "Domain": "@", "Activator": "ValveGuard" }
+    , { "From": "ZA_Acoustic", "Transmitter": "Acoustic",
+        "To": "ZA_Reflex", "Receptor": "Acoustic",
+        "Domain": "Zone_A", "Activator": "LeakLocalizer" }
+    , { "From": "ZA_Pressure", "Transmitter": "Pressure",
+        "To": "ZA_Reflex", "Receptor": "Reading",
+        "Domain": "Zone_A", "Activator": "PressureTracker" }
+    , { "From": "ZA_Flow", "Transmitter": "Flow",
+        "To": "ZA_Reflex", "Receptor": "Reading",
+        "Domain": "Zone_A", "Activator": "FlowTracker" }
+    , { "From": "OpsConsoleIn", "Transmitter": "ValveCmd",
+        "To": "ZA_Valve", "Receptor": "Cmd",
+        "Domain": "Zone_A", "Activator": "ValveActuator" }
+    , { "From": "ZA_Valve", "Transmitter": "Pulse",
+        "To": "ZA_Valve", "Receptor": "Pulse",
+        "Domain": "@", "Activator": "ValveHeartbeat" }
+    , { "From": "ZA_Reflex", "Transmitter": "ValveCmd",
+        "To": "ZA_Valve", "Receptor": "Cmd",
+        "Domain": "Zone_A", "Activator": "ValveActuator" }
+  ],
+
+  "Synapses": [
+      { "Name": "Network#Stream#Ops#30001",
+        "Scope": "Network", "Type": "Stream",
+        "Domain": "Ops", "Address": "30001",
+        "Listener": "OpsRouter",
+        "Peers": [
+            "OpsConsoleIn"
+          , "OpsConsoleOut"
+          , "OpsTrend"
+          , "OpsEvents"
+          , "ZA_Bridge1"
+        ]
+      }
+    , { "Name": "Network#Stream#Ops#30002",
+        "Scope": "Network", "Type": "Stream",
+        "Domain": "Ops", "Address": "30002",
+        "Listener": "OpsRouter",
+        "Peers": [
+            "ZA_Bridge2"
+        ]
+      }
+    , { "Name": "Network#Stream#Zone_A#30010",
+        "Scope": "Network", "Type": "Stream",
+        "Domain": "Zone_A", "Address": "30010",
+        "Listener": "ZA_Router",
+        "Peers": [
+            "ZA_Acoustic"
+          , "ZA_Bridge1"
+          , "ZA_Bridge2"
+          , "ZA_Flow"
+          , "ZA_Pressure"
+          , "ZA_Reflex"
+          , "ZA_Valve"
+          , "ZA_Events"
+        ]
+      }
+  ]
+}

@@ -13,17 +13,17 @@ import org.w3c.dom.Node;
 final class Cfg_CellSubscriptionHandler extends Cfg_ConfigHandler
 {
   Cfg_CellSubscriptionHandler (CellType         cellType,
-                                String           xPath,
-                                SubscriptionType subType)
+                               String           xPath,
+                               SubscriptionType subType)
   {
     super(cellType, xPath);
     
     this.subType = subType;
     
-    cellName = "Unspecified";
-    transmitterName = "Unspecified";
-    receptorName = "Unspecified";
-    domain = "Unspecified";
+    cellName = "__UNSPECIFIED__";
+    transmitterName = "__UNSPECIFIED__";
+    receptorName = "__UNSPECIFIED__";
+    domain = Syn.GLOBAL_DOMAIN;
     filterTransactions = TransactionFilter.DISABLED;
   }
 

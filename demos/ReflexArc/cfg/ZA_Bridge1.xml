@@ -1,8 +1,8 @@
 <bridge_cell>
   <name>ZA_Bridge1</name>
   <synapses>
-    <synapse>Network#Stream#Peer#Zone_A#30010#127.0.0.1</synapse>
-    <synapse>Network#Stream#Peer#Ops#30001#127.0.0.1</synapse>
+    <synapse>Network#Stream#Peer#Zone_A#30010</synapse>
+    <synapse>Network#Stream#Peer#Ops#30001</synapse>
   </synapses>
   <subscriptions>
     <bridge_subscription>

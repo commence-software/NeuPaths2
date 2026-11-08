@@ -355,7 +355,8 @@ final class Cfg_CustomCellParser extends Cfg_CellDefinitionParser
     
           for (SubscriptionSpec s : actvtrObj.subscriptionSpecs)
           {
-            newCell.subs.add(new Mdl_Sub(s.getCellName(),
+            newCell.subs.add(new Mdl_Sub(s.getType(),
+                                         s.getCellName(),
                                          s.getTransmitterName(),
                                          s.getReceptorName(),
                                          s.getDomain(),
@@ -397,7 +398,8 @@ final class Cfg_CustomCellParser extends Cfg_CellDefinitionParser
   
         for (Cfg_CellSubscriptionHandler s : a.subscriptions)
         {
-          newCell.subs.add(new Mdl_Sub(s.cellName,
+          newCell.subs.add(new Mdl_Sub(s.subType,
+                                       s.cellName,
                                        s.transmitterName,
                                        s.receptorName,
                                        s.domain,

@@ -81,11 +81,12 @@ final class Cfg_ExtractorCellParser extends Cfg_CellDefinitionParser
       newCell.syns.add(syn);
     }
 
-    newCell.subs.add(new Mdl_Sub(extractor.subscription.cellName,
+    newCell.subs.add(new Mdl_Sub(extractor.subscription.subType,
+                                 extractor.subscription.cellName,
                                  extractor.subscription.transmitterName,
                                  extractor.subscription.receptorName,
                                  extractor.subscription.domain,
-                                 "null"));
+                                 null));
     
     return newCell;
   }

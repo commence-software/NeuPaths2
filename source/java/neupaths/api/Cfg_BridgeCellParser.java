@@ -90,11 +90,12 @@ final class Cfg_BridgeCellParser extends Cfg_CellDefinitionParser
     
     for (Cfg_CellSubscriptionHandler sub : bridge.subscriptions)
     {
-      newCell.subs.add(new Mdl_Sub(sub.cellName,
+      newCell.subs.add(new Mdl_Sub(sub.subType,
+                                   sub.cellName,
                                    sub.transmitterName,
                                    sub.receptorName,
                                    sub.domain,
-                                   "null"));
+                                   null));
     }
 
     return newCell;

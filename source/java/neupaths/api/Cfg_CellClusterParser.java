@@ -237,10 +237,22 @@ final class Cfg_CellClusterParser
     {
       for (Mdl_Sub scanSub : scanCell.subs)
       {
-        for (Mdl_Cell checkCell : cells.values())
+        if (scanSub.type == SubscriptionType.LOOPBACK)
         {
-          // Exclude the cell currently being scanned
-          if (!checkCell.name.equals(scanCell.name))
+          String tx = scanSub.tx;
+          if (scanSub.tx.equals(Cell.PULSE_TRANSMITTER))
+            tx = "Pulse";
+          
+          flows.add(new Mdl_Flow(scanCell.name,
+                                 tx,
+                                 scanCell.name,
+                                 scanSub.rx,
+                                 scanSub.dmn,
+                                 scanSub.act));
+        }
+        else
+        {
+          for (Mdl_Cell checkCell : cells.values())
           {
             if (checkCell.name.matches(scanSub.cell))
             {
@@ -249,7 +261,7 @@ final class Cfg_CellClusterParser
                 if (checkTx.name.matches(scanSub.tx))
                 {
                   String rx = scanSub.rx;
-                  if (rx.equals("Unspecified"))
+                  if (rx.equals("__UNSPECIFIED__"))
                     rx = checkTx.name;
                   
                   flows.add(new Mdl_Flow(checkCell.name,
@@ -261,8 +273,8 @@ final class Cfg_CellClusterParser
                 }
               }  // for each transmitter to check
             } // if cell matches subscription
-          } // if not scan cell
-        } // for each cell to check
+          } // for each cell to check
+        } // if loopback subscription
       } // for each subscription
     } // for each cell to scan
 

@@ -169,11 +169,12 @@ final class Cfg_LoadControllerCellParser extends Cfg_CellDefinitionParser
     
     for (Cfg_CellSubscriptionHandler s : lch.subscriptions)
     {
-      newCell.subs.add(new Mdl_Sub(s.cellName,
+      newCell.subs.add(new Mdl_Sub(s.subType,
+                                   s.cellName,
                                    s.transmitterName,
                                    s.receptorName,
                                    s.domain,
-                                   "null"));
+                                   null));
     }
     
     return newCell;

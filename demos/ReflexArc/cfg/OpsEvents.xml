@@ -1,5 +1,5 @@
 <event_cell>
   <name>OpsEvents</name>
-  <synapse>Network#Stream#Peer#Ops#30001#127.0.0.1</synapse>
+  <synapse>Network#Stream#Peer#Ops#30001</synapse>
   <output_file>out/Ops_events.out</output_file>
 </event_cell>

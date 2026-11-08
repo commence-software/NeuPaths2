@@ -1,0 +1,15 @@
+<cell_system>
+  <name>RefexSystem</name>
+  <cluster_definitions>
+    <cluster_definition>cfg/Cl_OpsConsole.xml</cluster_definition>
+    <cluster_definition>cfg/Cl_Ops.xml</cluster_definition>
+    <cluster_definition>cfg/Cl_ZA_Acoustic.xml</cluster_definition>
+    <cluster_definition>cfg/Cl_ZA_Bridge1.xml</cluster_definition>
+    <cluster_definition>cfg/Cl_ZA_Bridge2.xml</cluster_definition>
+    <cluster_definition>cfg/Cl_ZA_Flow.xml</cluster_definition>
+    <cluster_definition>cfg/Cl_ZA_Pressure.xml</cluster_definition>
+    <cluster_definition>cfg/Cl_ZA_Reflex.xml</cluster_definition>
+    <cluster_definition>cfg/Cl_ZA_Valve.xml</cluster_definition>
+    <cluster_definition>cfg/Cl_ZoneA_Infra.xml</cluster_definition>
+  </cluster_definitions>
+</cell_system>

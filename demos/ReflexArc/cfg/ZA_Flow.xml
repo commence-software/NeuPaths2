@@ -1,7 +1,7 @@
 <logic_cell>
   <name>ZA_Flow</name>
   <synapses>
-    <synapse>Network#Stream#Peer#Zone_A#30010#127.0.0.1</synapse>
+    <synapse>Network#Stream#Peer#Zone_A#30010</synapse>
   </synapses>
   <activators>
     <activator>

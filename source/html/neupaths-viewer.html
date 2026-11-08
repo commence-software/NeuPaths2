@@ -815,6 +815,23 @@ function findings(doc){
     b:`${untyped.length} of ${registry.size} cells`,
     why:`${untyped.join(", ")} — drawn with a dashed border.`});
 
+  /* The load-balancing control plane is framework-injected wiring, not
+     application dataflow: workers post credits (LBRequest), the controller
+     acknowledges (LBRegistration) and dispatches work (LBSignal). Naming it
+     separates the plumbing from the logic the user actually wrote. */
+  const LB_TX = /^LB(Signal|Request|Registration)$/i;
+  const lb = g.edges.filter(e=>LB_TX.test(e.label || ""));
+  if(lb.length){
+    const ctrl = new Set(), work = new Set();
+    for(const e of lb){
+      if(/^LBRequest$/i.test(e.label)){ work.add(e.from); ctrl.add(e.to); }
+      else { ctrl.add(e.from); work.add(e.to); }
+    }
+    out.push({k:"info", t:"Load-balancing control plane",
+      b:`${[...ctrl].sort().join(", ")} \u2192 ${work.size} worker${work.size>1?"s":""}`,
+      why:`${[...work].sort().join(", ")} post credits on LBRequest; the controller acknowledges on LBRegistration and dispatches work on LBSignal. These ${lb.length} edges are injected by LoadBalancedActivator and the controller, not declared in the cell definitions.`});
+  }
+
   /* Loopbacks stay inside one cell: a pulse driving a PulsedActivator, or an
      activator feeding a sibling activator in the same cell. Worth separating
      because they are the only edges that cross no synapse. */

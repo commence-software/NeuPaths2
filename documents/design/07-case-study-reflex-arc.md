@@ -316,10 +316,11 @@ twin, the same chaos script, and a split-screen of both dashboards. Claims becom
   (2 s) and `subscriptionRefreshInterval` (default 1.5 s) set the demo's visible rhythms —
   rewire time after heal is roughly one refresh interval, so leave the default alone for a
   snappy stage recovery.
-- **Dedup logging is chatty by design here.** With both bridges up, every reading arrives
-  twice at Ops and the second copy is logged as a duplicate warning. That is the redundancy
-  *visibly working*; for a quieter demo, disable logging on the Ops router or narrow the
-  bridge telemetry regex.
+- **Dedup is constant here, by design.** With both bridges up, every reading arrives twice
+  at Ops and the second copy is filtered. That is the redundancy working, not a fault — a
+  filtered duplicate means the standby path delivered. The nucleus logs it at `RUNTIME`,
+  which is disabled by default, so enable runtime logging on the Ops router if you want the
+  second copy visible on stage; leave it off for a quiet run.
 
 ## 7.9 Implementation layout
 

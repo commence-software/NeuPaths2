@@ -1072,9 +1072,13 @@ final class Nuc_Nucleus
             {
               if (hasCycle(stimulusMsg))
               {
-                cell.logEvent(EventType.RUNTIME,
-                              getName(),
-                              "RUNTIME;NUCLEUS;RECEIVE;Cycle detected: " + stimulusMsg + ", Trace: " + formatStimulusTrace(stimulusMsg));
+                if (cell.isRuntimeLoggingEnabled())
+                {
+                  cell.logEvent(EventType.RUNTIME,
+                                getName(),
+                                "RUNTIME;NUCLEUS;RECEIVE;1;Cycle detected: " + stimulusMsg + ", Trace: " + formatStimulusTrace(stimulusMsg));
+                }
+                
                 processStimulus(stimulusMsg, getName());
               }
               else
@@ -1082,11 +1086,11 @@ final class Nuc_Nucleus
                 routeStimulus(stimulusMsg, getName());
               }
             }
-            else
+            else if (cell.isRuntimeLoggingEnabled())
             {
-              cell.logEvent(EventType.WARNING,
+              cell.logEvent(EventType.RUNTIME,
                             getName(),
-                            "Duplicate received: " + stimulusMsg + ", Trace: " + formatStimulusTrace(stimulusMsg));
+                            "RUNTIME;NUCLEUS;RECEIVE;2;Duplicate received: " + stimulusMsg + ", Trace: " + formatStimulusTrace(stimulusMsg));
             }
           }
         }

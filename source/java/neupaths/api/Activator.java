@@ -811,6 +811,14 @@ public abstract class Activator
       // in the recent past
       if (transactionHistory.contains(newEntry))
       {
+        if (cell.isRuntimeLoggingEnabled())
+        {
+          cell.logEvent(EventType.RUNTIME,
+                        "Activator " + name + " in " + cell.getName() +
+                        " (" + cell.getInstanceID() + ")",
+                        "RUNTIME;ACTIVATOR;EVALUATE;2;Ignored duplicate for transaction " + transactionID);
+        }
+
         duplicate = true;
       }
       else
@@ -910,14 +918,11 @@ public abstract class Activator
                   receptorDepths += (r.getName() + "[" + r.depth() + "]  ");
                 }
 
-                if (cell.isRuntimeLoggingEnabled())
-                {
-                  cell.logEvent(EventType.RUNTIME,
-                                "Activator " + name + " in " + cell.getName() +
-                                " (" + cell.getInstanceID() + ")",
-                                "Receptor Depths(" + cell.getName() + "/" +
-                                name + ")  " + receptorDepths);
-                }
+                cell.logEvent(EventType.RUNTIME,
+                              "Activator " + name + " in " + cell.getName() +
+                              " (" + cell.getInstanceID() + ")",
+                              "Receptor Depths(" + cell.getName() + "/" +
+                              name + ")  " + receptorDepths);
               }
 
               // Take a snapshot

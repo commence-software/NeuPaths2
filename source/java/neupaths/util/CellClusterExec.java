@@ -13,7 +13,11 @@ import neupaths.api.*;
  * an error is encountered or the user manually terminates.
  * </p>
  * <ul>
- * <pre>{@code usage: java -classpath neupaths.jar neupaths.util.ClusterCellExec <clusterDefinitionFile>}</pre>
+ * <pre>{@code usage: java -classpath neupaths.jar:<other_jars_etc> neupaths.util.ClusterCellExec [-d|--dir <configTopDir>] <clusterDefinitionFile>}</pre>
+ * <p>
+ * <i>configTopDir</i>: Pathname of the top-level directory for the cell
+ * definition files.  When not specified, current working directory is used.
+ * </p>
  * <p>
  * <i>clusterDefinitionFile</i>: Pathname of the cluster definition file.  See {@link neupaths.api.CellCluster} for a description of cluster definition files.
  * </p>
@@ -28,6 +32,16 @@ public class CellClusterExec
     // Construction not necessary
   }
 
+  private static void printUsage()
+  {
+    System.out.println("usage: java -classpath neupaths.jar:<other_jars_etc> neupaths.util.CellClusterExec [-d|--dir <configTopDir>] <clusterDefinitionFile>\n");
+    System.out.println("    configTopDir            Pathname of the top-level");
+    System.out.println("                            directory for the cell");
+    System.out.println("                            definition files.");
+    System.out.println("    clusterDefinitionFile   Pathname of the cluster");
+    System.out.println("                            definition file.");
+  }
+  
   /**
    * The main routine.  See overview for usage information.
    * 
@@ -35,17 +49,38 @@ public class CellClusterExec
    */
   public static void main (String[] args)
   {
-    if (args.length != 1)
+    PropertySet arguments = CommandLine.parse(args, new String[] {"d", "dir"});
+    String configTopDir = null;
+    String clusterDef = null;
+
+    if (arguments == null)
     {
-      System.out.println("usage: java -classpath neupaths.jar neupaths.util.CellClusterExec <clusterDefinitionFile>\n");
-      System.out.println("    clusterDefinitionFile      Pathname of the cluster");
-      System.out.println("                               definition file.");
+      System.out.println("ERROR: Invalid command-line flag");
+      printUsage();
       System.exit(1);
     }
 
+    if (arguments.contains("d") || arguments.contains("dir"))
+    {
+      if (arguments.contains("d"))
+        configTopDir = arguments.get("d");
+      else
+        configTopDir = arguments.get("dir");
+    }
+
+    int optCnt = arguments.get("optCnt");
+    
+    if (optCnt != 1)
+    {
+      printUsage();
+      System.exit(1);
+    }
+
+    clusterDef = arguments.get("opt1");
+    
     try
     {
-      CellCluster cluster = new CellCluster(args[0]);
+      CellCluster cluster = new CellCluster(clusterDef, configTopDir);
 
       cluster.start();
 

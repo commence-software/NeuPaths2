@@ -39,7 +39,7 @@ import neupaths.api.*;
  * needed for cell cluster deployment (custom stimulus types and activators.)
  * </p>
  * <ul>
- * <pre>{@code usage: java -classpath neupaths.jar neupaths.util.CellClusterDaemon [-k|--key <cryptoKeyFile>] <synapseName> <daemonName> <configTopDir>}</pre>
+ * <pre>{@code usage: java -classpath neupaths.jar:<other_jars_etc> neupaths.util.CellClusterDaemon [-k|--key <cryptoKeyFile>] <synapseName> <daemonName> <configTopDir>}</pre>
  * <p>
  * <i>cryptoKeyFile</i>: Optional file pathname of a crypto key file created
  * by the {@link GenerateCryptoKey} utility.
@@ -68,7 +68,7 @@ public class CellClusterDaemon
 
   private static void printUsage ()
   {
-    System.out.println("usage: java -classpath neupaths.jar neupaths.util.CellClusterDaemon [-k|--key <cryptoKeyFile>] <synapseName> <daemonName> <configTopDir>\n");
+    System.out.println("usage: java -classpath neupaths.jar:<other_jars_etc> neupaths.util.CellClusterDaemon [-k|--key <cryptoKeyFile>] <synapseName> <daemonName> <configTopDir>\n");
     System.out.println("    cryptoKeyFile    Optional file pathname of a crypto key file");
     System.out.println("                     created by the GenerateCryptoKey utility.");
     System.out.println("    synapseName      Synapse specification.  Supports");

@@ -1,6 +1,6 @@
 {
   "Format": "neupaths-topology/1",
-  "Generated": "Sun Nov 08 13:31:39 EST 2026",
+  "Generated": "Tue Nov 10 10:41:04 EST 2026",
   "Source": "cfg/System.xml",
 
   "Cells": [
@@ -41,7 +41,7 @@
         "Domain": "Ops", "Activator": "TrendAnalyzer" }
     , { "From": "ZA_Acoustic", "Transmitter": "Pulse",
         "To": "ZA_Acoustic", "Receptor": "Pulse",
-        "Domain": "@", "Activator": "AcousticSim" }
+        "Domain": "__INTERNAL__", "Activator": "AcousticSim" }
     , { "From": "OpsConsoleIn", "Transmitter": "ValveCmd",
         "To": "ZA_Bridge1", "Receptor": "ValveCmd",
         "Domain": "Ops", "Activator": null }
@@ -92,19 +92,19 @@
         "Domain": "Zone_A", "Activator": null }
     , { "From": "ZA_Flow", "Transmitter": "Pulse",
         "To": "ZA_Flow", "Receptor": "Pulse",
-        "Domain": "@", "Activator": "FlowSim" }
+        "Domain": "__INTERNAL__", "Activator": "FlowSim" }
     , { "From": "ZA_Pressure", "Transmitter": "Pulse",
         "To": "ZA_Pressure", "Receptor": "Pulse",
-        "Domain": "@", "Activator": "PressureSim" }
-    , { "From": "ZA_Reflex", "Transmitter": "Pulse",
-        "To": "ZA_Reflex", "Receptor": "Pulse",
-        "Domain": "@", "Activator": "Watchdog" }
+        "Domain": "__INTERNAL__", "Activator": "PressureSim" }
     , { "From": "ZA_Pressure", "Transmitter": "Pressure",
         "To": "ZA_Reflex", "Receptor": "Pressure",
         "Domain": "Zone_A", "Activator": "BurstDetector" }
     , { "From": "ZA_Flow", "Transmitter": "Flow",
         "To": "ZA_Reflex", "Receptor": "Flow",
         "Domain": "Zone_A", "Activator": "BurstDetector" }
+    , { "From": "ZA_Reflex", "Transmitter": "Pulse",
+        "To": "ZA_Reflex", "Receptor": "Pulse",
+        "Domain": "__INTERNAL__", "Activator": "Watchdog" }
     , { "From": "ZA_Acoustic", "Transmitter": "Acoustic",
         "To": "ZA_Reflex", "Receptor": "Reading",
         "Domain": "Zone_A", "Activator": "AcousticTracker" }
@@ -119,7 +119,7 @@
         "Domain": "Zone_A", "Activator": "LeakLocalizer" }
     , { "From": "ZA_Reflex", "Transmitter": "Anomaly",
         "To": "ZA_Reflex", "Receptor": "Anomaly",
-        "Domain": "@", "Activator": "ValveGuard" }
+        "Domain": "__INTERNAL__", "Activator": "ValveGuard" }
     , { "From": "ZA_Acoustic", "Transmitter": "Acoustic",
         "To": "ZA_Reflex", "Receptor": "Acoustic",
         "Domain": "Zone_A", "Activator": "LeakLocalizer" }
@@ -132,12 +132,12 @@
     , { "From": "OpsConsoleIn", "Transmitter": "ValveCmd",
         "To": "ZA_Valve", "Receptor": "Cmd",
         "Domain": "Zone_A", "Activator": "ValveActuator" }
-    , { "From": "ZA_Valve", "Transmitter": "Pulse",
-        "To": "ZA_Valve", "Receptor": "Pulse",
-        "Domain": "@", "Activator": "ValveHeartbeat" }
     , { "From": "ZA_Reflex", "Transmitter": "ValveCmd",
         "To": "ZA_Valve", "Receptor": "Cmd",
         "Domain": "Zone_A", "Activator": "ValveActuator" }
+    , { "From": "ZA_Valve", "Transmitter": "Pulse",
+        "To": "ZA_Valve", "Receptor": "Pulse",
+        "Domain": "__INTERNAL__", "Activator": "ValveHeartbeat" }
   ],
 
   "Synapses": [

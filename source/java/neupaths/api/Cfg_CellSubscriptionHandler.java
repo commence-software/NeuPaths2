@@ -23,7 +23,8 @@ final class Cfg_CellSubscriptionHandler extends Cfg_ConfigHandler
     cellName = "__UNSPECIFIED__";
     transmitterName = "__UNSPECIFIED__";
     receptorName = "__UNSPECIFIED__";
-    domain = Syn.GLOBAL_DOMAIN;
+    domain = (subType == SubscriptionType.LOOPBACK) ?
+             Syn.INTERNAL_DOMAIN : Syn.GLOBAL_DOMAIN;
     filterTransactions = TransactionFilter.DISABLED;
   }
 

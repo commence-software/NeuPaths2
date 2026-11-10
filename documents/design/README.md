@@ -34,7 +34,7 @@ There is no central broker — routing, subscription and duplicate-filtering hap
 | **Activator** | `neupaths.api.Activator` | User-written logic. Fires only when **all** its receptors hold a stimulus (dataflow). |
 | **Receptor / Transmitter** | `Rx_Receptor` / `Tx_Transmitter` | Named, type-safe inputs / outputs of an activator. |
 | **Subscription** | `neupaths.api.SubscriptionSpec` | A wiring contract: `(producing cell C, transmitter T) ⇒ receptor R`. |
-| **Domain** | (string tag) | A namespace scoping where stimuli may travel; `@` is the global domain. |
+| **Domain** | (string tag) | A namespace scoping where stimuli may travel; `@` is the global domain, which matches any. Domain does not apply to a loopback, so one carries `__INTERNAL__` instead. |
 | **Cellular system** | `CellCluster` / mesh | A broker-less mesh of cells bound by synapses. |
 
 ## Package map

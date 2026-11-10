@@ -352,7 +352,7 @@ final class Cfg_LogicCellParser extends Cfg_CellDefinitionParser
                                          handler.name,
                                          "Pulse",
                                          "Pulse",
-                                         Syn.GLOBAL_DOMAIN,
+                                         Syn.INTERNAL_DOMAIN,
                                          a.name));
           }
         } // if using default constructor

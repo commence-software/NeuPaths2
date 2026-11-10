@@ -12,4 +12,5 @@ final class Syn
 {
   static final String SYNAPSE_NAME_DELIM = "#";
   static final String GLOBAL_DOMAIN = "@";
+  static final String INTERNAL_DOMAIN = "__INTERNAL__";
 }

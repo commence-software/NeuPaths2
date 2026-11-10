@@ -60,6 +60,34 @@
   .legend i.dash{border-top-style:dashed}
   .legend .sw{display:inline-block;width:11px;height:11px;border-radius:3px;border:1.5px solid;
               margin-right:4px;vertical-align:-1px}
+  /* producer strip — one chip per (cell, transmitter) that publishes a stimulus */
+  #stimBar{display:flex;align-items:center;gap:10px;min-width:0;padding:7px 16px;
+           background:var(--surface-2);border-bottom:1px solid var(--line)}
+  #stims{display:flex;gap:6px;flex:1;min-width:0;overflow-x:auto;
+         scrollbar-width:thin;padding-bottom:2px}
+  .stim{display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;white-space:nowrap;
+        padding:3px 8px;font:inherit;font-size:12px;border:1px solid var(--line-2);
+        border-radius:6px;background:var(--surface);color:var(--ink-2);cursor:pointer}
+  .stim:hover{border-color:var(--signal);color:var(--signal)}
+  .stim.on{background:var(--signal);border-color:var(--signal);color:#fff}
+  /* a producer whose consumers sit in more than one domain publishes across a
+     failure boundary — worth seeing without having to hover for it */
+  .stim.cross{border-left:3px solid var(--warn)}
+  .stim.on.cross{border-left-color:#FFD2AE}
+  .stim .c{color:var(--ink-3)}
+  .stim.on .c{color:#CFE0FF}
+  .stim .sep{color:var(--line-2)}
+  .stim.on .sep{color:#9CC0FF}
+  .stim .t{font-weight:600}
+  .stim .n{font-family:var(--mono);font-size:10.5px;padding:0 4px;border-radius:3px;
+           background:var(--surface-2);color:var(--ink-3)}
+  .stim.on .n{background:rgba(255,255,255,.22);color:#fff}
+  /* feedback mark — this producer also feeds itself, which reaches no cell */
+  .stim .n.fb{font-family:var(--sans);font-size:12px;line-height:1;padding:1px 4px;
+              background:var(--signal-soft);color:var(--signal)}
+  .stim.on .n.fb{background:rgba(255,255,255,.22);color:#fff}
+  #stimPulse{flex:0 0 auto;padding:3px 9px;font-size:11.5px}
+  #stimHint{flex:0 0 auto;font-size:11.5px;color:var(--ink-3)}
   svg text{font-family:var(--sans);fill:var(--ink)}
   .nlabel{font-size:12px;font-weight:600;text-anchor:middle;dominant-baseline:middle;pointer-events:none}
   .elabel{font-size:10px;fill:var(--ink-3);text-anchor:middle;paint-order:stroke;
@@ -115,6 +143,9 @@
     <button id="tabSY">System</button>
   </div>
   <label class="chk"><input type="checkbox" id="showLabels" checked> edge labels</label>
+  <label class="chk" id="stimWrap"
+         title="One chip per cell/transmitter that publishes. Hover to trace its fan-out.">
+    <input type="checkbox" id="stimToggle" checked> producers</label>
   <div class="tabs" id="sysMode" hidden
        title="Chosen to suit the topology on load — mesh when cells chain across synapses, buses when they do not. Picking either locks your choice.">
     <button id="modeMesh" class="on">Mesh</button>
@@ -126,6 +157,11 @@
   <button id="reset">Reset view</button>
   <input type="file" id="file" accept=".json" multiple hidden>
 </header>
+<div id="stimBar" hidden>
+  <div id="stims"></div>
+  <button id="stimPulse"></button>
+  <span id="stimHint"></span>
+</div>
 <main>
   <div id="stage">
     <svg id="svg"></svg>
@@ -168,6 +204,12 @@ const actOf = e => {
 /* The analyzer names the cell's own pulse transmitter "Pulse"; combined with
    the edge being a loopback that is enough to recognise a PulsedActivator. */
 const isPulse = e => e.From === e.To && /^pulse$/i.test(e.Transmitter || "");
+
+/* Cell names reach the DOM as markup in a few places. They come from a local
+   analyzer, not the network, but a name holding a bracket should still render
+   as that name rather than as an element. */
+const esc = s => String(s).replace(/[&<>"]/g,
+  c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 function buildGraph(doc){
   const nodes = new Map(), edges = [];
@@ -695,37 +737,174 @@ function render(model, showLabels){
   bounds = {x:x0, y:y0, w:x1-x0, h:y1-y0};
 
   /* Hovering either end of a connection lights the whole relationship: a cell
-     lights the synapses it is on, a synapse lights every cell attached to it. */
+     lights the synapses it is on, a synapse lights every cell attached to it.
+     The producer strip wants the same paint for a different selection, so both
+     reduce to "these edges are hot, this cell is the subject, these are its
+     counterparts" and share one painter. */
   const allNodes = [...gNode.querySelectorAll(".node")];
-  allNodes.forEach(n=>{
-    n.addEventListener("mouseenter", ()=>{
-      const id = n.getAttribute("data-id");
-      const keep = new Set(adjacency.get(id)||[]);
-      const near = nbr.get(id) || new Set();
-      gEdge.querySelectorAll("path").forEach(p=>{
-        const on = keep.has(+p.getAttribute("data-i"));
-        p.classList.toggle("hot", on);
-        p.classList.toggle("dim", !on);
-        if(on) p.setAttribute("marker-end","url(#arHot)");
-      });
-      gLab.querySelectorAll("text").forEach(t=>
-        t.classList.toggle("dim", !keep.has(+t.getAttribute("data-i"))));
-      allNodes.forEach(m=>{
-        const mid = m.getAttribute("data-id");
-        if(mid === id) m.classList.add("hot");
-        else if(near.has(mid)) m.classList.add("near");
-        else m.classList.add("faded");
-      });
-    });
-    n.addEventListener("mouseleave", ()=>{
+  function paint(keep, hotId, near){
+    if(!keep){
       gEdge.querySelectorAll("path").forEach(p=>{
         p.classList.remove("hot","dim"); p.setAttribute("marker-end","url(#ar)"); });
       gLab.querySelectorAll("text").forEach(t=>t.classList.remove("dim"));
       allNodes.forEach(m=>m.classList.remove("hot","near","faded"));
+      return;
+    }
+    gEdge.querySelectorAll("path").forEach(p=>{
+      const on = keep.has(+p.getAttribute("data-i"));
+      p.classList.toggle("hot", on);
+      p.classList.toggle("dim", !on);
+      p.setAttribute("marker-end", on ? "url(#arHot)" : "url(#ar)");
     });
+    gLab.querySelectorAll("text").forEach(t=>
+      t.classList.toggle("dim", !keep.has(+t.getAttribute("data-i"))));
+    allNodes.forEach(m=>{
+      const mid = m.getAttribute("data-id");
+      m.classList.toggle("hot",   mid === hotId);
+      m.classList.toggle("near",  mid !== hotId && near.has(mid));
+      m.classList.toggle("faded", mid !== hotId && !near.has(mid));
+    });
+  }
+  /* Published for the producer strip, which lives outside the SVG. Rebound on
+     every render, so the strip must call through the name, never cache it. */
+  HILITE = (keep, hotId, near) => paint(keep, hotId || null, near || new Set());
+
+  allNodes.forEach(n=>{
+    n.addEventListener("mouseenter", ()=>{
+      if(PIN !== null) return;            // a pinned producer owns the canvas
+      const id = n.getAttribute("data-id");
+      paint(new Set(adjacency.get(id)||[]), id, nbr.get(id) || new Set());
+    });
+    n.addEventListener("mouseleave", ()=>{ if(PIN === null) paint(null); });
   });
 
   fit();
+}
+
+/* ----------------------------------------------------- producer strip --- */
+
+let PRODS = [], PIN = null, SHOW_PULSE = false, HILITE = null;
+
+/* A producer is one (cell, transmitter) pair — the unit a stimulus is
+   published from. One transmitter can feed many receptors, in many cells,
+   through several activators, across more than one domain; that fan-out is
+   what a hover reveals and what no single edge shows.
+
+   Keyed on the transmitter port, because neupaths-topology/1 carries no
+   stimulus type. "Flow" below is the port ZA_Flow publishes on, not the type
+   travelling through it — they usually read alike, which is why the strip
+   says "producers" and not "stimuli". Emit a StimulusType per edge and this
+   can group by type instead, which would also show one type produced by
+   several cells.
+
+   The chip counts cells reached, not edges carried, so that two chips side by
+   side are comparable. A loopback reaches nothing and crosses no boundary, so
+   it feeds neither count and is reported on its own as feedback — the rule
+   buildGraph already applies to inExt/outExt.
+
+   That test is e.self, deliberately never the domain string. A loopback's
+   subscription spec has to name some domain even though domain does not apply
+   to one, and whichever placeholder it names is free to change. Nor is the
+   converse safe: an ordinary edge may legitimately sit in the global domain,
+   and there it counts as a real domain like any other. */
+function buildProducers(g){
+  const m = new Map();
+  g.edges.forEach((e,i)=>{
+    const k = e.from + "␟" + e.label;
+    let p = m.get(k);
+    if(!p){
+      p = {cell:e.from, tx:e.label, idx:[], reach:new Set(),
+           domains:new Set(), acts:new Set(), self:0, pulse:true};
+      m.set(k, p);
+    }
+    p.idx.push(i);
+    if(e.activator) p.acts.add(e.activator);
+    if(!e.pulse) p.pulse = false;   // one ordinary edge makes it a real producer
+    if(e.self) p.self++;
+    else { p.reach.add(e.to); if(e.domain) p.domains.add(e.domain); }
+  });
+  return [...m.values()].sort((a,b)=>
+      (a.pulse?1:0) - (b.pulse?1:0)      // framework self-stimulation last
+   || b.reach.size - a.reach.size        // then widest reach first
+   || b.idx.length - a.idx.length        // more edges to the same cells ranks up
+   || a.cell.localeCompare(b.cell)
+   || a.tx.localeCompare(b.tx));
+}
+
+function lightProducer(i){
+  if(!HILITE) return;
+  const p = (i === null) ? null : PRODS[i];
+  if(!p){ HILITE(null); return; }
+  /* reach excludes the producer itself, which paint() styles as the subject */
+  HILITE(new Set(p.idx), p.cell, p.reach);
+}
+
+/* Pinning survives a redraw so toggling pulses or edge labels does not drop
+   the selection the user is talking through. */
+function setPin(i){
+  PIN = i;
+  lightProducer(PIN);
+  document.querySelectorAll("#stims .stim").forEach(o=>
+    o.classList.toggle("on", PIN !== null && +o.getAttribute("data-i") === PIN));
+  document.getElementById("stimHint").textContent =
+    PIN !== null ? "pinned · Esc to clear" : "hover to trace · click to pin";
+}
+
+/* Clearing the pin is not cosmetic: node hover bails out while one is held, so
+   a pin left behind a hidden strip would deaden hovering on the other view. */
+function hideStimBar(){
+  document.getElementById("stimBar").hidden = true;
+  PIN = null;
+}
+
+function stimBar(g){
+  if(!document.getElementById("stimToggle").checked){ hideStimBar(); return; }
+  document.getElementById("stimBar").hidden = false;
+
+  const host = document.getElementById("stims");
+  const btn  = document.getElementById("stimPulse");
+
+  PRODS = buildProducers(g);
+  if(PIN !== null && !PRODS[PIN]) PIN = null;
+
+  const pulses = PRODS.filter(p=>p.pulse).length;
+  host.innerHTML = PRODS.map((p,i)=>{
+    if(p.pulse && !SHOW_PULSE) return "";
+    const rc = p.reach.size, dc = p.domains.size;
+    const via = p.acts.size ? ` via ${[...p.acts].sort().join(", ")}` : "";
+    /* A producer that only feeds itself shows the feedback mark alone — a 0
+       would read as a fault rather than as the whole point of a pulse. */
+    /* The chip counts cells; the edge count can be higher when two activators
+       subscribe to the same wire, so name both here rather than lose it. */
+    const ec = p.idx.length - p.self;
+    const tip = rc
+      ? `${esc(p.cell)} / ${esc(p.tx)} — ${ec} edge${ec===1?"":"s"} reaching ${
+         rc} cell${rc===1?"":"s"}${esc(via)}` +
+        `, domain${dc===1?"":"s"} ${esc([...p.domains].sort().join(", "))}` +
+        (p.self ? ` · and feeds itself back` : "")
+      : `${esc(p.cell)} / ${esc(p.tx)} — feeds only itself${esc(via)}, reaching no other cell`;
+    return `<button class="stim${dc > 1 ? " cross" : ""}" data-i="${i}" title="${tip}"
+      ><span class="c">${esc(p.cell)}</span><span class="sep">·</span
+      ><span class="t">${esc(p.tx)}</span>${
+      rc ? `<span class="n">${rc}</span>` : ""}${
+      p.self ? '<span class="n fb">↻</span>' : ""}</button>`;
+  }).join("");
+
+  btn.hidden = !pulses;
+  btn.classList.toggle("on", SHOW_PULSE);
+  btn.textContent = `${SHOW_PULSE ? "hide" : "show"} ${pulses} pulse`;
+  btn.title = "Self-stimulating PulsedActivator loopbacks. Each is already drawn "
+            + "as an arc over its own cell and fans out to nothing, so they are "
+            + "folded away by default.";
+
+  host.querySelectorAll(".stim").forEach(b=>{
+    const i = +b.getAttribute("data-i");
+    b.onmouseenter = ()=>{ if(PIN === null) lightProducer(i); };
+    b.onmouseleave = ()=>{ if(PIN === null) lightProducer(null); };
+    b.onclick      = ()=>setPin(PIN === i ? null : i);
+  });
+
+  setPin(PIN);    // re-apply a surviving pin, and set the hint either way
 }
 
 /* ------------------------------------------------------------ findings --- */
@@ -1036,7 +1215,14 @@ function emptyState(){
 function draw(){
   const showLabels = document.getElementById("showLabels").checked;
   indexTypes(DOC);
-  if(emptyState()){ findings(DOC); return; }
+  /* Producers are a property of the dataflow, so the control goes with it. */
+  document.getElementById("stimWrap").hidden = (tab !== "df");
+  if(emptyState()){
+    hideStimBar();
+    HILITE = null;
+    findings(DOC);
+    return;
+  }
   if(tab === "df"){
     const g = buildGraph(DOC);
     const L = layoutDataflow(g);
@@ -1046,7 +1232,9 @@ function draw(){
       '<span><span class="sw" style="background:#5BA46F;border-color:#5BA46F;border-radius:50%"></span>ingress' +
       '<span class="sw" style="background:#C8793F;border-color:#C8793F;border-radius:50%;margin-left:8px"></span>egress</span>' +
       '<span><i style="border-color:var(--ink-3)"></i>stimulus flows this way</span>';
+    stimBar(g);
   } else if(sysMode === "mesh"){
+    hideStimBar();
     /* Cell-to-cell interconnection. Same SCC-aware layout as the dataflow
        view, because it is the same kind of object: a directed graph of cells
        that may contain cycles. */
@@ -1061,6 +1249,7 @@ function draw(){
       (mesh.components.length > 1 ? `<span>${mesh.components.length} islands</span>` : "") +
       '<span><i class="dash"></i>peer dials listener (both ways once open)</span>';
   } else {
+    hideStimBar();
     const L = layoutSystem(DOC);
     L.mesh = meshAnalysis(DOC);
     render(L, showLabels);
@@ -1118,6 +1307,11 @@ document.getElementById("tabDF").onclick = ()=>setTab("df", true);
 document.getElementById("tabSY").onclick = ()=>setTab("sy", true);
 window.addEventListener("hashchange", ()=>setTab(/system/i.test(location.hash) ? "sy" : "df", false));
 document.getElementById("showLabels").onchange = draw;
+document.getElementById("stimToggle").onchange = ()=>{ PIN = null; draw(); };
+document.getElementById("stimPulse").onclick = ()=>{ SHOW_PULSE = !SHOW_PULSE; draw(); };
+/* Esc unpins without a redraw — re-rendering would refit the view and throw
+   away whatever the user had panned to. */
+window.addEventListener("keydown", e=>{ if(e.key === "Escape" && PIN !== null) setPin(null); });
 document.getElementById("reset").onclick = fit;
 document.getElementById("pick").onclick = ()=>document.getElementById("file").click();
 document.getElementById("emptyPick").onclick = ()=>document.getElementById("file").click();
@@ -1139,6 +1333,7 @@ function ingest(files){
       if(obj.Format && !/^neupaths-topology\/1\b/.test(obj.Format))
         throw new Error(`unsupported Format "${obj.Format}" — this viewer reads neupaths-topology/1`);
       DOC = obj;
+      PIN = null;              // producer indices belong to the old document
       pickSysMode(DOC);
     }catch(err){
       DOC = {}; loadError = `${f.name}: ${err.message}`;

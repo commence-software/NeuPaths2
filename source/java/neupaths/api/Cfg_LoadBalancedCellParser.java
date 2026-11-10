@@ -404,7 +404,7 @@ final class Cfg_LoadBalancedCellParser extends Cfg_CellDefinitionParser
                                          handler.name,
                                          "Pulse",
                                          "Pulse",
-                                         Syn.GLOBAL_DOMAIN,
+                                         Syn.INTERNAL_DOMAIN,
                                          a.name));
           }
           

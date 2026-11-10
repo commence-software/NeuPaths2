@@ -56,7 +56,7 @@ public final class LogicLoopbackSubscriptionSpec extends LogicSubscriptionSpec
           "N/A",
           transmitterName,
           receptorName,
-          Syn.GLOBAL_DOMAIN,
+          Syn.INTERNAL_DOMAIN,
           TransactionFilter.DISABLED);
   }
 
@@ -82,7 +82,7 @@ public final class LogicLoopbackSubscriptionSpec extends LogicSubscriptionSpec
           "N/A",
           transmitterName,
           receptorName,
-          Syn.GLOBAL_DOMAIN,
+          Syn.INTERNAL_DOMAIN,
           filterTransactions);
   }
 }

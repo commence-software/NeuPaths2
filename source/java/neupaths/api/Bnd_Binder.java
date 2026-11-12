@@ -166,10 +166,12 @@ abstract class Bnd_Binder
     {
       peerInfoMutex.unlock();
     }
+
+    setState(CellState.OFFLINE);
   }
 
   void
-  send (UUID synapseInstanceID, Msg_NeuPaths msg)
+  send (UUID synapseInstanceID, Msg_NeuPaths msg) throws Excp_SynapseFatal
   {
     String threadName = cellName + " (" + cellInstanceID + ") on " + synName;
 
@@ -184,13 +186,6 @@ abstract class Bnd_Binder
         {
           msg.departureSynapseInstanceID = peerInfo.toPeerSynapse.getInstanceID();
           peerInfo.toPeerSynapse.send(msg);
-        }
-        catch (Excp_SynapseFatal tfe)
-        {
-          nucleus.getCell().logEvent(EventType.ERROR,
-                                     threadName,
-                                     "Failed to send message on synapse " + synapseInstanceID,
-                                     tfe);
         }
         finally
         {

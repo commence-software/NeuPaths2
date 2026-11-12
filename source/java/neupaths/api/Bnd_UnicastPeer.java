@@ -474,7 +474,19 @@ final class Bnd_UnicastPeer extends Bnd_Binder
           Msg_Leave leaveMsg = new Msg_Leave(cellInstanceID,
                                              cellName,
                                              instanceID);
-          send(receiveSynapse.getInstanceID(), leaveMsg);
+          
+          try
+          {
+            send(receiveSynapse.getInstanceID(), leaveMsg);
+          }
+          catch (Excp_SynapseFatal sfe)
+          {
+            nucleus.getCell().logEvent(EventType.ERROR,
+                                       getName(),
+                                       "Failed to send message on synapse " +
+                                         receiveSynapse.getInstanceID(),
+                                       sfe);
+          }
         }
         
         terminatePeer(peerInfo, getName());

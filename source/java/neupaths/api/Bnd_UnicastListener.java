@@ -183,7 +183,8 @@ final class Bnd_UnicastListener extends Bnd_Binder
       {
         nucleus.getCell().logEvent(EventType.ERROR,
                                    getName(),
-                                   "Could not open listen synapse",
+                                   "Could not open listen synapse " +
+                                     listenAddress,
                                    tfe);
 
         // Terminate thread
@@ -510,7 +511,19 @@ final class Bnd_UnicastListener extends Bnd_Binder
           Msg_Leave leaveMsg = new Msg_Leave(cellInstanceID,
                                              cellName,
                                              instanceID);
-          send(peerInfo.fromPeerSynapse.getInstanceID(), leaveMsg);
+
+          try
+          {
+            send(peerInfo.fromPeerSynapse.getInstanceID(), leaveMsg);
+          }
+          catch (Excp_SynapseFatal sfe)
+          {
+            nucleus.getCell().logEvent(EventType.ERROR,
+                                       getName(),
+                                       "Failed to send message on synapse " +
+                                         peerInfo.fromPeerSynapse.getInstanceID(),
+                                       sfe);
+          }
         }
         
         terminatePeer(peerInfo, getName());

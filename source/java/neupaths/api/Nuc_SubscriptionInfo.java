@@ -33,14 +33,14 @@ final class Nuc_SubscriptionInfo
   {
     cellName = msg.producerCellName;
     transmitterName = msg.producerTransmitterName;
-    domain = Syn.GLOBAL_DOMAIN;
+    domain = Syn.INTERNAL_DOMAIN;
   }
 
   Nuc_SubscriptionInfo (Stimulus stimulus)
   {
     cellName = stimulus.getProducerCellName();
     transmitterName = stimulus.getProducerTransmitterName();
-    domain = Syn.GLOBAL_DOMAIN;
+    domain = Syn.INTERNAL_DOMAIN;
   }
   
   boolean

@@ -343,11 +343,13 @@ public class IssueCommandToDaemon
       String synapseName = arguments.get("opt1");
       String command     = arguments.get("opt2");
 
+      System.out.println("Contacting daemon at synapse " + synapseName);
+      
       // Override the domain if necessary
       SynapseSpec synapseSpec = new SynapseSpec(synapseName);
       if (!synapseSpec.getDomain().equals("Daemon:Ctrl"))
       {
-        System.out.println("Overriding domain ...");
+        System.out.println("  Overriding domain ...");
         synapseSpec.updateDomain("Daemon:Ctrl");
       }
 
@@ -400,21 +402,26 @@ public class IssueCommandToDaemon
       commandInjector.enableTraceLogging();
       responseExtractor.enableTraceLogging();
 
-//      commandRouter.enableDebugOutputLogging();
-//      commandInjector.enableDebugOutputLogging();
-//      responseExtractor.enableDebugOutputLogging();
+      //commandRouter.enableRuntimeLogging();
+      //commandRouter.enableDebugOutputLogging();
+      //commandInjector.enableDebugOutputLogging();
+      //responseExtractor.enableDebugOutputLogging();
 
       // Start the cells
       commandRouter.start();
       commandInjector.start();
       responseExtractor.start();
 
-      System.out.println("Joining the cell system ...");
+      System.out.println("  Joining the cell system ...");
 
       // Give cluster time to initialize
-      try {Thread.sleep(3000);} catch (InterruptedException ie) { /* ignore */ }
+      try {Thread.sleep(3500);} catch (InterruptedException ie) { /* ignore */ }
+
+      String commandInfo = "";
+      for (int i = 2; i <= optCnt; i++)
+        commandInfo += (arguments.get("opt" + i) + " ");
       
-      System.out.println("Issuing command ...");
+      System.out.println("  Issuing command: " + commandInfo + " ...");
 
       // Issue the command
       if (command.equals("list") &&
@@ -542,11 +549,11 @@ public class IssueCommandToDaemon
         }
         else if (response.succeeded)
         {
-          System.out.println("Command successful");
+          System.out.println("  Command successful");
         }
         else
         {
-          System.out.println("ERROR: " + response.errorInfo);
+          System.out.println("  ERROR: " + response.errorInfo);
         }
       }
       else if (command.equals("start") &&
@@ -1002,11 +1009,11 @@ public class IssueCommandToDaemon
     }
     else if (response.succeeded)
     {
-      System.out.println("Command successful");
+      System.out.println("  Command successful");
     }
     else
     {
-      System.out.println("ERROR: " + response.errorInfo);
+      System.out.println(  "ERROR: " + response.errorInfo);
     }
   }
 
@@ -1032,11 +1039,11 @@ public class IssueCommandToDaemon
     }
     else if (response.succeeded)
     {
-      System.out.println("Command successful");
+      System.out.println("  Command successful");
     }
     else
     {
-      System.out.println("ERROR: " + response.errorInfo);
+      System.out.println("  ERROR: " + response.errorInfo);
     }
   }
 }

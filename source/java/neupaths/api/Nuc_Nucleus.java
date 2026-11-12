@@ -457,7 +457,11 @@ final class Nuc_Nucleus
     peerMutex.lock();
     try
     {
-      peerMap.remove(synapseInstanceID);
+      Nuc_PeerInfo peerInfo = peerMap.remove(synapseInstanceID);
+
+      cell.logEvent(EventType.RUNTIME,
+                    cellName + " (" + cellInstanceID + ") Nucleus Main",
+                    "RUNTIME;NUCLEUS;LEAVE;1;" + synapseInstanceID + ";peer:" + peerInfo);
     }
     finally
     {
@@ -1177,7 +1181,7 @@ final class Nuc_Nucleus
     public void run ()
     {
       Nuc_Transmit msgEntry = null;
-      
+
       ProcessLoop:
       while (terminate.isNotSet())
       {
@@ -1201,27 +1205,41 @@ final class Nuc_Nucleus
         {
           xmitQueueMutex.unlock();
         }
-        
-        peerMutex.lock();
+
         try
         {
-          Nuc_PeerInfo peerInfo = peerMap.get(msgEntry.synapseInstanceID);
+          peerMutex.lock();
+          try
+          {
+            Nuc_PeerInfo peerInfo = peerMap.get(msgEntry.synapseInstanceID);
 
-          if (peerInfo != null)
-          {
-            Bnd_Binder binder = binders.get(peerInfo.binderInstanceID);
-            binder.send(msgEntry.synapseInstanceID, msgEntry.msg);
+            if (peerInfo != null)
+            {
+              Bnd_Binder binder = binders.get(peerInfo.binderInstanceID);
+
+              binder.send(msgEntry.synapseInstanceID, msgEntry.msg);
+            }
+            else
+            {
+              cell.logEvent(EventType.ERROR,
+                            getName(),
+                            "Peer not found: " + msgEntry.synapseInstanceID);
+            }
           }
-          else
+          finally
           {
-            cell.logEvent(EventType.ERROR,
-                          getName(),
-                          "Peer not found: " + msgEntry.synapseInstanceID);
+            peerMutex.unlock();
           }
         }
-        finally
+        catch (Excp_SynapseFatal sfe)
         {
-          peerMutex.unlock();
+          cell.logEvent(EventType.ERROR,
+                        getName(),
+                        "Failed to send message on synapse " +
+                          msgEntry.synapseInstanceID,
+                        sfe);
+  
+          handlePeerLeave(msgEntry.synapseInstanceID);
         }
         
       }  // ProcessLoop: while (terminate.isNotSet())

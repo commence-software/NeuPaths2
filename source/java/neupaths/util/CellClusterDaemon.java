@@ -194,11 +194,12 @@ public class CellClusterDaemon
       daemonCell.disableGlobalSubscriptionPropagation();
 
       //daemonCell.enableSystemLogging();
+      //daemonCell.enableDebugOutputLogging();
 
       // Create the event cell
       EventCell eventCell = new EventCell("DaemonEvents",
                                           internalPeerSynapse.toString(),
-                                          "daemonEvents.out",
+                                          daemonName + "_events.out",
                                           cryptoKey);
 
       // Turn on trace logging for daemon

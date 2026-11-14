@@ -34,7 +34,7 @@ class DaemonCmdActv extends Activator
               new LogicSubscriptionSpec(".*",
                                         Daemon.COMMAND_REQ_TRANSMITTER,
                                         "Command",
-                                        "Daemon:Ctrl",
+                                        Dmn.CONTROL_DOMAIN,
                                         TransactionFilter.DISABLED)
           });
 

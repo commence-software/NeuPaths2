@@ -146,10 +146,10 @@ public class CellClusterDaemon
 
       // Override the domain if necessary
       SynapseSpec daemonSynapseSpec = new SynapseSpec(synapseName);
-      if (!daemonSynapseSpec.getDomain().equals("Daemon:Ctrl"))
+      if (!daemonSynapseSpec.getDomain().equals(Dmn.CONTROL_DOMAIN))
       {
         System.out.println("Overriding domain ...");
-        daemonSynapseSpec.updateDomain("Daemon:Ctrl");
+        daemonSynapseSpec.updateDomain(Dmn.CONTROL_DOMAIN);
       }
 
       // Create a random UUID to be used in daemon cell and temporary file names
@@ -165,7 +165,8 @@ public class CellClusterDaemon
       internalTmpFile.delete();
 
       // Create internal synapse name
-      String internalSynapseName = "Local#Stream#Listener#Daemon:Ctrl#" +
+      String internalSynapseName = "Local#Stream#Listener#" +
+                                   Dmn.CONTROL_DOMAIN + "#" +
                                    internalSynapseFileName;
 
       SynapseSpec internalPeerSynapse = new SynapseSpec(internalSynapseName);

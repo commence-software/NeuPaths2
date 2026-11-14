@@ -347,10 +347,10 @@ public class IssueCommandToDaemon
       
       // Override the domain if necessary
       SynapseSpec synapseSpec = new SynapseSpec(synapseName);
-      if (!synapseSpec.getDomain().equals("Daemon:Ctrl"))
+      if (!synapseSpec.getDomain().equals(Dmn.CONTROL_DOMAIN))
       {
         System.out.println("  Overriding domain ...");
-        synapseSpec.updateDomain("Daemon:Ctrl");
+        synapseSpec.updateDomain(Dmn.CONTROL_DOMAIN);
       }
 
       // Create a random UUID to be used in temporary file names
@@ -366,7 +366,8 @@ public class IssueCommandToDaemon
       internalTmpFile.delete();
 
       // Create internal synapse name
-      String internalSynapseName = "Local#Stream#Listener#Daemon:Ctrl#" +
+      String internalSynapseName = "Local#Stream#Listener#" +
+                                   Dmn.CONTROL_DOMAIN + "#" +
                                    internalSynapseFileName;
 
       SynapseSpec internalPeerSynapse = new SynapseSpec(internalSynapseName);
@@ -395,7 +396,7 @@ public class IssueCommandToDaemon
                             internalPeerSynapse.toString(),
                             new ExtractorSubscriptionSpec(".*",
                                                           Daemon.COMMAND_RSP_TRANSMITTER,
-                                                          "Daemon:Ctrl"),
+                                                          Dmn.CONTROL_DOMAIN),
                             cryptoKey);
 
       commandRouter.enableTraceLogging();

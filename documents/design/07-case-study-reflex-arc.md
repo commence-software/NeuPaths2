@@ -190,7 +190,7 @@ WATCHDOG: sensor ZA_Flow RECOVERED
 | `ZA_Reflex` · `Anomaly` | loopback `(Anomaly → Anomaly)` | — | `LogicLoopbackSubscriptionSpec`; BurstDetector → ValveGuard inside the cell. |
 | `ZA_Reflex` · `ValveState` | `(ZA_Valve, ValveState)` | `Zone_A` | |
 | `ZA_Valve` · `Cmd` | `(ZA_Reflex, ValveCmd)` **and** `(OpsConsoleIn, ValveCmd)` | `Zone_A` | Two subscriptions, one receptor — reflex and operator override aggregate. |
-| `OpsTrend` · `Pressure` etc. | `(.*_Pressure, Pressure)` … | `Ops` | **Regex fleet aggregation**: one subscription covers Zone A today and Zone B tomorrow. |
+| `OpsTrend` · `Pressure` etc. | `(.*_Pressure, Pressure)` … | `Ops` | **Regex fleet aggregation**: one subscription covers Zone A today and Zone B tomorrow. The wildcard is only half of it — every zone lands on the same two receptors, so `TrendAnalyzer` recovers the zone from `getProducerCellName()` and keeps an accumulator per zone. Without that the reported average is the mean of two independent plants. |
 | `OpsConsoleOut` | `(.*_Reflex\|OpsTrend, Anomaly\|Leak\|SensorAlarm\|Trend)` | `Ops` | One extractor subscription; the dashboard sees every zone. |
 | `ZA_Bridge1/2` (bridge subs) | `(ZA_.*, telemetry regex)` from `Zone_A`; `(OpsConsoleIn, ValveCmd)` from `Ops` | — | Pull telemetry out of the zone and overrides into it; the bridges then forward per subscriptions learned from each side. |
 
@@ -276,7 +276,7 @@ As run: with both bridges dead, the scripted burst produced
 `REFLEX: closing valve on Anomaly(Zone_A PRESSURE_FLOW_DIVERGENCE severity=3.03)` and
 `valve.pos: CLOSED` while the Ops event log stayed flat; after `chaos.sh heal`, trends
 resumed at Ops within seconds showing post-closure physics
-(`TREND: avg pressure 6.43 bar …`).
+(`TREND: Zone_A avg pressure 6.43 bar …`).
 
 The reconnect behavior deserves narration: a broker-based system that was down for two
 minutes replays two minutes of stale queue at the consumer. The mesh comes back with

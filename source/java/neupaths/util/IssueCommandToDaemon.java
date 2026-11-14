@@ -545,7 +545,7 @@ public class IssueCommandToDaemon
 
         if (response == null)
         {
-          System.out.println("ERROR: Daemon unresponsive.");
+          System.out.println("  ERROR: Daemon unresponsive.");
         }
         else if (response.succeeded)
         {
@@ -951,7 +951,7 @@ public class IssueCommandToDaemon
       }
       else
       {
-        System.out.println("ERROR: Illegal command.");
+        System.out.println("  ERROR: Illegal command.");
         printUsage();
       }
 
@@ -973,7 +973,7 @@ public class IssueCommandToDaemon
     }
     catch (NeuPathsException bre)
     {
-      System.out.println("ERROR: Session failed: " + bre);
+      System.out.println("  ERROR: Session failed: " + bre);
       System.exit(1);
     }
 
@@ -1005,7 +1005,7 @@ public class IssueCommandToDaemon
 
     if (response == null)
     {
-      System.out.println("ERROR: Daemon unresponsive.");
+      System.out.println("  ERROR: Daemon unresponsive.");
     }
     else if (response.succeeded)
     {
@@ -1035,7 +1035,7 @@ public class IssueCommandToDaemon
 
     if (response == null)
     {
-      System.out.println("ERROR: Daemon unresponsive.");
+      System.out.println("  ERROR: Daemon unresponsive.");
     }
     else if (response.succeeded)
     {
